@@ -86,17 +86,17 @@ export default function Footer() {
             transition={{ delay: 0.3 }}
           >
             <h3 className="font-semibold text-white mb-4">Find Us</h3>
-            <div className="rounded-xl overflow-hidden border border-[#27272a] aspect-[4/3]">
+            <a href={storeInfo.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="block rounded-xl overflow-hidden border border-[#27272a] aspect-[4/3] hover:border-[#f97316]/50 transition-colors">
               <iframe
                 title="Tap C Silogan Location"
                 src={storeInfo.googleMapsEmbed}
-                className="w-full h-full"
+                className="w-full h-full pointer-events-none"
                 style={{ filter: 'invert(0.9) hue-rotate(180deg)' }}
                 allowFullScreen=""
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />
-            </div>
+            </a>
           </motion.div>
         </div>
       </div>
