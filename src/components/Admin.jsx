@@ -28,6 +28,7 @@ export default function Admin() {
   const [aboutImages, setAboutImages] = useState([])
   const [uploadingAbout, setUploadingAbout] = useState(false)
   const [aboutFile, setAboutFile] = useState(null)
+  const [uploadError, setUploadError] = useState('')
 
   const logout = () => {
     localStorage.removeItem('admin_token')
@@ -66,17 +67,19 @@ export default function Admin() {
 
   const handleUploadAbout = async () => {
     if (!aboutFile) return
+    setUploadError('')
     setUploadingAbout(true)
     try {
       const fd = new FormData()
       fd.append('image', aboutFile)
       const res = await fetch(api('/api/about'), { method: 'POST', headers: adminHeaders(), body: fd })
       if (res.status === 401) { logout(); return }
-      if (!res.ok) throw new Error('Upload failed')
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { setUploadError(data.error || 'Upload failed'); return }
       setAboutFile(null)
       fetchAboutImages()
     } catch (err) {
-      console.error(err)
+      setUploadError(err.message)
     } finally {
       setUploadingAbout(false)
     }
@@ -408,12 +411,13 @@ export default function Admin() {
               <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors">
                 <Upload className="w-4 h-4 shrink-0" />
                 <span className="truncate">{aboutFile ? aboutFile.name : 'Choose image'}</span>
-                <input type="file" accept="image/*" onChange={e => setAboutFile(e.target.files[0])} className="hidden" />
+                <input type="file" accept="image/*" onChange={e => { setAboutFile(e.target.files[0]); setUploadError('') }} className="hidden" />
               </label>
               <button onClick={handleUploadAbout} disabled={!aboutFile || uploadingAbout} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">
                 {uploadingAbout ? 'Uploading...' : 'Upload'}
               </button>
             </div>
+            {uploadError && <p className="text-red-400 text-xs mb-4">{uploadError}</p>}
 
             {aboutImages.length === 0 && (
               <p className="text-sm text-[#71717a] text-center py-6">No images uploaded yet.</p>

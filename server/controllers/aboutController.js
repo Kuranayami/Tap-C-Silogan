@@ -2,8 +2,8 @@ import { getAllImages, addImage, removeImage } from '../services/about.js'
 import { saveFile, deleteFile } from '../services/storage.js'
 
 const MIME_TO_EXT = {
-  'image/jpeg': '.jpg', 'image/png': '.png',
-  'image/webp': '.webp', 'image/gif': '.gif',
+  'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png',
+  'image/webp': '.webp', 'image/gif': '.gif', 'image/bmp': '.bmp',
 }
 
 const ALLOWED_TYPES = Object.keys(MIME_TO_EXT)
