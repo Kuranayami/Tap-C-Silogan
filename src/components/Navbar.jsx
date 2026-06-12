@@ -12,7 +12,10 @@ const links = [
 
 function scrollTo(id) {
   const el = document.getElementById(id)
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    location.hash = id
+  }
 }
 
 export default function Navbar() {
