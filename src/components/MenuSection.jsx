@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ShoppingCart } from 'lucide-react'
 import { menuItems as localMenu, addons } from '../data/menu'
@@ -26,6 +26,8 @@ export default function MenuSection() {
   const [addingId, setAddingId] = useState(null)
   const [selectedAddons, setSelectedAddons] = useState({})
   const [menuItems, setMenuItems] = useState(localMenu)
+  const [extraOpen, setExtraOpen] = useState(null)
+  const extraRef = useRef(null)
 
   useEffect(() => {
     fetch(api('/api/menu'))
@@ -33,6 +35,13 @@ export default function MenuSection() {
       .then(data => { if (data) setMenuItems(data) })
       .catch(() => {})
   }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (extraRef.current && !extraRef.current.contains(e.target)) setExtraOpen(null)
+    }
+    if (extraOpen) { document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside) }
+  }, [extraOpen])
 
   const visible = menuItems.filter(m => m.active !== false)
   const filtered = activeCategory === 'all'
@@ -142,23 +151,42 @@ export default function MenuSection() {
                       )}
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {addons.map(addon => {
-                      const isSelected = (selectedAddons[item.id] || []).find(a => a.id === addon.id)
-                      return (
-                        <button
-                          key={addon.id}
-                          onClick={(e) => { e.stopPropagation(); toggleAddon(item.id, addon) }}
-                          className={`text-[10px] px-2 py-0.5 rounded-md border transition-all ${
-                            isSelected
-                              ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]'
-                              : 'border-[#27272a] text-[#71717a] hover:text-[#a1a1aa]'
-                          }`}
-                        >
-                          +{addon.name} ₱{addon.price}
-                        </button>
-                      )
-                    })}
+                  <div className="relative mt-2" ref={extraRef}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setExtraOpen(extraOpen === item.id ? null : item.id) }}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
+                        (selectedAddons[item.id] || []).length > 0
+                          ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]'
+                          : 'border-[#27272a] text-[#71717a] hover:text-[#a1a1aa]'
+                      }`}
+                    >
+                      {(selectedAddons[item.id] || []).length > 0
+                        ? `Extra (${(selectedAddons[item.id] || []).length})`
+                        : '+ Extra'}
+                    </button>
+                    {extraOpen === item.id && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="absolute bottom-full left-0 mb-1 bg-[#202024] border border-[#27272a] rounded-xl p-2 shadow-xl shadow-black/40 min-w-[160px] z-10"
+                      >
+                        {addons.map(addon => {
+                          const isSelected = (selectedAddons[item.id] || []).find(a => a.id === addon.id)
+                          return (
+                            <button
+                              key={addon.id}
+                              onClick={(e) => { e.stopPropagation(); toggleAddon(item.id, addon) }}
+                              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                                isSelected ? 'bg-[#f97316]/20 text-[#f97316]' : 'text-[#a1a1aa] hover:text-white hover:bg-[#18181b]'
+                              }`}
+                            >
+                              <span>{addon.name}</span>
+                              <span className="font-medium">₱{addon.price}</span>
+                            </button>
+                          )
+                        })}
+                      </motion.div>
+                    )}
                   </div>
                 </div>
               </motion.div>
