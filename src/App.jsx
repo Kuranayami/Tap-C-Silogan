@@ -33,7 +33,7 @@ export default function App() {
 
   return (
     <CartProvider>
-      <div className="min-h-screen bg-[#09090b] text-[#fafafa]">
+      <div className="min-h-screen bg-[#09090b] text-[#fafafa] overflow-x-hidden">
         <Navbar />
         <Hero />
         <MenuSection />
