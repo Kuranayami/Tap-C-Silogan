@@ -95,7 +95,7 @@ export default function Footer() {
               <MapPin className="w-10 h-10 text-[#f97316] group-hover:scale-110 transition-transform" />
               <div className="text-center">
                 <p className="text-sm font-medium text-white">{storeInfo.address}</p>
-                <p className="text-xs text-[#71717a] mt-1">Open in Google Maps</p>
+                <p className="text-xs text-[#71717a] mt-1">View in Google Maps</p>
               </div>
             </a>
           </motion.div>
