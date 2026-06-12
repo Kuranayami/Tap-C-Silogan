@@ -35,5 +35,5 @@ export const storeInfo = {
   phone: '0926 339 5122',
   priceRange: '₱1–200 per person',
   googleMapsUrl: 'https://maps.app.goo.gl/PEzstxVhb79SoARM7',
-  googleMapsEmbed: 'https://www.google.com/maps?q=38+1800+E+Abello+Marikina&output=embed',
+  googleMapsEmbed: 'https://www.google.com/maps?q=14.621093,121.080101&output=embed',
 }
