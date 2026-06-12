@@ -1,8 +1,14 @@
 import { getMenu, addMenuItem, updateMenuItem, removeMenuItem } from '../services/supabase.js'
+import { saveFile, deleteFile } from '../services/storage.js'
 
+const MIME_TO_EXT = {
+  'image/jpeg': '.jpg', 'image/png': '.png',
+  'image/webp': '.webp', 'image/gif': '.gif',
+}
+
+const ALLOWED_TYPES = Object.keys(MIME_TO_EXT)
 const VALID_CATEGORIES = ['ulam', 'silog', 'shake', 'solo']
 const MAX_NAME_LENGTH = 100
-const MAX_CATEGORY_LENGTH = 20
 
 export async function getMenuItems(req, res) {
   try {
@@ -30,7 +36,17 @@ export async function createMenuItem(req, res) {
     if (!Number.isFinite(priceNum) || priceNum < 0) {
       return res.status(400).json({ error: 'Price must be a valid non-negative number' })
     }
-    const image = req.file ? '/uploads/' + req.file.filename : null
+
+    let image = null
+    if (req.file) {
+      const ext = MIME_TO_EXT[req.file.mimetype] || '.bin'
+      if (!ALLOWED_TYPES.includes(req.file.mimetype)) {
+        return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
+      }
+      const filename = Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
+      image = await saveFile(filename, req.file.buffer, req.file.mimetype)
+    }
+
     const item = await addMenuItem({ name: name.trim(), price: priceNum, category, image })
     res.status(201).json(item)
   } catch (err) {
@@ -63,7 +79,11 @@ export async function editMenuItem(req, res) {
       }
       data.category = category
     }
-    if (req.file) data.image = '/uploads/' + req.file.filename
+    if (req.file) {
+      const ext = MIME_TO_EXT[req.file.mimetype] || '.bin'
+      const filename = Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
+      data.image = await saveFile(filename, req.file.buffer, req.file.mimetype)
+    }
 
     const item = await updateMenuItem(id, data)
     if (!item) return res.status(404).json({ error: 'Item not found' })
@@ -79,6 +99,7 @@ export async function deleteMenuItem(req, res) {
     const { id } = req.params
     const item = await removeMenuItem(id)
     if (!item) return res.status(404).json({ error: 'Item not found' })
+    if (item.image) deleteFile(item.image)
     res.json({ message: 'Item deleted', item })
   } catch (err) {
     console.error('deleteMenuItem error:', err)
