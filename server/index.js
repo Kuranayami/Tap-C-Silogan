@@ -47,20 +47,15 @@ if (isProduction) {
   })
 }
 
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:4173',
-  'http://localhost:5000',
-]
-
 const prodOrigin = process.env.ALLOWED_ORIGIN
-if (prodOrigin) allowedOrigins.push(prodOrigin.replace(/\/$/, ''))
 
 app.use(cors({
   origin(origin, cb) {
     if (isProduction && !origin) return cb(null, false)
-    if (!origin || allowedOrigins.includes(origin)) cb(null, true)
-    else cb(null, false)
+    if (!origin) return cb(null, true)
+    if (prodOrigin && origin.replace(/\/$/, '') === prodOrigin.replace(/\/$/, '')) return cb(null, true)
+    if (origin.startsWith('http://localhost')) return cb(null, true)
+    cb(null, false)
   },
 }))
 app.use(express.json({ limit: '1mb' }))
