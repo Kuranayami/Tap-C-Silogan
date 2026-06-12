@@ -109,7 +109,7 @@ export async function placeOrder(req, res) {
 
 export async function getOrders(req, res) {
   try {
-    const orders = getAllOrders()
+    const orders = await getAllOrders()
     res.json(orders)
   } catch (err) {
     console.error('getOrders error:', err)
@@ -134,9 +134,9 @@ export async function updateOrder(req, res) {
     const { id } = req.params
     const { status } = req.body
 
-    const VALID_STATUSES = ['pending', 'done']
+    const VALID_STATUSES = ['pending', 'ongoing', 'in_delivery', 'done']
     if (!status || !VALID_STATUSES.includes(status.toLowerCase())) {
-      return res.status(400).json({ error: 'Status must be "pending" or "done"' })
+      return res.status(400).json({ error: 'Status must be pending, ongoing, in_delivery, or done' })
     }
 
     const order = updateOrderStatus(id, status.toLowerCase())

@@ -42,7 +42,13 @@ function saveOrders() {
   writeJSON(ORDERS_FILE, inMemoryOrders)
 }
 
-export function getAllOrders() {
+export async function getAllOrders() {
+  if (hasSupabase) {
+    try {
+      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
+      if (!error && data) return data
+    } catch (e) { console.warn('Supabase orders fetch failed:', e.message) }
+  }
   return [...inMemoryOrders]
 }
 
@@ -69,7 +75,13 @@ export async function createOrder(orderData) {
   return { data: order, error: null }
 }
 
-export function updateOrderStatus(id, status) {
+export async function updateOrderStatus(id, status) {
+  if (hasSupabase) {
+    try {
+      const { data, error } = await supabase.from('orders').update({ status }).eq('id', id).select().single()
+      if (!error && data) { inMemoryOrders = inMemoryOrders.map(o => o.id === id ? { ...o, status } : o); return data }
+    } catch (e) { console.warn('Supabase status update failed:', e.message) }
+  }
   const order = inMemoryOrders.find(o => o.id === id)
   if (!order) return null
   order.status = status

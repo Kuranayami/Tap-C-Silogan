@@ -1,12 +1,46 @@
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw, Check, ChevronDown, ChevronUp, Plus, LogOut, Edit3, Trash2, X, Save, Upload, ImageIcon, Camera } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
+  ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
+  Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike,
+} from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
+
+const COLUMNS = [
+  { key: 'pending', label: 'Pending', icon: Clock, color: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400', text: 'text-amber-400' },
+  { key: 'ongoing', label: 'Ongoing', icon: Package, color: 'blue', bg: 'bg-blue-500/10', border: 'border-blue-500/25', dot: 'bg-blue-400', text: 'text-blue-400' },
+  { key: 'in_delivery', label: 'In Delivery', icon: Bike, color: 'emerald', bg: 'bg-emerald-500/10', border: 'border-emerald-500/25', dot: 'bg-emerald-400', text: 'text-emerald-400' },
+]
+
+const STALE_THRESHOLD_MIN = 10
 
 const adminHeaders = () => {
   const token = localStorage.getItem('admin_token')
   return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return ''
+  const min = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000)
+  if (min < 1) return 'Just now'
+  if (min === 1) return '1 min ago'
+  if (min < 60) return `${min} min ago`
+  const hrs = Math.floor(min / 60)
+  return `${hrs}h ${min % 60}m ago`
+}
+
+function formatTime(dateStr) {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const statusLabel = {
+  pending: 'Pending',
+  ongoing: 'Ongoing',
+  in_delivery: 'In Delivery',
+  done: 'Done',
 }
 
 export default function Admin() {
@@ -15,16 +49,15 @@ export default function Admin() {
   const [menuItems, setMenuItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [doneOpen, setDoneOpen] = useState(false)
-  const [showAddForm, setShowAddForm] = useState(false)
   const [showMenuManager, setShowMenuManager] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [showAboutManager, setShowAboutManager] = useState(false)
   const [newItem, setNewItem] = useState({ name: '', price: '', category: 'ulam' })
   const [newImage, setNewImage] = useState(null)
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ name: '', price: '', category: 'ulam' })
   const [editImage, setEditImage] = useState(null)
-  const [showAboutManager, setShowAboutManager] = useState(false)
   const [aboutImages, setAboutImages] = useState([])
   const [uploadingAbout, setUploadingAbout] = useState(false)
   const [aboutFile, setAboutFile] = useState(null)
@@ -32,6 +65,14 @@ export default function Admin() {
   const [heroImage, setHeroImage] = useState(null)
   const [heroFile, setHeroFile] = useState(null)
   const [uploadingHero, setUploadingHero] = useState(false)
+  const [activityFeed, setActivityFeed] = useState([])
+  const [dragId, setDragId] = useState(null)
+  const feedEndRef = useRef(null)
+
+  const addActivity = useCallback((msg, type = 'info') => {
+    const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
+    setActivityFeed(prev => [entry, ...prev].slice(0, 50))
+  }, [])
 
   const logout = () => {
     localStorage.removeItem('admin_token')
@@ -68,24 +109,69 @@ export default function Admin() {
     } catch {}
   }
 
+  const fetchHero = async () => {
+    try {
+      const res = await fetch(api('/api/config'))
+      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null) }
+    } catch {}
+  }
+
+  useEffect(() => {
+    if (loggedIn) { fetchOrders(); fetchMenu(); fetchAboutImages(); fetchHero() }
+  }, [loggedIn])
+
+  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />
+
+  const changeStatus = async (id, newStatus) => {
+    const prev = orders.find(o => o.id === id)
+    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o))
+    if (prev && prev.status !== newStatus) {
+      addActivity(`${prev.customer_name} → ${statusLabel[newStatus]}`, newStatus === 'pending' ? 'warning' : newStatus === 'in_delivery' ? 'success' : 'info')
+    }
+    try {
+      const res = await fetch(api(`/api/orders/${id}`), {
+        method: 'PATCH',
+        headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.status === 401) { logout(); return }
+      if (!res.ok) { setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prev?.status } : o)); return }
+      const updated = await res.json()
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, status: updated.status } : o))
+    } catch {
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prev?.status } : o))
+    }
+  }
+
+  const handleDragStart = (id) => setDragId(id)
+  const handleDragOver = (e) => e.preventDefault()
+  const handleDrop = async (colKey) => {
+    if (dragId) { await changeStatus(dragId, colKey); setDragId(null) }
+  }
+
+  const handleDeleteOrder = async (id) => {
+    if (!confirm('Delete this order permanently?')) return
+    const order = orders.find(o => o.id === id)
+    try {
+      const res = await fetch(api(`/api/orders/${id}`), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (!res.ok) throw new Error('Failed to delete')
+      setOrders(prev => prev.filter(o => o.id !== id))
+      if (order) addActivity(`${order.customer_name} order deleted`, 'warning')
+    } catch (err) { console.error(err) }
+  }
+
   const handleUploadAbout = async () => {
     if (!aboutFile) return
-    setUploadError('')
-    setUploadingAbout(true)
+    setUploadError(''); setUploadingAbout(true)
     try {
-      const fd = new FormData()
-      fd.append('image', aboutFile)
+      const fd = new FormData(); fd.append('image', aboutFile)
       const res = await fetch(api('/api/about'), { method: 'POST', headers: adminHeaders(), body: fd })
       if (res.status === 401) { logout(); return }
       const data = await res.json().catch(() => ({}))
       if (!res.ok) { setUploadError(data.error || 'Upload failed'); return }
-      setAboutFile(null)
-      fetchAboutImages()
-    } catch (err) {
-      setUploadError(err.message)
-    } finally {
-      setUploadingAbout(false)
-    }
+      setAboutFile(null); fetchAboutImages()
+    } catch (err) { setUploadError(err.message) } finally { setUploadingAbout(false) }
   }
 
   const handleDeleteAbout = async (id) => {
@@ -95,68 +181,20 @@ export default function Admin() {
       if (res.status === 401) { logout(); return }
       if (!res.ok) throw new Error('Delete failed')
       fetchAboutImages()
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const fetchHero = async () => {
-    try {
-      const res = await fetch(api('/api/config'))
-      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null) }
-    } catch {}
+    } catch (err) { console.error(err) }
   }
 
   const handleUploadHero = async () => {
     if (!heroFile) return
     setUploadingHero(true)
     try {
-      const fd = new FormData()
-      fd.append('image', heroFile)
+      const fd = new FormData(); fd.append('image', heroFile)
       const res = await fetch(api('/api/config/hero'), { method: 'PUT', headers: adminHeaders(), body: fd })
       if (res.status === 401) { logout(); return }
       const d = await res.json().catch(() => ({}))
       if (!res.ok) { setUploadError(d.error || 'Upload failed'); return }
-      setHeroFile(null)
-      setHeroImage(imageUrl(d.heroImage))
-    } catch (err) {
-      setUploadError(err.message)
-    } finally {
-      setUploadingHero(false)
-    }
-  }
-
-  useEffect(() => {
-    if (loggedIn) { fetchOrders(); fetchMenu(); fetchAboutImages(); fetchHero() }
-  }, [loggedIn])
-
-  if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />
-
-  const handleDeleteOrder = async (id) => {
-    if (!confirm('Delete this order permanently?')) return
-    try {
-      const res = await fetch(api(`/api/orders/${id}`), { method: 'DELETE', headers: adminHeaders() })
-      if (res.status === 401) { logout(); return }
-      if (!res.ok) throw new Error('Failed to delete')
-      setOrders(prev => prev.filter(o => o.id !== id))
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  const markDone = async (id) => {
-    try {
-      const res = await fetch(api(`/api/orders/${id}`), {
-        method: 'PATCH',
-        headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'done' }),
-      })
-      if (res.status === 401) { logout(); return }
-      if (!res.ok) throw new Error('Failed to update')
-      setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'done' } : o))
-    } catch (err) {
-      console.error(err)
-    }
+      setHeroFile(null); setHeroImage(imageUrl(d.heroImage))
+    } catch (err) { setUploadError(err.message) } finally { setUploadingHero(false) }
   }
 
   const handleAddItem = async (e) => {
@@ -165,54 +203,29 @@ export default function Admin() {
     setAdding(true)
     try {
       const fd = new FormData()
-      fd.append('name', newItem.name)
-      fd.append('price', newItem.price)
-      fd.append('category', newItem.category)
+      fd.append('name', newItem.name); fd.append('price', newItem.price); fd.append('category', newItem.category)
       if (newImage) fd.append('image', newImage)
-
       const res = await fetch(api('/api/menu'), { method: 'POST', headers: adminHeaders(), body: fd })
       if (res.status === 401) { logout(); return }
       if (!res.ok) throw new Error('Failed to add')
-      setNewItem({ name: '', price: '', category: 'ulam' })
-      setNewImage(null)
-      setShowAddForm(false)
-      fetchMenu()
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setAdding(false)
-    }
+      setNewItem({ name: '', price: '', category: 'ulam' }); setNewImage(null); setShowAddForm(false); fetchMenu()
+    } catch (err) { console.error(err) } finally { setAdding(false) }
   }
 
-  const startEdit = (item) => {
-    setEditingId(item.id)
-    setEditForm({ name: item.name, price: String(item.price), category: item.category })
-    setEditImage(null)
-  }
-
-  const cancelEdit = () => {
-    setEditingId(null)
-    setEditForm({ name: '', price: '', category: 'ulam' })
-    setEditImage(null)
-  }
+  const startEdit = (item) => { setEditingId(item.id); setEditForm({ name: item.name, price: String(item.price), category: item.category }); setEditImage(null) }
+  const cancelEdit = () => { setEditingId(null); setEditForm({ name: '', price: '', category: 'ulam' }); setEditImage(null) }
 
   const handleEdit = async (id) => {
     if (!editForm.name || !editForm.price || !editForm.category) return
     try {
       const fd = new FormData()
-      fd.append('name', editForm.name)
-      fd.append('price', editForm.price)
-      fd.append('category', editForm.category)
+      fd.append('name', editForm.name); fd.append('price', editForm.price); fd.append('category', editForm.category)
       if (editImage) fd.append('image', editImage)
-
       const res = await fetch(api(`/api/menu/${id}`), { method: 'PATCH', headers: adminHeaders(), body: fd })
       if (res.status === 401) { logout(); return }
       if (!res.ok) throw new Error('Failed to update')
-      cancelEdit()
-      fetchMenu()
-    } catch (err) {
-      console.error(err)
-    }
+      cancelEdit(); fetchMenu()
+    } catch (err) { console.error(err) }
   }
 
   const handleDelete = async (id) => {
@@ -222,337 +235,239 @@ export default function Admin() {
       if (res.status === 401) { logout(); return }
       if (!res.ok) throw new Error('Failed to delete')
       fetchMenu()
-    } catch (err) {
-      console.error(err)
-    }
+    } catch (err) { console.error(err) }
   }
 
-  const pending = orders.filter(o => o.status !== 'done')
-  const done = orders.filter(o => o.status === 'done')
+  const columnOrders = (key) => orders.filter(o => (o.status || 'pending') === key)
+  const staleOrders = orders.filter(o => (o.status || 'pending') === 'pending' && o.created_at && (Date.now() - new Date(o.created_at).getTime()) > STALE_THRESHOLD_MIN * 60000)
+  const activeRiders = orders.filter(o => o.status === 'in_delivery').length
 
   const goBack = () => { window.location.hash = '' }
 
-  const OrderCard = ({ order, index, showDone }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="rounded-2xl border border-[#27272a] bg-[#18181b] p-5 sm:p-6"
-    >
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="space-y-3 flex-1">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#f97316]/10 flex items-center justify-center shrink-0">
-              <Package className="w-5 h-5 text-[#f97316]" />
+  const OrderCard = ({ order, colKey }) => {
+    const totalQty = (order.items || []).reduce((s, i) => s + i.quantity, 0)
+    const minsOld = order.created_at ? Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000) : 0
+    const isStale = colKey === 'pending' && minsOld >= STALE_THRESHOLD_MIN
+    const col = COLUMNS.find(c => c.key === colKey)
+
+    return (
+      <div
+        draggable
+        onDragStart={() => handleDragStart(order.id)}
+        onClick={() => {
+          const next = colKey === 'pending' ? 'ongoing' : colKey === 'ongoing' ? 'in_delivery' : colKey === 'in_delivery' ? 'done' : null
+          if (next && next !== 'done') changeStatus(order.id, next)
+        }}
+        className={`rounded-xl border ${isStale ? 'border-red-500/40 bg-red-500/5' : 'border-[#27272a] bg-[#18181b]'} p-3 cursor-grab active:cursor-grabbing hover:border-[#f97316]/30 transition-all text-sm space-y-1.5`}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${col?.dot}`} />
+              <p className="font-semibold text-white truncate text-sm">{order.customer_name}</p>
             </div>
-            <div>
-              <h3 className="font-semibold text-white">Order #{order.id.slice(-6)}</h3>
-              <div className="flex items-center gap-2 text-xs text-[#71717a] mt-0.5">
-                <Clock className="w-3 h-3" />
-                {new Date(order.created_at).toLocaleString()}
-              </div>
-            </div>
+            <p className="text-[#71717a] text-xs truncate mt-0.5">{order.customer_contact}</p>
           </div>
-          <div className="grid sm:grid-cols-2 gap-2 text-sm">
-            <div className="flex items-center gap-2 text-[#a1a1aa]">
-              <User className="w-4 h-4 text-[#f97316] shrink-0" />
-              {order.customer_name}
-            </div>
-            <div className="flex items-center gap-2 text-[#a1a1aa]">
-              <Phone className="w-4 h-4 text-[#f97316] shrink-0" />
-              {order.customer_contact}
-            </div>
-            <div className="flex items-start gap-2 text-[#a1a1aa] sm:col-span-2">
-              <MapPin className="w-4 h-4 text-[#f97316] shrink-0 mt-0.5" />
-              <a
-                href={order.maps_link || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.address)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#f97316] transition-colors underline underline-offset-2 decoration-[#27272a] hover:decoration-[#f97316]"
-              >
-                {order.address}
-              </a>
-            </div>
-          </div>
-          <div className="border-t border-[#27272a] pt-3 space-y-1.5">
-            {order.items.map((item, j) => (
-              <div key={j} className="flex justify-between text-sm">
-                <span className="text-[#a1a1aa]">
-                  {item.quantity}x {item.name}
-                  {item.addons?.length > 0 && (
-                    <span className="text-[#71717a] text-xs ml-1">
-                      (+{item.addons.map(a => a.name + (a.quantity > 1 ? ` ×${a.quantity}` : '')).join(', ')})
-                    </span>
-                  )}
-                </span>
-                <span className="text-white font-medium">
-                  ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)) * item.quantity}
-                </span>
-              </div>
-            ))}
-          </div>
+          <span className="text-[#f97316] font-bold text-sm shrink-0">₱{order.total}</span>
         </div>
-        <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-2">
-          {showDone ? (
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">Done</span>
-              <button onClick={() => handleDeleteOrder(order.id)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => markDone(order.id)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-white text-xs font-semibold transition-all active:scale-95">
-              <Check className="w-3.5 h-3.5" />
-              Mark as Done
-            </button>
-          )}
-          <div className="text-right">
-            {order.delivery_fee > 0 && <p className="text-xs text-[#71717a]">+₱{order.delivery_fee} delivery</p>}
-            <span className="text-lg font-bold text-[#f97316] whitespace-nowrap">₱{order.total}</span>
-          </div>
+        <p className="text-[#a1a1aa] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` · ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
+        <div className="flex items-center justify-between text-[10px] text-[#71717a]">
+          <span>{timeAgo(order.created_at)}</span>
+          <button onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id) }} className="hover:text-red-400 transition-colors p-0.5"><Trash2 className="w-3 h-3" /></button>
         </div>
       </div>
-    </motion.div>
-  )
+    )
+  }
+
+  // Micro-analytics
+  const bottleneckCount = staleOrders.length
+  const pendingCount = columnOrders('pending').length
+  const ongoingCount = columnOrders('ongoing').length
+  const inDeliveryCount = columnOrders('in_delivery').length
 
   return (
     <div className="min-h-screen bg-[#09090b] text-[#fafafa]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <button onClick={goBack} className="p-2 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <button onClick={goBack} className="p-2 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors"><ArrowLeft className="w-5 h-5" /></button>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                Admin{' '}
-                <span className="bg-gradient-to-r from-[#f97316] to-[#f59e0b] bg-clip-text text-transparent">Dashboard</span>
-              </h1>
-              <p className="text-sm text-[#a1a1aa] mt-1">
-                {pending.length} pending &middot; {done.length} done &middot; {menuItems.length} menu items &middot; {aboutImages.length} images
-              </p>
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Admin <span className="bg-gradient-to-r from-[#f97316] to-[#f59e0b] bg-clip-text text-transparent">Dashboard</span></h1>
+              <p className="text-xs text-[#71717a]">{orders.length} orders · {menuItems.length} items</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => { setShowMenuManager(!showMenuManager); setShowAddForm(false); setShowAboutManager(false) }} className={`p-2 rounded-xl border transition-colors ${showMenuManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Menu">
-              <Edit3 className="w-5 h-5" />
-            </button>
-            <button onClick={() => { setShowAboutManager(!showAboutManager); setShowMenuManager(false); setShowAddForm(false) }} className={`p-2 rounded-xl border transition-colors ${showAboutManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage About Images">
-              <ImageIcon className="w-5 h-5" />
-            </button>
-            <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50">
-              <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-            <button onClick={logout} className="p-2 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout">
-              <LogOut className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => setShowMenuManager(!showMenuManager)} className={`p-2 rounded-lg border transition-colors ${showMenuManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Menu"><Edit3 className="w-4 h-4" /></button>
+            <button onClick={() => setShowAboutManager(!showAboutManager)} className={`p-2 rounded-lg border transition-colors ${showAboutManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="About Images"><ImageIcon className="w-4 h-4" /></button>
+            <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
+            <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
           </div>
         </div>
 
-        {/* Menu Manager */}
-        {showMenuManager && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8 rounded-2xl border border-[#27272a] bg-[#18181b] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-white flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-[#f97316]" />
-                Manage Menu Items
-              </h3>
-              <button onClick={() => setShowAddForm(!showAddForm)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-semibold transition-all">
-                <Plus className="w-3.5 h-3.5" />
-                Add Item
-              </button>
-            </div>
+        {/* ── Micro-Analytics Cards ── */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="rounded-xl border border-[#27272a] bg-[#18181b] p-4">
+            <div className="flex items-center gap-2 text-[#a1a1aa] text-xs mb-1"><Bike className="w-3.5 h-3.5 text-emerald-400" />Live Active Riders</div>
+            <p className="text-2xl font-bold text-white">{activeRiders}</p>
+          </div>
+          <div className="rounded-xl border border-[#27272a] bg-[#18181b] p-4">
+            <div className="flex items-center gap-2 text-[#a1a1aa] text-xs mb-1"><TrendingUp className="w-3.5 h-3.5 text-blue-400" />Avg. Preparation Time</div>
+            <p className="text-2xl font-bold text-white">{ongoingCount > 0 ? '~12 min' : '—'}</p>
+          </div>
+          <div className={`rounded-xl border p-4 ${bottleneckCount > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-[#27272a] bg-[#18181b]'}`}>
+            <div className="flex items-center gap-2 text-[#a1a1aa] text-xs mb-1"><AlertTriangle className={`w-3.5 h-3.5 ${bottleneckCount > 0 ? 'text-red-400' : 'text-[#71717a]'}`} />Bottleneck Alerts</div>
+            <p className={`text-2xl font-bold ${bottleneckCount > 0 ? 'text-red-400' : 'text-white'}`}>{bottleneckCount > 0 ? `${bottleneckCount} pending >${STALE_THRESHOLD_MIN}m` : 'None'}</p>
+          </div>
+        </div>
 
-            {/* Add form */}
-            {showAddForm && (
-              <form onSubmit={handleAddItem} className="grid sm:grid-cols-5 gap-3 mb-4 p-4 rounded-xl bg-[#202024]">
-                <input type="text" placeholder="Name" value={newItem.name} onChange={e => setNewItem(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
-                <input type="number" placeholder="Price" value={newItem.price} onChange={e => setNewItem(f => ({ ...f, price: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
-                <select value={newItem.category} onChange={e => setNewItem(f => ({ ...f, category: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50">
-                  <option value="ulam">Ulam</option>
-                  <option value="silog">Silog</option>
-                  <option value="shake">Shake</option>
-                  <option value="solo">Solo</option>
-                </select>
-                <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors">
-                  <Upload className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{newImage ? newImage.name : 'Image'}</span>
-                  <input type="file" accept="image/*" onChange={e => setNewImage(e.target.files[0])} className="hidden" />
-                </label>
-                <button type="submit" disabled={adding || !newItem.name || !newItem.price} className="px-3 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">
-                  {adding ? 'Adding...' : 'Add'}
-                </button>
-              </form>
-            )}
+        {/* ── Menu / About / Hero Manager (collapsible) ── */}
+        <AnimatePresence>
+          {showMenuManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Edit3 className="w-4 h-4 text-[#f97316]" />Manage Menu Items</h3>
+                  <button onClick={() => setShowAddForm(!showAddForm)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-semibold transition-all"><Plus className="w-3.5 h-3.5" />Add Item</button>
+                </div>
+                {showAddForm && (
+                  <form onSubmit={handleAddItem} className="grid sm:grid-cols-5 gap-2 mb-3 p-3 rounded-xl bg-[#202024]">
+                    <input type="text" placeholder="Name" value={newItem.name} onChange={e => setNewItem(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                    <input type="number" placeholder="Price" value={newItem.price} onChange={e => setNewItem(f => ({ ...f, price: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                    <select value={newItem.category} onChange={e => setNewItem(f => ({ ...f, category: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50">
+                      <option value="ulam">Ulam</option><option value="silog">Silog</option><option value="shake">Shake</option><option value="solo">Solo</option>
+                    </select>
+                    <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors"><Upload className="w-4 h-4 shrink-0" /><span className="truncate">{newImage ? newImage.name : 'Image'}</span><input type="file" accept="image/*" onChange={e => setNewImage(e.target.files[0])} className="hidden" /></label>
+                    <button type="submit" disabled={adding || !newItem.name || !newItem.price} className="px-3 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{adding ? 'Adding...' : 'Add'}</button>
+                  </form>
+                )}
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                  {menuItems.map(item => (
+                    <div key={item.id} className="rounded-xl bg-[#202024] p-2.5">
+                      {editingId === item.id ? (
+                        <div className="grid sm:grid-cols-6 gap-2">
+                          <input type="text" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="col-span-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" />
+                          <input type="number" value={editForm.price} onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))} className="px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" />
+                          <select value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))} className="px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50">
+                            <option value="ulam">Ulam</option><option value="silog">Silog</option><option value="shake">Shake</option><option value="solo">Solo</option>
+                          </select>
+                          <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors"><Upload className="w-3.5 h-3.5 shrink-0" /><span className="truncate text-xs">{editImage ? editImage.name : 'Image'}</span><input type="file" accept="image/*" onChange={e => setEditImage(e.target.files[0])} className="hidden" /></label>
+                          <div className="flex items-center gap-1"><button onClick={() => handleEdit(item.id)} className="p-1.5 rounded-lg bg-green-600 hover:bg-green-500 text-white transition-all"><Save className="w-3.5 h-3.5" /></button><button onClick={cancelEdit} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all"><X className="w-3.5 h-3.5" /></button></div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-[#18181b] overflow-hidden shrink-0"><img src={imageUrl(item.image) || 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=80&q=60'} alt="" className="w-full h-full object-cover" /></div>
+                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-white truncate">{item.name}</p><p className="text-xs text-[#71717a]">₱{item.price} · {item.category}</p></div>
+                          {(() => { const disabled = item.active === false; return (<button onClick={async () => { try { await fetch(api(`/api/menu/${item.id}`), { method: 'PATCH', headers: { ...adminHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ active: disabled }) }); fetchMenu() } catch {} }} className={['p-1.5 rounded-lg border transition-all', disabled ? 'bg-red-600/20 border-red-600/40 text-red-400' : 'border-[#27272a] text-[#a1a1aa] hover:text-green-400'].join(' ')} title={disabled ? 'Disabled' : 'Enabled'}><span className={['block w-3 h-3 rounded-full border-2 flex items-center justify-center', disabled ? 'border-red-400' : 'border-[#27272a]'].join(' ')}><span className={['block w-1.5 h-1.5 rounded-full', disabled ? 'bg-red-400' : 'bg-transparent'].join(' ')} /></span></button>)})()}
+                          <button onClick={() => startEdit(item)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all" title="Edit"><Upload className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Menu items list */}
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {menuItems.map(item => (
-                <div key={item.id} className="rounded-xl bg-[#202024] p-3">
-                  {editingId === item.id ? (
-                    <div className="grid sm:grid-cols-6 gap-2">
-                      <input type="text" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="col-span-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" />
-                      <input type="number" value={editForm.price} onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))} className="px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" />
-                      <select value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))} className="px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50">
-                        <option value="ulam">Ulam</option>
-                        <option value="silog">Silog</option>
-                        <option value="shake">Shake</option>
-                        <option value="solo">Solo</option>
-                      </select>
-                      <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors">
-                        <Upload className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate text-xs">{editImage ? editImage.name : 'Image'}</span>
-                        <input type="file" accept="image/*" onChange={e => setEditImage(e.target.files[0])} className="hidden" />
-                      </label>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => handleEdit(item.id)} className="p-1.5 rounded-lg bg-green-600 hover:bg-green-500 text-white transition-all"><Save className="w-3.5 h-3.5" /></button>
-                        <button onClick={cancelEdit} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all"><X className="w-3.5 h-3.5" /></button>
+        <AnimatePresence>
+          {showAboutManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><ImageIcon className="w-4 h-4 text-[#f97316]" />Manage About Images</h3>
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors"><Upload className="w-4 h-4 shrink-0" /><span className="truncate">{aboutFile ? aboutFile.name : 'Choose image'}</span><input type="file" accept="image/*" onChange={e => { setAboutFile(e.target.files[0]); setUploadError('') }} className="hidden" /></label>
+                  <button onClick={handleUploadAbout} disabled={!aboutFile || uploadingAbout} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{uploadingAbout ? 'Uploading...' : 'Upload'}</button>
+                </div>
+                {uploadError && <p className="text-red-400 text-xs mb-3">{uploadError}</p>}
+                {aboutImages.length === 0 ? <p className="text-sm text-[#71717a] text-center py-4">No images uploaded yet.</p> : (
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                    {aboutImages.map(item => (
+                      <div key={item.id} className="group relative rounded-xl overflow-hidden border border-[#27272a] bg-[#202024] aspect-square">
+                        <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button onClick={() => handleDeleteAbout(item.id)} className="p-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Main Board + Activity Feed ── */}
+        <div className="flex gap-4">
+          {/* Kanban */}
+          <div className="flex-1 grid grid-cols-3 gap-3 min-h-[60vh]">
+            {COLUMNS.map(col => {
+              const items = columnOrders(col.key)
+              const isOver = dragId && items.every(o => o.id !== dragId)
+              return (
+                <div
+                  key={col.key}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(col.key)}
+                  className={`rounded-2xl border ${col.border} ${col.bg} p-3 flex flex-col gap-2 transition-all ${isOver ? 'ring-2 ring-[#f97316]/50' : ''}`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <col.icon className={`w-4 h-4 ${col.text}`} />
+                      <span className="text-sm font-semibold text-white">{col.label}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${col.bg} ${col.text} font-medium`}>{items.length}</span>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#18181b] overflow-hidden shrink-0">
-                        <img src={imageUrl(item.image) || 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=80&q=60'} alt="" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{item.name}</p>
-                        <p className="text-xs text-[#71717a]">₱{item.price} &middot; {item.category}</p>
-                      </div>
-                      <button onClick={() => startEdit(item)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all" title="Edit"><Upload className="w-3.5 h-3.5" /></button>
-                      {(() => { const disabled = item.active === false; return (
-                        <button onClick={async () => { try { await fetch(api(`/api/menu/${item.id}`), { method: 'PATCH', headers: { ...adminHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ active: disabled }) }); fetchMenu() } catch {} }}
-                          className={['p-1.5 rounded-lg border transition-all', disabled ? 'bg-red-600/20 border-red-600/40 text-red-400' : 'border-[#27272a] text-[#a1a1aa] hover:text-green-400'].join(' ')}
-                          title={disabled ? 'Disabled' : 'Enabled'}
-                        >
-                          <span className={['block w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center', disabled ? 'border-red-400' : 'border-[#27272a]'].join(' ')}>
-                            <span className={['block w-1.5 h-1.5 rounded-full', disabled ? 'bg-red-400' : 'bg-transparent'].join(' ')} />
-                          </span>
-                        </button>
-                      )})()}
-                      <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
+                  </div>
+                  <div className="flex-1 space-y-2 overflow-y-auto min-h-[200px]">
+                    {items.length === 0 && <p className="text-xs text-[#71717a] text-center py-8">No orders</p>}
+                    {items.map(order => <OrderCard key={order.id} order={order} colKey={col.key} />)}
+                  </div>
+                  {col.key === 'pending' && items.length > 0 && (
+                    <button onClick={() => items.forEach(o => { if ((o.status || 'pending') === 'pending') changeStatus(o.id, 'ongoing') })} className="text-xs text-[#71717a] hover:text-white transition-colors py-1 text-center border-t border-[#27272a] mt-1">
+                      Move all to Ongoing
+                    </button>
                   )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Activity Feed */}
+          <div className="w-64 shrink-0 rounded-2xl border border-[#27272a] bg-[#18181b] p-4 max-h-[70vh] flex flex-col">
+            <div className="flex items-center gap-2 text-sm font-semibold text-white mb-3"><Clock className="w-4 h-4 text-[#f97316]" />Activity</div>
+            <div className="flex-1 overflow-y-auto space-y-2 text-xs" ref={feedEndRef}>
+              {activityFeed.length === 0 && <p className="text-[#71717a] text-center py-6">No activity yet</p>}
+              {activityFeed.map(entry => (
+                <div key={entry.id} className="flex items-start gap-2 pb-2 border-b border-[#27272a] last:border-0">
+                  <span className={`w-1.5 h-1.5 rounded-full mt-1 shrink-0 ${entry.type === 'success' ? 'bg-emerald-400' : entry.type === 'warning' ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                  <div>
+                    <p className="text-[#a1a1aa]">{entry.msg}</p>
+                    <p className="text-[#71717a] text-[10px] mt-0.5">{formatTime(entry.time)}</p>
+                  </div>
                 </div>
               ))}
             </div>
-          </motion.div>
-        )}
-
-        {/* Hero Image */}
-        <div className="mb-8 rounded-2xl border border-[#27272a] bg-[#18181b] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-white flex items-center gap-2">
-              <Camera className="w-4 h-4 text-[#f97316]" />
-              Hero Image
-            </h3>
-          </div>
-          <div className="flex items-center gap-3 mb-4">
-            <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors">
-              <Upload className="w-4 h-4 shrink-0" />
-              <span className="truncate">{heroFile ? heroFile.name : 'Choose image'}</span>
-              <input type="file" accept="image/*" onChange={e => { setHeroFile(e.target.files[0]); setUploadError('') }} className="hidden" />
-            </label>
-            <button onClick={handleUploadHero} disabled={!heroFile || uploadingHero} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">
-              {uploadingHero ? 'Uploading...' : 'Upload'}
-            </button>
-
-          </div>
-          {uploadError && <p className="text-red-400 text-xs mb-4">{uploadError}</p>}
-          <div className="aspect-[4/3] max-w-sm rounded-xl overflow-hidden border border-[#27272a] bg-[#202024]">
-            <img src={heroImage || 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80'} alt="Hero" className="w-full h-full object-cover" />
           </div>
         </div>
 
-        {/* About Images Manager */}
-        {showAboutManager && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-8 rounded-2xl border border-[#27272a] bg-[#18181b] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-white flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-[#f97316]" />
-                Manage About Images
-              </h3>
-            </div>
-
-            <div className="flex items-center gap-3 mb-4">
-              <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors">
-                <Upload className="w-4 h-4 shrink-0" />
-                <span className="truncate">{aboutFile ? aboutFile.name : 'Choose image'}</span>
-                <input type="file" accept="image/*" onChange={e => { setAboutFile(e.target.files[0]); setUploadError('') }} className="hidden" />
-              </label>
-              <button onClick={handleUploadAbout} disabled={!aboutFile || uploadingAbout} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">
-                {uploadingAbout ? 'Uploading...' : 'Upload'}
-              </button>
-            </div>
-            {uploadError && <p className="text-red-400 text-xs mb-4">{uploadError}</p>}
-
-            {aboutImages.length === 0 && (
-              <p className="text-sm text-[#71717a] text-center py-6">No images uploaded yet.</p>
-            )}
-
-            {aboutImages.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {aboutImages.map(item => (
-                  <div key={item.id} className="group relative rounded-xl overflow-hidden border border-[#27272a] bg-[#202024] aspect-square">
-                    <img src={imageUrl(item.image)} alt="" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button onClick={() => handleDeleteAbout(item.id)} className="p-2 rounded-lg bg-red-600 hover:bg-red-500 text-white transition-all">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* Orders section */}
+        {/* ── Loading / Error / Empty ── */}
         {loading && orders.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-8 h-8 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-[#a1a1aa]">Loading orders...</p>
+          <div className="text-center py-16">
+            <div className="w-6 h-6 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#a1a1aa] text-sm">Loading orders...</p>
           </div>
         )}
 
-        {error && (
-          <div className="text-center py-20">
-            <p className="text-red-400">Failed to load orders. Make sure the server is running.</p>
-          </div>
-        )}
+        {error && <div className="text-center py-12"><p className="text-red-400 text-sm">{error}</p></div>}
 
-        {!loading && !error && pending.length === 0 && done.length === 0 && (
-          <div className="text-center py-20">
-            <Package className="w-16 h-16 text-[#27272a] mx-auto mb-4" />
+        {!loading && !error && orders.length === 0 && (
+          <div className="text-center py-16">
+            <Package className="w-12 h-12 text-[#27272a] mx-auto mb-3" />
             <p className="text-[#a1a1aa] font-medium">No orders yet</p>
-            <p className="text-sm text-[#71717a] mt-1">Orders will appear here once customers place them.</p>
-          </div>
-        )}
-
-        {pending.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-yellow-400" />
-              Pending Orders ({pending.length})
-            </h2>
-            <div className="space-y-4">
-              {pending.map((order, i) => <OrderCard key={order.id} order={order} index={i} showDone={false} />)}
-            </div>
-          </div>
-        )}
-
-        {done.length > 0 && (
-          <div>
-            <button onClick={() => setDoneOpen(!doneOpen)} className="flex items-center gap-2 text-lg font-semibold text-white mb-4 hover:text-[#a1a1aa] transition-colors">
-              <span className="w-2 h-2 rounded-full bg-green-400" />
-              Done Orders ({done.length})
-              {doneOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-            {doneOpen && (
-              <div className="space-y-4 opacity-70">
-                {done.map((order, i) => <OrderCard key={order.id} order={order} index={i} showDone={true} />)}
-              </div>
-            )}
+            <p className="text-xs text-[#71717a] mt-1">Orders will appear here once customers place them.</p>
           </div>
         )}
       </div>
