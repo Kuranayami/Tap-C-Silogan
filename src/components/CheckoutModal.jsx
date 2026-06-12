@@ -18,17 +18,24 @@ export default function CheckoutModal() {
   const deliveryFee = zoneStatus === 'inside' ? DELIVERY_FEE : 0
   const showTotal = subtotal + deliveryFee
 
-  const validateAddress = (address, link) => {
+  const [resolving, setResolving] = useState(false)
+
+  const validateAddress = (address, link, coords) => {
     const text = address || ''
-    const linkUrl = link || ''
-    const coords = extractCoordinatesFromUrl(linkUrl)
 
     if (coords) {
       if (isInsideIVC(coords.lat, coords.lng)) return 'inside'
       return 'outside'
     }
 
-    // No link — check address text for IVC keywords
+    if (link) {
+      const parsed = extractCoordinatesFromUrl(link)
+      if (parsed) {
+        if (isInsideIVC(parsed.lat, parsed.lng)) return 'inside'
+        return 'outside'
+      }
+    }
+
     const mention = addressMentionsIVC(text)
     if (mention === true) return 'inside'
     if (mention === 'needs_verification') return 'needs_link'
@@ -36,18 +43,46 @@ export default function CheckoutModal() {
     return 'outside'
   }
 
+  const resolveLink = async (link) => {
+    if (!link) return
+    const parsed = extractCoordinatesFromUrl(link)
+    if (parsed) {
+      setZoneStatus(validateAddress(form.address, link, null))
+      return
+    }
+    if (!link.includes('google') && !link.includes('goo.gl') && !link.includes('maps.app')) return
+    setResolving(true)
+    try {
+      const res = await fetch(api('/api/location/resolve'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: link }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setZoneStatus(validateAddress(form.address, link, data))
+      }
+    } catch {} finally {
+      setResolving(false)
+    }
+  }
+
   const handleMapsLinkChange = (value) => {
     setMapsLink(value)
     setError('')
-    const result = validateAddress(form.address, value)
-    setZoneStatus(result)
+    setZoneStatus(null)
+    resolveLink(value)
   }
 
   const handleAddressChange = (value) => {
     setForm(f => ({ ...f, address: value }))
     setError('')
-    const result = validateAddress(value, mapsLink)
-    setZoneStatus(result)
+    setZoneStatus(null)
+    if (mapsLink) resolveLink(mapsLink)
+    else {
+      const result = validateAddress(value, '', null)
+      setZoneStatus(result)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -58,14 +93,12 @@ export default function CheckoutModal() {
     }
 
     // Re-validate zone
-    const result = validateAddress(form.address, mapsLink)
-    setZoneStatus(result)
-    if (result === 'outside') {
-      setError('Delivery is currently restricted to Barangay IVC only. Your address falls outside our local radius.')
-      return
-    }
-    if (result === 'needs_link') {
-      setError('Please paste your Google Maps location link so we can verify your address is within our delivery zone.')
+    if (zoneStatus === 'outside' || zoneStatus === 'needs_link') {
+      if (zoneStatus === 'outside') {
+        setError('Delivery is currently restricted to Barangay IVC only. Your address falls outside our local radius.')
+      } else {
+        setError('Please paste your Google Maps location link so we can verify your address is within our delivery zone.')
+      }
       return
     }
 
