@@ -60,7 +60,7 @@ export default function MenuSection() {
   }
 
   return (
-    <section id="menu" className="relative py-24 sm:py-32">
+    <section id="menu" className="relative py-24 sm:py-32 scroll-mt-24">
       <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#18181b]/30 to-[#09090b] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">

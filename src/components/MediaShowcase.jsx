@@ -16,7 +16,7 @@ export default function MediaShowcase() {
   }, [])
 
   return (
-    <section id="media" className="relative py-24 sm:py-32">
+    <section id="about" className="relative py-24 sm:py-32 scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

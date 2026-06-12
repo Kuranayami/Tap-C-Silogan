@@ -7,7 +7,7 @@ export default function Hero() {
   const { openCart } = useCart()
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-20">
+    <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-20 scroll-mt-20">
       <div className="absolute inset-0 bg-gradient-to-b from-[#f97316]/5 via-transparent to-[#09090b] pointer-events-none" />
       <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#f97316]/5 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-[#f59e0b]/5 rounded-full blur-3xl" />
@@ -48,12 +48,12 @@ export default function Hero() {
                 Order Now
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              <a
+                href="#menu"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-[#f97316]/40 font-medium transition-all"
               >
                 View Menu
-              </button>
+              </a>
             </div>
 
             <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm text-[#71717a] justify-center lg:justify-start">
@@ -99,9 +99,9 @@ export default function Hero() {
       </div>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <button onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="text-[#71717a] hover:text-[#a1a1aa] transition-colors">
+        <a href="#menu" className="text-[#71717a] hover:text-[#a1a1aa] transition-colors">
           <ChevronRight className="w-6 h-6 rotate-90" />
-        </button>
+        </a>
       </div>
     </section>
   )
