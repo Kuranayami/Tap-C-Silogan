@@ -55,6 +55,7 @@ app.use(cors({
     if (!origin) return cb(null, true)
     if (prodOrigin && origin.replace(/\/$/, '') === prodOrigin.replace(/\/$/, '')) return cb(null, true)
     if (origin.startsWith('http://localhost')) return cb(null, true)
+    if (origin.endsWith('.vercel.app')) return cb(null, true)
     cb(null, false)
   },
 }))
