@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ShoppingCart } from 'lucide-react'
+import { Plus, ShoppingCart, Minus } from 'lucide-react'
 import { menuItems as localMenu, addons } from '../data/menu'
 import { useCart } from '../context/CartContext'
 import { api, imageUrl } from '../api'
@@ -24,10 +24,9 @@ export default function MenuSection() {
   const [activeCategory, setActiveCategory] = useState('all')
   const { addItem, openCart } = useCart()
   const [addingId, setAddingId] = useState(null)
-  const [selectedAddons, setSelectedAddons] = useState({})
+  const [addonQtys, setAddonQtys] = useState({})
   const [menuItems, setMenuItems] = useState(localMenu)
   const [extraOpen, setExtraOpen] = useState(null)
-  const extraRef = useRef(null)
 
   useEffect(() => {
     fetch(api('/api/menu'))
@@ -36,37 +35,24 @@ export default function MenuSection() {
       .catch(() => {})
   }, [])
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (extraRef.current && !extraRef.current.contains(e.target)) setExtraOpen(null)
-    }
-    if (extraOpen) { document.addEventListener('mousedown', handleClickOutside); return () => document.removeEventListener('mousedown', handleClickOutside) }
-  }, [extraOpen])
-
   const visible = menuItems.filter(m => m.active !== false)
   const filtered = activeCategory === 'all'
     ? visible
     : visible.filter(m => m.category === activeCategory)
 
   const handleAdd = (item) => {
-    const chosen = selectedAddons[item.id] || []
+    const qtyMap = addonQtys[item.id] || {}
+    const chosen = addons.filter(a => (qtyMap[a.id] || 0) > 0).map(a => ({ ...a, quantity: qtyMap[a.id] }))
     setAddingId(item.id)
     addItem(item, chosen)
-    setSelectedAddons(prev => ({ ...prev, [item.id]: [] }))
+    setAddonQtys(prev => ({ ...prev, [item.id]: {} }))
+    setExtraOpen(null)
     setTimeout(() => setAddingId(null), 600)
   }
 
-  const toggleAddon = (itemId, addon) => {
-    setSelectedAddons(prev => {
-      const current = prev[itemId] || []
-      const exists = current.find(a => a.id === addon.id)
-      return {
-        ...prev,
-        [itemId]: exists
-          ? current.filter(a => a.id !== addon.id)
-          : [...current, addon],
-      }
-    })
+  const totalAddonCount = (itemId) => {
+    const qtyMap = addonQtys[itemId] || {}
+    return Object.values(qtyMap).reduce((s, q) => s + q, 0)
   }
 
   return (
@@ -151,41 +137,53 @@ export default function MenuSection() {
                       )}
                     </button>
                   </div>
-                  <div className="relative mt-2" ref={extraRef}>
+
+                  <div className="relative mt-2">
                     <button
-                      onClick={(e) => { e.stopPropagation(); setExtraOpen(extraOpen === item.id ? null : item.id) }}
+                      onClick={() => setExtraOpen(extraOpen === item.id ? null : item.id)}
                       className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
-                        (selectedAddons[item.id] || []).length > 0
+                        totalAddonCount(item.id) > 0
                           ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]'
                           : 'border-[#27272a] text-[#71717a] hover:text-[#a1a1aa]'
                       }`}
                     >
-                      {(selectedAddons[item.id] || []).length > 0
-                        ? `Extra (${(selectedAddons[item.id] || []).length})`
+                      {totalAddonCount(item.id) > 0
+                        ? `Extra (${totalAddonCount(item.id)})`
                         : '+ Extra'}
                     </button>
                     {extraOpen === item.id && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute bottom-full left-0 mb-1 bg-[#202024] border border-[#27272a] rounded-xl p-2 shadow-xl shadow-black/40 min-w-[160px] z-10"
-                      >
-                        {addons.map(addon => {
-                          const isSelected = (selectedAddons[item.id] || []).find(a => a.id === addon.id)
-                          return (
-                            <button
-                              key={addon.id}
-                              onClick={(e) => { e.stopPropagation(); toggleAddon(item.id, addon) }}
-                              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
-                                isSelected ? 'bg-[#f97316]/20 text-[#f97316]' : 'text-[#a1a1aa] hover:text-white hover:bg-[#18181b]'
-                              }`}
-                            >
-                              <span>{addon.name}</span>
-                              <span className="font-medium">₱{addon.price}</span>
-                            </button>
-                          )
-                        })}
-                      </motion.div>
+                      <>
+                        <div className="fixed inset-0 z-[5]" onClick={() => setExtraOpen(null)} />
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="absolute bottom-full left-0 mb-1 bg-[#202024] border border-[#27272a] rounded-xl p-2 shadow-xl shadow-black/40 min-w-[180px] z-10"
+                        >
+                          {addons.map(addon => {
+                            const qty = (addonQtys[item.id] || {})[addon.id] || 0
+                            return (
+                              <div key={addon.id} className="flex items-center justify-between px-3 py-2 rounded-lg text-sm">
+                                <span className="text-[#a1a1aa]">{addon.name}</span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => setAddonQtys(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), [addon.id]: Math.max(0, qty - 1) } }))}
+                                    className="w-6 h-6 rounded-md border border-[#27272a] text-[#71717a] hover:text-white flex items-center justify-center transition-all"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <span className="w-5 text-center text-white font-medium text-xs">{qty}</span>
+                                  <button
+                                    onClick={() => setAddonQtys(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), [addon.id]: qty + 1 } }))}
+                                    className="w-6 h-6 rounded-md bg-[#f97316] hover:bg-[#ea580c] text-white flex items-center justify-center transition-all"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </motion.div>
+                      </>
                     )}
                   </div>
                 </div>
