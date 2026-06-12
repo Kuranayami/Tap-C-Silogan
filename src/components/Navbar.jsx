@@ -10,6 +10,11 @@ const links = [
   { label: 'Contact', href: '#contact' },
 ]
 
+function scrollTo(id) {
+  const el = document.getElementById(id)
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 export default function Navbar() {
   const { itemCount, openCart } = useCart()
   const [scrolled, setScrolled] = useState(false)
@@ -31,7 +36,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          <a href="#home" className="flex items-center gap-2 group">
+          <a href="#home" onClick={() => scrollTo('home')} className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f97316] to-[#f59e0b] flex items-center justify-center shadow-lg shadow-[#f97316]/20 group-hover:shadow-[#f97316]/40 transition-shadow">
               <ChefHat className="w-5 h-5 text-white" />
             </div>
@@ -45,6 +50,7 @@ export default function Navbar() {
               <a
                 key={l.href}
                 href={l.href}
+                onClick={() => scrollTo(l.href.slice(1))}
                 className="text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors relative group"
               >
                 {l.label}
@@ -94,7 +100,7 @@ export default function Navbar() {
                 <a
                   key={l.href}
                   href={l.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => { setMobileOpen(false); scrollTo(l.href.slice(1)) }}
                   className="block w-full text-left text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors py-2"
                 >
                   {l.label}
