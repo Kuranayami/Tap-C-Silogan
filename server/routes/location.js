@@ -21,7 +21,20 @@ router.post('/resolve', async (req, res) => {
     if (qMatch) {
       return res.json({ lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) })
     }
-    res.status(400).json({ error: 'Could not extract coordinates from the link. Please try a different link format.' })
+    // Fallback: extract place name and geocode via Nominatim
+    const placeMatch = resolved.match(/\/place\/([^/?#]+?)(?:\/|$|[?#])/)
+    if (placeMatch) {
+      const query = decodeURIComponent(placeMatch[1].replace(/\+/g, ' '))
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=0`,
+        { headers: { 'User-Agent': 'TapCSilogan/1.0' }, signal: AbortSignal.timeout(5000) }
+      )
+      const geoData = await geoRes.json()
+      if (geoData?.[0]?.lat && geoData?.[0]?.lon) {
+        return res.json({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) })
+      }
+    }
+    res.status(400).json({ error: 'Could not extract coordinates from the link. Please open Google Maps, drop a pin, and share the link.' })
   } catch (err) {
     if (err.name === 'TimeoutError' || err.code === 'ETIMEDOUT') {
       return res.status(504).json({ error: 'Timed out resolving link' })
