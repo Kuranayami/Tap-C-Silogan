@@ -86,16 +86,17 @@ export default function Footer() {
             transition={{ delay: 0.3 }}
           >
             <h3 className="font-semibold text-white mb-4">Find Us</h3>
-            <a href={storeInfo.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="block rounded-xl overflow-hidden border border-[#27272a] aspect-[4/3] hover:border-[#f97316]/50 transition-colors">
-              <iframe
-                title="Tap C Silogan Location"
-                src={storeInfo.googleMapsEmbed}
-                className="w-full h-full pointer-events-none"
-                style={{ filter: 'invert(0.9) hue-rotate(180deg)' }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+            <a
+              href={storeInfo.googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#27272a] bg-[#18181b] aspect-[4/3] hover:border-[#f97316]/50 hover:bg-[#202024] transition-all group"
+            >
+              <MapPin className="w-10 h-10 text-[#f97316] group-hover:scale-110 transition-transform" />
+              <div className="text-center">
+                <p className="text-sm font-medium text-white">{storeInfo.address}</p>
+                <p className="text-xs text-[#71717a] mt-1">Open in Google Maps</p>
+              </div>
             </a>
           </motion.div>
         </div>
