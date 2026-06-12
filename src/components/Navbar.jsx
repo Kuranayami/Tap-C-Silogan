@@ -76,12 +76,6 @@ export default function Navbar() {
               )}
             </button>
             <button
-              onClick={openCart}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-[#f97316]/30 active:scale-95"
-            >
-              Order Now
-            </button>
-            <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden p-2 text-[#a1a1aa] hover:text-white transition-colors"
             >
