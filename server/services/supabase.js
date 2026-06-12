@@ -53,8 +53,10 @@ export async function createOrder(orderData) {
         customer_name: orderData.customer_name,
         customer_contact: orderData.customer_contact,
         address: orderData.address,
+        maps_link: orderData.maps_link || null,
         items: orderData.items,
         subtotal: orderData.subtotal,
+        delivery_fee: orderData.delivery_fee || 0,
         total: orderData.total,
         status: 'pending',
       }).select().single()

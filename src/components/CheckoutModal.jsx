@@ -1,16 +1,54 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Loader2 } from 'lucide-react'
+import { X, Check, Loader2, MapPin } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
 import { api } from '../api'
+import { IVC_POLYGON, DELIVERY_FEE, isInsideIVC, extractCoordinatesFromUrl, addressMentionsIVC } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
   const { items, subtotal, total, clearCart, closeCart } = useCart()
   const { checkoutOpen, closeCheckout } = useCheckout()
   const [form, setForm] = useState({ name: '', contact: '', address: '' })
+  const [mapsLink, setMapsLink] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [zoneStatus, setZoneStatus] = useState(null) // null | 'validating' | 'inside' | 'outside'
+
+  const deliveryFee = zoneStatus === 'inside' ? DELIVERY_FEE : 0
+  const showTotal = subtotal + deliveryFee
+
+  const validateAddress = (address, link) => {
+    const text = address || ''
+    const linkUrl = link || ''
+    const coords = extractCoordinatesFromUrl(linkUrl)
+
+    if (coords) {
+      if (isInsideIVC(coords.lat, coords.lng)) return 'inside'
+      return 'outside'
+    }
+
+    // No link — check address text for IVC keywords
+    const mention = addressMentionsIVC(text)
+    if (mention === true) return 'inside'
+    if (mention === 'needs_verification') return 'needs_link'
+
+    return 'outside'
+  }
+
+  const handleMapsLinkChange = (value) => {
+    setMapsLink(value)
+    setError('')
+    const result = validateAddress(form.address, value)
+    setZoneStatus(result)
+  }
+
+  const handleAddressChange = (value) => {
+    setForm(f => ({ ...f, address: value }))
+    setError('')
+    const result = validateAddress(value, mapsLink)
+    setZoneStatus(result)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -18,6 +56,19 @@ export default function CheckoutModal() {
       setError('Please fill in all fields')
       return
     }
+
+    // Re-validate zone
+    const result = validateAddress(form.address, mapsLink)
+    setZoneStatus(result)
+    if (result === 'outside') {
+      setError('Delivery is currently restricted to Barangay IVC only. Your address falls outside our local radius.')
+      return
+    }
+    if (result === 'needs_link') {
+      setError('Please paste your Google Maps location link so we can verify your address is within our delivery zone.')
+      return
+    }
+
     setError('')
     setSubmitting(true)
 
@@ -29,6 +80,7 @@ export default function CheckoutModal() {
           customer_name: form.name,
           customer_contact: form.contact,
           address: form.address,
+          maps_link: mapsLink || null,
           items: items.map(i => ({
             id: i.id,
             name: i.name,
@@ -37,7 +89,8 @@ export default function CheckoutModal() {
             addons: i.addons || [],
           })),
           subtotal,
-          total,
+          delivery_fee: deliveryFee,
+          total: showTotal,
         }),
       })
 
@@ -61,6 +114,8 @@ export default function CheckoutModal() {
       closeCheckout()
       setDone(false)
       setError('')
+      setZoneStatus(null)
+      setMapsLink('')
     }
   }
 
@@ -135,6 +190,33 @@ export default function CheckoutModal() {
                     </div>
                   ))}
 
+                  {/* Zone status banner */}
+                  {zoneStatus === 'outside' && (
+                    <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-red-400">Outside delivery zone</p>
+                          <p className="text-xs text-red-300/70 mt-1">
+                            Delivery is currently restricted to Barangay IVC only. Your address falls outside our local radius.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {zoneStatus === 'inside' && (
+                    <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-4">
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-green-400">Within delivery zone</p>
+                          <p className="text-xs text-green-300/70 mt-1">Your address is inside Barangay IVC. ✓</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="border-t border-[#27272a] pt-3 space-y-1">
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
                       <span>Subtotal</span>
@@ -142,11 +224,11 @@ export default function CheckoutModal() {
                     </div>
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
                       <span>Delivery</span>
-                      <span>Free</span>
+                      <span>{deliveryFee > 0 ? `₱${deliveryFee}` : '—'}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-[#27272a]">
                       <span>Total</span>
-                      <span className="text-[#f97316]">₱{total}</span>
+                      <span className="text-[#f97316]">₱{showTotal}</span>
                     </div>
                   </div>
 
@@ -168,13 +250,22 @@ export default function CheckoutModal() {
                     <div>
                       <input
                         type="text"
-                        placeholder="Paste Google Maps link or type address"
+                        placeholder="House/street address"
                         value={form.address}
-                        onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                        onChange={e => handleAddressChange(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Paste Google Maps link (for zone verification)"
+                        value={mapsLink}
+                        onChange={e => handleMapsLinkChange(e.target.value)}
                         className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
                       />
                       <p className="text-[#71717a] text-xs mt-1.5">
-                        e.g. https://maps.app.goo.gl/V97PBgmaE3K1VEkB6
+                        Open Google Maps, drop a pin at your location, and paste the link here
                       </p>
                     </div>
                     {error && (
@@ -182,7 +273,7 @@ export default function CheckoutModal() {
                     )}
                     <button
                       type="submit"
-                      disabled={submitting}
+                      disabled={submitting || zoneStatus === 'outside'}
                       className="w-full px-4 py-3 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold transition-all hover:shadow-lg hover:shadow-[#f97316]/30 active:scale-[0.98] disabled:opacity-50 inline-flex items-center justify-center gap-2"
                     >
                       {submitting ? (

@@ -265,7 +265,7 @@ export default function Admin() {
             <div className="flex items-start gap-2 text-[#a1a1aa] sm:col-span-2">
               <MapPin className="w-4 h-4 text-[#f97316] shrink-0 mt-0.5" />
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.address)}`}
+                href={order.maps_link || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-[#f97316] transition-colors underline underline-offset-2 decoration-[#27272a] hover:decoration-[#f97316]"
@@ -306,7 +306,10 @@ export default function Admin() {
               Mark as Done
             </button>
           )}
-          <span className="text-lg font-bold text-[#f97316] whitespace-nowrap">₱{order.total}</span>
+          <div className="text-right">
+            {order.delivery_fee > 0 && <p className="text-xs text-[#71717a]">+₱{order.delivery_fee} delivery</p>}
+            <span className="text-lg font-bold text-[#f97316] whitespace-nowrap">₱{order.total}</span>
+          </div>
         </div>
       </div>
     </motion.div>
