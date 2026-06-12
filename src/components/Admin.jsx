@@ -256,7 +256,8 @@ export default function Admin() {
         onDragStart={() => handleDragStart(order.id)}
         onClick={() => {
           const next = colKey === 'pending' ? 'ongoing' : colKey === 'ongoing' ? 'in_delivery' : colKey === 'in_delivery' ? 'done' : null
-          if (next && next !== 'done') changeStatus(order.id, next)
+          if (next === 'done' && !confirm('Mark this order as done?')) return
+          if (next) changeStatus(order.id, next)
         }}
         className={`rounded-xl border ${isStale ? 'border-red-500/40 bg-red-500/5' : 'border-[#27272a] bg-[#18181b]'} p-3 cursor-grab active:cursor-grabbing hover:border-[#f97316]/30 transition-all text-sm space-y-1.5`}
       >
