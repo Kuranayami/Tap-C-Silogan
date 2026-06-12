@@ -12,11 +12,7 @@ const links = [
 
 function scrollTo(id) {
   const el = document.getElementById(id)
-  if (el) {
-    const offset = 80
-    const top = el.getBoundingClientRect().top + window.scrollY - offset
-    window.scrollTo({ top, behavior: 'smooth' })
-  }
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 export default function Navbar() {
@@ -76,7 +72,7 @@ export default function Navbar() {
             </button>
             <button
               onClick={openCart}
-              className="hidden sm:inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-[#f97316]/30 active:scale-95"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-[#f97316]/30 active:scale-95"
             >
               Order Now
             </button>
