@@ -12,6 +12,7 @@ import aboutRoutes from './routes/about.js'
 import configRoutes from './routes/config.js'
 import { loginHandler, requireAdmin, revokeToken } from './middleware/auth.js'
 import { ensureMenuLoaded } from './services/supabase.js'
+import { ensureBucket } from './services/storage.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 config({ path: resolve(__dirname, '../.env') })
@@ -29,7 +30,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https://images.unsplash.com', 'blob:'],
+      imgSrc: ["'self'", 'data:', 'https://images.unsplash.com', 'https://*.supabase.co', 'blob:'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
       connectSrc: ["'self'"],
       frameAncestors: ["'none'"],
@@ -108,6 +109,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, async () => {
   await ensureMenuLoaded()
+  await ensureBucket()
   const mode = isProduction ? 'production' : 'development'
   console.log(`Server running on http://localhost:${PORT} [${mode}]`)
 })

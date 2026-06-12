@@ -28,7 +28,7 @@ function writeJSON(file, data) {
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const hasSupabase = supabaseUrl && supabaseKey
+export const hasSupabase = supabaseUrl && supabaseKey
 if (!hasSupabase) {
   console.warn('Supabase credentials missing — using local file storage')
 }
