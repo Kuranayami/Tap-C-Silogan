@@ -10,17 +10,6 @@ const links = [
   { label: 'Contact', id: 'contact' },
 ]
 
-function scrollTo(id) {
-  const el = document.getElementById(id)
-  if (el) {
-    const nav = document.querySelector('nav')
-    const offset = nav ? nav.offsetHeight : 80
-    const y = el.getBoundingClientRect().top + window.scrollY - offset
-    try { window.scrollTo({ top: y, behavior: 'smooth' }) } catch { window.scrollTo(0, y) }
-    history.replaceState(null, '', '#' + id)
-  }
-}
-
 export default function Navbar() {
   const { itemCount, openCart } = useCart()
   const [scrolled, setScrolled] = useState(false)
@@ -42,25 +31,25 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          <button onClick={() => scrollTo('home')} className="flex items-center gap-2 group">
+          <a href="#home" className="flex items-center gap-2 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f97316] to-[#f59e0b] flex items-center justify-center shadow-lg shadow-[#f97316]/20 group-hover:shadow-[#f97316]/40 transition-shadow">
               <ChefHat className="w-5 h-5 text-white" />
             </div>
             <span className="text-lg sm:text-xl font-bold tracking-tight text-white">
               Tap C <span className="text-[#f97316]">Silogan</span>
             </span>
-          </button>
+          </a>
 
           <div className="hidden md:flex items-center gap-8">
             {links.map(l => (
-              <button
+              <a
                 key={l.id}
-                onClick={() => scrollTo(l.id)}
+                href={'#' + l.id}
                 className="text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors relative group"
               >
                 {l.label}
                 <span className="absolute -bottom-1 left-0 right-0 h-px bg-[#f97316] scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
-              </button>
+              </a>
             ))}
           </div>
 
@@ -96,13 +85,14 @@ export default function Navbar() {
           >
             <div className="px-4 py-4 space-y-3">
               {links.map(l => (
-                <button
+                <a
                   key={l.id}
-                  onClick={() => { setMobileOpen(false); scrollTo(l.id) }}
+                  href={'#' + l.id}
+                  onClick={() => setMobileOpen(false)}
                   className="block w-full text-left text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors py-2"
                 >
                   {l.label}
-                </button>
+                </a>
               ))}
               <button
                 onClick={() => { setMobileOpen(false); openCart() }}
