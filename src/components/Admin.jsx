@@ -100,6 +100,18 @@ export default function Admin() {
 
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />
 
+  const handleDeleteOrder = async (id) => {
+    if (!confirm('Delete this order permanently?')) return
+    try {
+      const res = await fetch(api(`/api/orders/${id}`), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (!res.ok) throw new Error('Failed to delete')
+      setOrders(prev => prev.filter(o => o.id !== id))
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   const markDone = async (id) => {
     try {
       const res = await fetch(api(`/api/orders/${id}`), {
@@ -250,7 +262,12 @@ export default function Admin() {
         </div>
         <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 sm:gap-2">
           {showDone ? (
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">Done</span>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">Done</span>
+              <button onClick={() => handleDeleteOrder(order.id)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           ) : (
             <button onClick={() => markDone(order.id)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-white text-xs font-semibold transition-all active:scale-95">
               <Check className="w-3.5 h-3.5" />

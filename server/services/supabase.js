@@ -75,6 +75,20 @@ export function updateOrderStatus(id, status) {
   return order
 }
 
+export async function deleteOrder(id) {
+  if (hasSupabase) {
+    try {
+      const { data: result, error } = await supabase.from('orders').delete().eq('id', id).select().single()
+      if (!error && result) return result
+    } catch (e) { console.warn('Supabase order delete failed:', e.message) }
+  }
+  const idx = inMemoryOrders.findIndex(o => o.id === id)
+  if (idx === -1) return null
+  const removed = inMemoryOrders.splice(idx, 1)[0]
+  saveOrders()
+  return removed
+}
+
 // ── Menu ────────────────────────────────────────────
 let inMemoryMenu = readJSON(MENU_FILE, null)
 

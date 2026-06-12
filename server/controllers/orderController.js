@@ -1,4 +1,4 @@
-import { createOrder, getAllOrders, updateOrderStatus, getMenuItemById, ensureMenuLoaded } from '../services/supabase.js'
+import { createOrder, getAllOrders, updateOrderStatus, deleteOrder, getMenuItemById, ensureMenuLoaded } from '../services/supabase.js'
 
 const VALID_ADDON_IDS = ['extra-rice', 'egg', 'mang-tomas']
 const MAX_ITEMS_PER_ORDER = 50
@@ -114,6 +114,18 @@ export async function getOrders(req, res) {
   } catch (err) {
     console.error('getOrders error:', err)
     res.status(500).json({ error: 'Failed to fetch orders' })
+  }
+}
+
+export async function removeOrder(req, res) {
+  try {
+    const { id } = req.params
+    const order = await deleteOrder(id)
+    if (!order) return res.status(404).json({ error: 'Order not found' })
+    res.json({ message: 'Order deleted', order })
+  } catch (err) {
+    console.error('deleteOrder error:', err)
+    res.status(500).json({ error: 'Failed to delete order' })
   }
 }
 
