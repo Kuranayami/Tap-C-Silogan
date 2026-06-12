@@ -76,11 +76,11 @@ export default function CartDrawer() {
                         </h3>
                         {item.addons && item.addons.length > 0 && (
                           <p className="text-xs text-[#a1a1aa] mt-1">
-                            + {item.addons.map(a => a.name).join(', ')}
+                            + {item.addons.map(a => a.name + (a.quantity > 1 ? ` (${a.quantity})` : '')).join(', ')}
                           </p>
                         )}
                         <p className="text-sm font-bold text-[#f97316] mt-2">
-                          ₱{item.price + (item.addons || []).reduce((s, a) => s + a.price, 0)} each
+                          ₱{item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)} each
                         </p>
                       </div>
                       <button

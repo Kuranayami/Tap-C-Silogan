@@ -213,12 +213,12 @@ export default function CheckoutModal() {
                         </p>
                         {item.addons && item.addons.length > 0 && (
                           <p className="text-xs text-[#a1a1aa]">
-                            + {item.addons.map(a => a.name).join(', ')}
+                            + {item.addons.map(a => a.name + (a.quantity > 1 ? ` (${a.quantity})` : '')).join(', ')}
                           </p>
                         )}
                       </div>
                       <span className="text-white font-medium ml-4">
-                        ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price, 0)) * item.quantity}
+                        ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)) * item.quantity}
                       </span>
                     </div>
                   ))}

@@ -281,7 +281,7 @@ export default function Admin() {
                   {item.quantity}x {item.name}
                   {item.addons?.length > 0 && (
                     <span className="text-[#71717a] text-xs ml-1">
-                      (+{item.addons.map(a => a.name).join(', ')})
+                      (+{item.addons.map(a => a.name + (a.quantity > 1 ? ` ×${a.quantity}` : '')).join(', ')})
                     </span>
                   )}
                 </span>

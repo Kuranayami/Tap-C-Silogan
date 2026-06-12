@@ -45,7 +45,7 @@ function cartReducer(state, action) {
 }
 
 function calcItemTotal(item) {
-  const addonTotal = (item.addons || []).reduce((s, a) => s + a.price, 0)
+  const addonTotal = (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)
   return (item.price + addonTotal) * item.quantity
 }
 
