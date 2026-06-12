@@ -21,7 +21,16 @@ export default function App() {
   useEffect(() => {
     const onHashChange = () => {
       const hash = window.location.hash
-      setPage(hash === '#/admin' ? 'admin' : 'main')
+      if (hash === '#/admin') {
+        setPage('admin')
+      } else {
+        setPage('main')
+        const id = hash.slice(1)
+        if (id) {
+          const el = document.getElementById(id)
+          if (el) el.scrollIntoView()
+        }
+      }
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
