@@ -109,7 +109,7 @@ export default function CartDrawer() {
                         </button>
                       </div>
                       <span className="text-sm font-bold text-white">
-                        ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price, 0)) * item.quantity}
+                        ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)) * item.quantity}
                       </span>
                     </div>
                   </motion.div>

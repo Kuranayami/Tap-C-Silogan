@@ -286,7 +286,7 @@ export default function Admin() {
                   )}
                 </span>
                 <span className="text-white font-medium">
-                  ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price, 0)) * item.quantity}
+                  ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)) * item.quantity}
                 </span>
               </div>
             ))}
