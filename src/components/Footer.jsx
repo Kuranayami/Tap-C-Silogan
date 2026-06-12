@@ -86,18 +86,24 @@ export default function Footer() {
             transition={{ delay: 0.3 }}
           >
             <h3 className="font-semibold text-white mb-4">Find Us</h3>
-            <a
-              href={storeInfo.googleMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center justify-center gap-3 rounded-xl border border-[#27272a] bg-[#18181b] aspect-[4/3] hover:border-[#f97316]/50 hover:bg-[#202024] transition-all group"
-            >
-              <MapPin className="w-10 h-10 text-[#f97316] group-hover:scale-110 transition-transform" />
-              <div className="text-center">
-                <p className="text-sm font-medium text-white">{storeInfo.address}</p>
-                <p className="text-xs text-[#71717a] mt-1">View in Google Maps</p>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-2 text-[#a1a1aa]">
+                <MapPin className="w-4 h-4 mt-0.5 text-[#f97316] shrink-0" />
+                <div>
+                  <p>{storeInfo.address}</p>
+                  <p className="text-[#71717a] text-xs mt-1">{storeInfo.addressFull}</p>
+                </div>
               </div>
-            </a>
+              <a
+                href={storeInfo.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-[#f97316] hover:text-[#ea580c] font-medium transition-colors"
+              >
+                <MapPin className="w-4 h-4" />
+                <span>View in Google Maps</span>
+              </a>
+            </div>
           </motion.div>
         </div>
       </div>
