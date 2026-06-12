@@ -14,8 +14,8 @@ export default function CTA() {
           viewport={{ once: true, margin: '-100px' }}
           className="relative rounded-3xl border border-[#27272a] bg-gradient-to-br from-[#18181b] to-[#202024] p-8 sm:p-12 lg:p-16 text-center overflow-hidden"
         >
-          <div className="absolute top-0 -right-20 w-64 h-64 bg-[#f97316]/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#f59e0b]/10 rounded-full blur-3xl" />
+          <div className="absolute top-0 -right-20 w-64 h-64 bg-[#f97316]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#f59e0b]/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#f97316] to-[#f59e0b] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-[#f97316]/20">

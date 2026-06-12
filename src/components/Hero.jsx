@@ -9,8 +9,8 @@ export default function Hero() {
   return (
     <section id="home" className="relative min-h-screen flex items-start md:items-center pt-20 scroll-mt-20">
       <div className="absolute inset-0 bg-gradient-to-b from-[#f97316]/5 via-transparent to-[#09090b] pointer-events-none" />
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#f97316]/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-[#f59e0b]/5 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#f97316]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-[#f59e0b]/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
