@@ -13,7 +13,7 @@ const links = [
 function scrollTo(id) {
   const el = document.getElementById(id)
   if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch {}
     location.hash = id
   }
 }
