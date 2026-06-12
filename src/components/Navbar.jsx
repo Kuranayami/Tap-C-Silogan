@@ -13,8 +13,11 @@ const links = [
 function scrollTo(id) {
   const el = document.getElementById(id)
   if (el) {
-    try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch {}
-    location.hash = id
+    const nav = document.querySelector('nav')
+    const offset = nav ? nav.offsetHeight : 80
+    const y = el.getBoundingClientRect().top + window.scrollY - offset
+    try { window.scrollTo({ top: y, behavior: 'smooth' }) } catch { window.scrollTo(0, y) }
+    history.replaceState(null, '', '#' + id)
   }
 }
 

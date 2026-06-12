@@ -3,6 +3,17 @@ import { Star, Clock, MapPin, ChevronRight } from 'lucide-react'
 import { storeInfo } from '../data/menu'
 import { useCart } from '../context/CartContext'
 
+function scrollTo(id) {
+  const el = document.getElementById(id)
+  if (el) {
+    const nav = document.querySelector('nav')
+    const offset = nav ? nav.offsetHeight : 80
+    const y = el.getBoundingClientRect().top + window.scrollY - offset
+    try { window.scrollTo({ top: y, behavior: 'smooth' }) } catch { window.scrollTo(0, y) }
+    history.replaceState(null, '', '#' + id)
+  }
+}
+
 export default function Hero() {
   const { openCart } = useCart()
 
@@ -49,7 +60,7 @@ export default function Hero() {
                 <ChevronRight className="w-4 h-4" />
               </button>
               <button
-                onClick={() => { const el = document.getElementById('menu'); if (el) { try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch {}; location.hash = 'menu' } }}
+                onClick={() => scrollTo('menu')}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-[#f97316]/40 font-medium transition-all"
               >
                 View Menu
@@ -99,7 +110,7 @@ export default function Hero() {
       </div>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <button onClick={() => { const el = document.getElementById('menu'); if (el) { try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }) } catch {}; location.hash = 'menu' } }} className="text-[#71717a] hover:text-[#a1a1aa] transition-colors">
+        <button onClick={() => scrollTo('menu')} className="text-[#71717a] hover:text-[#a1a1aa] transition-colors">
           <ChevronRight className="w-6 h-6 rotate-90" />
         </button>
       </div>
