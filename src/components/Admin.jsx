@@ -417,6 +417,16 @@ export default function Admin() {
                         <p className="text-xs text-[#71717a]">₱{item.price} &middot; {item.category}</p>
                       </div>
                       <button onClick={() => startEdit(item)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all" title="Edit"><Upload className="w-3.5 h-3.5" /></button>
+                      {(() => { const disabled = item.active === false; return (
+                        <button onClick={async () => { try { await fetch(api(`/api/menu/${item.id}`), { method: 'PATCH', headers: { ...adminHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ active: disabled }) }); fetchMenu() } catch {} }}
+                          className={['p-1.5 rounded-lg border transition-all', disabled ? 'bg-red-600/20 border-red-600/40 text-red-400' : 'border-[#27272a] text-[#a1a1aa] hover:text-green-400'].join(' ')}
+                          title={disabled ? 'Disabled' : 'Enabled'}
+                        >
+                          <span className={['block w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center', disabled ? 'border-red-400' : 'border-[#27272a]'].join(' ')}>
+                            <span className={['block w-1.5 h-1.5 rounded-full', disabled ? 'bg-red-400' : 'bg-transparent'].join(' ')} />
+                          </span>
+                        </button>
+                      )})()}
                       <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   )}

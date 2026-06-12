@@ -34,9 +34,10 @@ export default function MenuSection() {
       .catch(() => {})
   }, [])
 
+  const visible = menuItems.filter(m => m.active !== false)
   const filtered = activeCategory === 'all'
-    ? menuItems
-    : menuItems.filter(m => m.category === activeCategory)
+    ? visible
+    : visible.filter(m => m.category === activeCategory)
 
   const handleAdd = (item) => {
     const chosen = selectedAddons[item.id] || []

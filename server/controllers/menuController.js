@@ -79,6 +79,9 @@ export async function editMenuItem(req, res) {
       }
       data.category = category
     }
+    if (req.body.active !== undefined) {
+      data.active = req.body.active === 'true' || req.body.active === true
+    }
     if (req.file) {
       const ext = MIME_TO_EXT[req.file.mimetype] || '.bin'
       const filename = Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
