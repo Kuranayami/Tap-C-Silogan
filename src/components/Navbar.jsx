@@ -10,14 +10,9 @@ const links = [
   { label: 'Contact', id: 'contact' },
 ]
 
-const NAV_H = 80
-
 function scrollTo(id) {
   const el = document.getElementById(id)
-  if (el) {
-    const top = el.getBoundingClientRect().top + window.scrollY - NAV_H
-    window.scrollTo({ top, behavior: 'smooth' })
-  }
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 export default function Navbar() {

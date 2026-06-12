@@ -49,13 +49,7 @@ export default function Hero() {
                 <ChevronRight className="w-4 h-4" />
               </button>
               <button
-                onClick={() => {
-                  const el = document.getElementById('menu')
-                  if (el) {
-                    const top = el.getBoundingClientRect().top + window.scrollY - 80
-                    window.scrollTo({ top, behavior: 'smooth' })
-                  }
-                }}
+                onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-[#f97316]/40 font-medium transition-all"
               >
                 View Menu
@@ -105,13 +99,7 @@ export default function Hero() {
       </div>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <button onClick={() => {
-          const el = document.getElementById('menu')
-          if (el) {
-            const top = el.getBoundingClientRect().top + window.scrollY - 80
-            window.scrollTo({ top, behavior: 'smooth' })
-          }
-        }} className="text-[#71717a] hover:text-[#a1a1aa] transition-colors">
+        <button onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="text-[#71717a] hover:text-[#a1a1aa] transition-colors">
           <ChevronRight className="w-6 h-6 rotate-90" />
         </button>
       </div>
