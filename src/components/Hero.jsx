@@ -48,12 +48,18 @@ export default function Hero() {
                 Order Now
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <a
-                href="#menu"
+              <button
+                onClick={() => {
+                  const el = document.getElementById('menu')
+                  if (el) {
+                    const top = el.getBoundingClientRect().top + window.scrollY - 80
+                    window.scrollTo({ top, behavior: 'smooth' })
+                  }
+                }}
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-[#f97316]/40 font-medium transition-all"
               >
                 View Menu
-              </a>
+              </button>
             </div>
 
             <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm text-[#71717a] justify-center lg:justify-start">
@@ -99,9 +105,15 @@ export default function Hero() {
       </div>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <a href="#menu" className="text-[#71717a] hover:text-[#a1a1aa] transition-colors">
+        <button onClick={() => {
+          const el = document.getElementById('menu')
+          if (el) {
+            const top = el.getBoundingClientRect().top + window.scrollY - 80
+            window.scrollTo({ top, behavior: 'smooth' })
+          }
+        }} className="text-[#71717a] hover:text-[#a1a1aa] transition-colors">
           <ChevronRight className="w-6 h-6 rotate-90" />
-        </a>
+        </button>
       </div>
     </section>
   )
