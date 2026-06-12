@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw, Check, ChevronDown, ChevronUp, Plus, LogOut, Edit3, Trash2, X, Save, Upload, ImageIcon } from 'lucide-react'
+import { Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw, Check, ChevronDown, ChevronUp, Plus, LogOut, Edit3, Trash2, X, Save, Upload, ImageIcon, Camera } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
 
@@ -29,6 +29,9 @@ export default function Admin() {
   const [uploadingAbout, setUploadingAbout] = useState(false)
   const [aboutFile, setAboutFile] = useState(null)
   const [uploadError, setUploadError] = useState('')
+  const [heroImage, setHeroImage] = useState(null)
+  const [heroFile, setHeroFile] = useState(null)
+  const [uploadingHero, setUploadingHero] = useState(false)
 
   const logout = () => {
     localStorage.removeItem('admin_token')
@@ -97,8 +100,34 @@ export default function Admin() {
     }
   }
 
+  const fetchHero = async () => {
+    try {
+      const res = await fetch(api('/api/config'))
+      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null) }
+    } catch {}
+  }
+
+  const handleUploadHero = async () => {
+    if (!heroFile) return
+    setUploadingHero(true)
+    try {
+      const fd = new FormData()
+      fd.append('image', heroFile)
+      const res = await fetch(api('/api/config/hero'), { method: 'PUT', headers: adminHeaders(), body: fd })
+      if (res.status === 401) { logout(); return }
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { setUploadError(d.error || 'Upload failed'); return }
+      setHeroFile(null)
+      setHeroImage(imageUrl(d.heroImage))
+    } catch (err) {
+      setUploadError(err.message)
+    } finally {
+      setUploadingHero(false)
+    }
+  }
+
   useEffect(() => {
-    if (loggedIn) { fetchOrders(); fetchMenu(); fetchAboutImages() }
+    if (loggedIn) { fetchOrders(); fetchMenu(); fetchAboutImages(); fetchHero() }
   }, [loggedIn])
 
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />
@@ -396,6 +425,31 @@ export default function Admin() {
             </div>
           </motion.div>
         )}
+
+        {/* Hero Image */}
+        <div className="mb-8 rounded-2xl border border-[#27272a] bg-[#18181b] p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-white flex items-center gap-2">
+              <Camera className="w-4 h-4 text-[#f97316]" />
+              Hero Image
+            </h3>
+          </div>
+          <div className="flex items-center gap-3 mb-4">
+            <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors">
+              <Upload className="w-4 h-4 shrink-0" />
+              <span className="truncate">{heroFile ? heroFile.name : 'Choose image'}</span>
+              <input type="file" accept="image/*" onChange={e => { setHeroFile(e.target.files[0]); setUploadError('') }} className="hidden" />
+            </label>
+            <button onClick={handleUploadHero} disabled={!heroFile || uploadingHero} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">
+              {uploadingHero ? 'Uploading...' : 'Upload'}
+            </button>
+
+          </div>
+          {uploadError && <p className="text-red-400 text-xs mb-4">{uploadError}</p>}
+          <div className="aspect-[4/3] max-w-sm rounded-xl overflow-hidden border border-[#27272a] bg-[#202024]">
+            <img src={heroImage || 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80'} alt="Hero" className="w-full h-full object-cover" />
+          </div>
+        </div>
 
         {/* About Images Manager */}
         {showAboutManager && (

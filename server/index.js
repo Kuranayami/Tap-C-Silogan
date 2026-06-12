@@ -9,6 +9,7 @@ import { existsSync, mkdirSync } from 'fs'
 import menuRoutes from './routes/menu.js'
 import orderRoutes from './routes/orders.js'
 import aboutRoutes from './routes/about.js'
+import configRoutes from './routes/config.js'
 import { loginHandler, requireAdmin, revokeToken } from './middleware/auth.js'
 import { ensureMenuLoaded } from './services/supabase.js'
 
@@ -92,6 +93,7 @@ app.post('/api/logout', requireAdmin, revokeToken)
 app.use('/api/orders', orderLimiter, orderRoutes)
 app.use('/api/menu', menuRoutes)
 app.use('/api/about', aboutRoutes)
+app.use('/api/config', configRoutes)
 
 app.use((err, req, res, next) => {
   console.error(err)

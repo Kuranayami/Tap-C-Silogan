@@ -1,10 +1,19 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Star, Clock, MapPin, ChevronRight } from 'lucide-react'
 import { storeInfo } from '../data/menu'
 import { useCart } from '../context/CartContext'
+import { api, imageUrl } from '../api'
+
+const DEFAULT_HERO = 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80'
 
 export default function Hero() {
   const { openCart } = useCart()
+  const [heroImg, setHeroImg] = useState(DEFAULT_HERO)
+
+  useEffect(() => {
+    fetch(api('/api/config')).then(r => r.ok ? r.json() : {}).then(d => { if (d.heroImage) setHeroImg(imageUrl(d.heroImage)) }).catch(() => {})
+  }, [])
 
   return (
     <section id="home" className="relative min-h-screen flex items-start md:items-center pt-20 scroll-mt-20">
@@ -79,7 +88,7 @@ export default function Hero() {
               <div className="relative w-full h-full rounded-3xl border border-[#27272a] bg-gradient-to-br from-[#18181b] to-[#202024] overflow-hidden group cursor-pointer shadow-2xl shadow-black/40">
                 <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10" />
                 <img
-                  src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80"
+                  src={heroImg}
                   alt="Lechon Kawali"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />

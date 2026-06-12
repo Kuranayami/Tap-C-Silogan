@@ -6,6 +6,7 @@ import MenuSection from './components/MenuSection'
 import MediaShowcase from './components/MediaShowcase'
 import Testimonials from './components/Testimonials'
 import CTA from './components/CTA'
+import RatingSection from './components/RatingSection'
 import Footer from './components/Footer'
 import CartDrawer from './components/CartDrawer'
 import CheckoutModal from './components/CheckoutModal'
@@ -49,6 +50,7 @@ export default function App() {
         <MediaShowcase />
         <Testimonials />
         <CTA />
+        <RatingSection />
         <Footer />
         <CartDrawer />
         <CheckoutModal />
