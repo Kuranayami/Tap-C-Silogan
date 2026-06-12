@@ -20,13 +20,34 @@ export async function ensureBucket() {
   }
 }
 
+async function ensureBucketWithRetry() {
+  if (!supabase) return
+  const { data: buckets } = await supabase.storage.listBuckets()
+  if (!buckets?.find(b => b.name === BUCKET)) {
+    const { error } = await supabase.storage.createBucket(BUCKET, { public: true })
+    if (error) throw new Error('Cannot create storage bucket "' + BUCKET + '": ' + error.message)
+  }
+}
+
 export async function saveFile(filename, buffer, mimetype) {
   if (!supabase) throw new Error('Storage not configured — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
   const { data, error } = await supabase.storage.from(BUCKET).upload(filename, buffer, {
     contentType: mimetype,
     upsert: true,
   })
-  if (error) throw new Error('Storage upload failed: ' + error.message)
+  if (error) {
+    if (error.message === 'Not Found' || error.message?.includes('bucket')) {
+      await ensureBucketWithRetry()
+      const { data: retryData, error: retryError } = await supabase.storage.from(BUCKET).upload(filename, buffer, {
+        contentType: mimetype,
+        upsert: true,
+      })
+      if (retryError) throw new Error('Upload failed after bucket check: ' + retryError.message)
+      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(filename)
+      return urlData.publicUrl
+    }
+    throw new Error('Storage upload failed: ' + error.message)
+  }
   const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(filename)
   return urlData.publicUrl
 }
