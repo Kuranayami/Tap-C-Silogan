@@ -152,6 +152,39 @@ export async function googleAuth(req, res) {
   }
 }
 
+export async function testEmail(req, res) {
+  const smtpUser = process.env.SMTP_USER
+  const smtpPass = process.env.SMTP_PASS ? 'SET (' + process.env.SMTP_PASS.length + ' chars)' : 'NOT SET'
+  const hasTransporter = !!(await import('nodemailer').then(() => true).catch(() => false))
+  
+  let testResult = 'not attempted'
+  if (smtpUser && process.env.SMTP_PASS) {
+    try {
+      const { createTransport } = await import('nodemailer')
+      const t = createTransport({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: Number(process.env.SMTP_PORT) || 587,
+        secure: false,
+        auth: { user: smtpUser, pass: process.env.SMTP_PASS },
+      })
+      await t.verify()
+      testResult = 'SMTP connection OK'
+    } catch (err) {
+      testResult = 'SMTP connection FAILED: ' + err.message
+    }
+  } else {
+    testResult = 'SMTP credentials not configured'
+  }
+
+  res.json({
+    smtpUser: smtpUser || 'NOT SET',
+    smtpPass,
+    nodemailerInstalled: hasTransporter,
+    testResult,
+    nodeVersion: process.version,
+  })
+}
+
 export async function getProfile(req, res) {
   try {
     const userId = req.userId

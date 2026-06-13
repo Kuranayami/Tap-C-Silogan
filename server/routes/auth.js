@@ -1,8 +1,9 @@
 import { Router } from 'express'
-import { requestOtp, verifyOtpHandler, googleAuth, getProfile } from '../controllers/authController.js'
+import { requestOtp, verifyOtpHandler, googleAuth, getProfile, testEmail } from '../controllers/authController.js'
 
 const router = Router()
 
+router.get('/test-email', testEmail)
 router.post('/otp/send', requestOtp)
 router.post('/otp/verify', verifyOtpHandler)
 router.post('/google', googleAuth)

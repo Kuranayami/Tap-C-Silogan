@@ -50,6 +50,7 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
 
   console.log(`[OTP:${channel.toUpperCase()}] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
 
+  let emailSent = false
   if (channel === 'email' && transporter && identifier.includes('@')) {
     try {
       await transporter.sendMail({
@@ -64,13 +65,14 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
           <p style="color:#71717a;font-size:12px;margin:0">Expires in ${OTP_TTL_MIN} minutes</p>
         </div>`,
       })
+      emailSent = true
       console.log(`[EMAIL] Sent OTP to ${identifier}`)
     } catch (err) {
       console.error(`[EMAIL] Failed to send to ${identifier}:`, err.message)
     }
   }
 
-  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN }
+  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!transporter, emailDelivered: emailSent }
 }
 
 export async function verifyOtp(identifier, otpCode, purpose = 'login') {
