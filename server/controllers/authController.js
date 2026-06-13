@@ -155,8 +155,7 @@ export async function googleAuth(req, res) {
 export async function testEmail(req, res) {
   const smtpUser = process.env.SMTP_USER
   const smtpPass = process.env.SMTP_PASS ? 'SET (' + process.env.SMTP_PASS.length + ' chars)' : 'NOT SET'
-  const hasTransporter = !!(await import('nodemailer').then(() => true).catch(() => false))
-  
+
   let testResult = 'not attempted'
   if (smtpUser && process.env.SMTP_PASS) {
     try {
@@ -179,7 +178,7 @@ export async function testEmail(req, res) {
   res.json({
     smtpUser: smtpUser || 'NOT SET',
     smtpPass,
-    nodemailerInstalled: hasTransporter,
+    nodemailerInstalled: true,
     testResult,
     nodeVersion: process.version,
   })

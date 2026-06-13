@@ -1,23 +1,29 @@
 import { randomInt } from 'crypto'
-import { createTransport } from 'nodemailer'
 import { supabase, hasSupabase } from './supabase.js'
 
 const OTP_LENGTH = 6
 const OTP_TTL_MIN = 5
 const MAX_ATTEMPTS = 5
 
-const smtpUser = process.env.SMTP_USER
-const smtpPass = process.env.SMTP_PASS
-const emailFrom = process.env.EMAIL_FROM || smtpUser
-let transporter = null
+let _transporter = null
 
-if (smtpUser && smtpPass) {
-  transporter = createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: false,
-    auth: { user: smtpUser, pass: smtpPass },
-  })
+async function getTransporter() {
+  if (_transporter) return _transporter
+  const user = process.env.SMTP_USER
+  const pass = process.env.SMTP_PASS
+  if (!user || !pass) return null
+  try {
+    const { createTransport } = await import('nodemailer')
+    _transporter = createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: { user, pass },
+    })
+  } catch (err) {
+    console.error('[EMAIL] Failed to load nodemailer:', err.message)
+  }
+  return _transporter
 }
 
 export function generateOtpCode() {
@@ -51,10 +57,11 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
   console.log(`[OTP:${channel.toUpperCase()}] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
 
   let emailSent = false
+  const transporter = await getTransporter()
   if (channel === 'email' && transporter && identifier.includes('@')) {
     try {
       await transporter.sendMail({
-        from: emailFrom,
+        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
         to: identifier,
         subject: 'Your TAP-C Silogan verification code',
         text: `Your verification code is: ${otpCode}\n\nThis code expires in ${OTP_TTL_MIN} minutes.\n\nIf you did not request this, please ignore this email.`,
