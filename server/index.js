@@ -66,25 +66,24 @@ app.use(cors({
   },
 }))
 
-// Body parser — manual stream reader
-app.use((req, res, next) => {
+// Body parser — async iteration
+app.use(async (req, res, next) => {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'DELETE') return next()
   const ct = req.headers['content-type'] || ''
   if (!ct.includes('json') && !ct.includes('urlencoded') && !ct.includes('text')) return next()
-  let body = ''
-  req.on('data', d => { body += d })
-  req.on('end', () => {
-    try {
-      if (body) {
-        if (ct.includes('json')) req.body = JSON.parse(body)
-        else if (ct.includes('urlencoded')) req.body = Object.fromEntries(new URLSearchParams(body))
-        else req.body = body
-      } else {
-        req.body = {}
-      }
-    } catch { req.body = {} }
-    next()
-  })
+  try {
+    const chunks = []
+    for await (const chunk of req) chunks.push(chunk)
+    const raw = Buffer.concat(chunks).toString('utf8')
+    if (raw) {
+      if (ct.includes('json')) req.body = JSON.parse(raw)
+      else if (ct.includes('urlencoded')) req.body = Object.fromEntries(new URLSearchParams(raw))
+      else req.body = raw
+    } else {
+      req.body = {}
+    }
+  } catch { req.body = {} }
+  next()
 })
 
 const limiter = rateLimit({
