@@ -49,7 +49,8 @@ function calculateTotal(items) {
 
 export async function placeOrder(req, res) {
   try {
-    const { customer_name, customer_contact, address, items } = req.body
+    const { customer_name, customer_contact, address, items, maps_link, delivery_fee } = req.body
+    const userId = req.userId
 
     if (!customer_name || !customer_contact || !address) {
       return res.status(400).json({ error: 'Customer name, contact, and address are required' })
@@ -87,9 +88,12 @@ export async function placeOrder(req, res) {
     const total = subtotal
 
     const { data, error } = await createOrder({
+      user_id: userId,
       customer_name: safeName,
       customer_contact: safeContact,
       address: safeAddress,
+      maps_link: maps_link || null,
+      delivery_fee: delivery_fee || 0,
       items,
       subtotal,
       total,

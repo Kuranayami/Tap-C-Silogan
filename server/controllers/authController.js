@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto'
 import { sendOtp, verifyOtp } from '../services/otp.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
+import { storeToken as storeUserToken } from '../middleware/userAuth.js'
 
 function sanitizePhone(raw) {
   let d = raw.replace(/\D/g, '')
@@ -88,6 +89,12 @@ export async function verifyOtpHandler(req, res) {
 
     const token = randomUUID()
 
+    if (user && hasSupabase) {
+      await supabase.from('users').update({ token }).eq('id', user.id).maybeSingle()
+    } else if (user) {
+      storeUserToken(token, user.id)
+    }
+
     res.json({
       message: 'OTP verified successfully',
       token,
@@ -141,6 +148,12 @@ export async function googleAuth(req, res) {
     }
 
     const token = randomUUID()
+
+    if (user && hasSupabase) {
+      await supabase.from('users').update({ token }).eq('id', user.id).maybeSingle()
+    } else if (user) {
+      storeUserToken(token, user.id)
+    }
 
     res.json({
       message: 'Google authentication successful',

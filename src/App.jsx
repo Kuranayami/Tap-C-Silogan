@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { CartProvider } from './context/CartContext'
+import { AuthProvider } from './context/AuthContext'
+import { CartProvider, useCheckout } from './context/CartContext'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import MenuSection from './components/MenuSection'
@@ -16,13 +17,41 @@ import RiderRegistration from './components/RiderRegistration'
 import LoginPage from './components/LoginPage'
 import OrderTracking from './components/OrderTracking'
 
-export default function App() {
+function MainLayout() {
+  const { openCheckout } = useCheckout()
+
+  useEffect(() => {
+    if (window.location.hash === '#/checkout') {
+      openCheckout()
+      window.location.hash = ''
+    }
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-[#09090b] text-[#fafafa] overflow-x-hidden">
+      <Navbar />
+      <Hero />
+      <MenuSection />
+      <MediaShowcase />
+      <Testimonials />
+      <CTA />
+      <RatingSection />
+      <Footer />
+      <CartDrawer />
+      <CheckoutModal />
+    </div>
+  )
+}
+
+function AppContent() {
   const [page, setPage] = useState(() => {
     const hash = window.location.hash
     if (hash === '#/admin') return 'admin'
     if (hash === '#/rider') return 'rider'
     if (hash === '#/rider/register') return 'rider-register'
     if (hash === '#/login') return 'login'
+    if (hash === '#/login?redirect=checkout') return 'login-redirect'
+    if (hash === '#/track') return 'track'
     return 'main'
   })
 
@@ -35,8 +64,10 @@ export default function App() {
         setPage('rider')
       } else if (hash === '#/rider/register') {
         setPage('rider-register')
-      } else     if (hash === '#/login') {
+      } else if (hash === '#/login') {
         setPage('login')
+      } else if (hash === '#/login?redirect=checkout') {
+        setPage('login-redirect')
       } else if (hash === '#/track') {
         setPage('track')
       } else {
@@ -68,24 +99,23 @@ export default function App() {
     return <LoginPage onLogin={() => { window.location.hash = '' }} />
   }
 
+  if (page === 'login-redirect') {
+    return <LoginPage onLogin={() => { window.location.hash = '#/checkout' }} />
+  }
+
   if (page === 'track') {
     return <OrderTracking />
   }
 
+  return <MainLayout />
+}
+
+export default function App() {
   return (
-    <CartProvider>
-      <div className="min-h-screen bg-[#09090b] text-[#fafafa] overflow-x-hidden">
-        <Navbar />
-        <Hero />
-        <MenuSection />
-        <MediaShowcase />
-        <Testimonials />
-        <CTA />
-        <RatingSection />
-        <Footer />
-        <CartDrawer />
-        <CheckoutModal />
-      </div>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <AppContent />
+      </CartProvider>
+    </AuthProvider>
   )
 }

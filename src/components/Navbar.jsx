@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Menu, X, ChefHat, User, Bike, Package } from 'lucide-react'
+import { ShoppingCart, Menu, X, ChefHat, User, Bike, Package, LogOut } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 const links = [
   { label: 'Home', id: 'home' },
@@ -12,6 +13,7 @@ const links = [
 
 export default function Navbar() {
   const { itemCount, openCart } = useCart()
+  const { user, logout } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -66,12 +68,24 @@ export default function Navbar() {
             >
               <Bike className="w-3.5 h-3.5" /> Rider
             </a>
-            <a
-              href="#/login"
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-[#f97316]/30 text-xs font-medium transition-all"
-            >
-              <User className="w-3.5 h-3.5" /> Sign In
-            </a>
+            {user ? (
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-xs text-[#a1a1aa]">{user.name || 'User'}</span>
+                <button
+                  onClick={logout}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-500/30 text-xs font-medium transition-all"
+                >
+                  <LogOut className="w-3.5 h-3.5" /> Logout
+                </button>
+              </div>
+            ) : (
+              <a
+                href="#/login"
+                className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-[#f97316]/30 text-xs font-medium transition-all"
+              >
+                <User className="w-3.5 h-3.5" /> Sign In
+              </a>
+            )}
             <button
               onClick={openCart}
               className="relative p-2 text-[#a1a1aa] hover:text-white transition-colors"
@@ -126,13 +140,25 @@ export default function Navbar() {
               >
                 <Bike className="w-4 h-4" /> Rider Dashboard
               </a>
-              <a
-                href="#/login"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 w-full text-left text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors py-2"
-              >
-                <User className="w-4 h-4" /> Sign In
-              </a>
+              {user ? (
+                <div className="flex items-center justify-between py-2 border-t border-[#27272a] pt-3 mt-1">
+                  <span className="text-sm text-[#a1a1aa]">{user.name || 'User'}</span>
+                  <button
+                    onClick={() => { logout(); setMobileOpen(false) }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-500/30 text-xs font-medium transition-all"
+                  >
+                    <LogOut className="w-3.5 h-3.5" /> Logout
+                  </button>
+                </div>
+              ) : (
+                <a
+                  href="#/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 w-full text-left text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors py-2"
+                >
+                  <User className="w-4 h-4" /> Sign In
+                </a>
+              )}
               <button
                 onClick={() => { setMobileOpen(false); openCart() }}
                 className="w-full mt-2 px-5 py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-semibold transition-all"

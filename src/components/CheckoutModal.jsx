@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, Loader2, MapPin } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
 import { DELIVERY_FEE, extractCoordinatesFromUrl } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
   const { items, subtotal, total, clearCart, closeCart } = useCart()
   const { checkoutOpen, closeCheckout } = useCheckout()
-  const [form, setForm] = useState({ name: '', contact: '', address: '' })
+  const { user, token } = useAuth()
+  const [form, setForm] = useState({ name: user?.name || '', contact: user?.phone || '', address: '' })
   const [mapsLink, setMapsLink] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
@@ -52,7 +54,7 @@ export default function CheckoutModal() {
     try {
       const res = await fetch(api('/api/orders'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           customer_name: form.name,
           customer_contact: form.contact,

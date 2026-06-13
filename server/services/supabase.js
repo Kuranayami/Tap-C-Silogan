@@ -56,6 +56,7 @@ export async function createOrder(orderData) {
   if (hasSupabase) {
     try {
       const { data, error } = await supabase.from('orders').insert({
+        user_id: orderData.user_id || null,
         customer_name: orderData.customer_name,
         customer_contact: orderData.customer_contact,
         address: orderData.address,

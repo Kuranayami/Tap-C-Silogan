@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Minus, Trash2, ShoppingCart, ArrowRight } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 
 export default function CartDrawer() {
   const {
@@ -15,6 +16,7 @@ export default function CartDrawer() {
     clearCart,
   } = useCart()
   const { openCheckout } = useCheckout()
+  const { user } = useAuth()
 
   return (
     <AnimatePresence>
@@ -141,7 +143,14 @@ export default function CartDrawer() {
                     Clear
                   </button>
                   <button
-                    onClick={openCheckout}
+                    onClick={() => {
+                      if (user) {
+                        openCheckout()
+                      } else {
+                        closeCart()
+                        window.location.hash = '#/login?redirect=checkout'
+                      }
+                    }}
                     className="flex-1 px-4 py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-[#f97316]/30 active:scale-[0.98] inline-flex items-center justify-center gap-2"
                   >
                     Proceed to Checkout

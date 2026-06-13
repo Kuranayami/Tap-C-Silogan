@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
 import OtpVerification from './OtpVerification'
 import { api } from '../api'
+import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage({ onLogin, onBack }) {
   const [mode, setMode] = useState(null) // null | 'phone' | 'email' | 'otp'
@@ -12,6 +13,7 @@ export default function LoginPage({ onLogin, onBack }) {
   const [error, setError] = useState('')
   const [identifier, setIdentifier] = useState('')
   const [channel, setChannel] = useState('sms')
+  const { login } = useAuth()
 
   const handleSendOtp = async (type) => {
     setError('')
@@ -59,17 +61,13 @@ export default function LoginPage({ onLogin, onBack }) {
     }
 
     const data = await res.json()
-    localStorage.setItem('user_token', data.token)
-    if (data.user) localStorage.setItem('user_profile', JSON.stringify(data.user))
+    if (data.user) login(data.user, data.token)
     onLogin(data.user)
   }
 
   const handleGoogleLogin = () => {
-    // In production: redirect to server's Google OAuth endpoint
-    // For now: mock the flow
     const mockUser = { id: 'google-mock-id', name: 'Google User', email: 'user@gmail.com', auth_provider: 'google' }
-    localStorage.setItem('user_token', 'mock-google-token')
-    localStorage.setItem('user_profile', JSON.stringify(mockUser))
+    login(mockUser, 'mock-google-token')
     onLogin(mockUser)
   }
 
