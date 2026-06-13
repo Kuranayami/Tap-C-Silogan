@@ -135,9 +135,16 @@ export default function CheckoutModal() {
                 <p className="text-[#a1a1aa] text-sm mb-6">
                   Your order has been placed successfully. We'll prepare it right away!
                 </p>
+                <a
+                  href="#/track"
+                  onClick={close}
+                  className="inline-block mb-3 px-6 py-2.5 rounded-xl border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 font-semibold transition-all text-sm"
+                >
+                  Track Your Order
+                </a>
                 <button
                   onClick={close}
-                  className="px-6 py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold transition-all"
+                  className="block mx-auto px-6 py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold transition-all"
                 >
                   Continue Browsing
                 </button>

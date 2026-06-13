@@ -4,7 +4,7 @@ import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike,
-  Zap, Navigation, Users, Wifi,
+  Zap, Navigation, Users, Wifi, XCircle, CheckCircle,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
@@ -333,7 +333,27 @@ export default function Admin() {
 
         <div className="flex items-center justify-between text-[10px] text-[#71717a]">
           <span>{timeAgo(order.created_at)}</span>
-          <button onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id) }} className="hover:text-red-400 transition-colors p-0.5"><Trash2 className="w-3 h-3" /></button>
+          <div className="flex items-center gap-1">
+            {colKey !== 'done' && (
+              <button
+                onClick={(e) => { e.stopPropagation(); changeStatus(order.id, 'canceled') }}
+                className="hover:text-red-400 transition-colors p-0.5 text-[10px] flex items-center gap-0.5"
+                title="Cancel order"
+              >
+                <XCircle className="w-3 h-3" /> Cancel
+              </button>
+            )}
+            {colKey === 'pending' && (
+              <button
+                onClick={(e) => { e.stopPropagation(); changeStatus(order.id, 'ongoing') }}
+                className="hover:text-emerald-400 transition-colors p-0.5 text-[10px] flex items-center gap-0.5"
+                title="Accept order"
+              >
+                <CheckCircle className="w-3 h-3" /> Accept
+              </button>
+            )}
+            <button onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id) }} className="hover:text-red-400 transition-colors p-0.5"><Trash2 className="w-3 h-3" /></button>
+          </div>
         </div>
       </div>
     )

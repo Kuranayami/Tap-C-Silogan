@@ -173,6 +173,33 @@ export async function getOnlineRiderCount() {
   return { online: 0, busy: 0, idle: 0, total: 0 }
 }
 
+export async function cancelDelivery(orderId, riderId) {
+  if (hasSupabase) {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({
+        status: 'canceled',
+        rider_id: null,
+        rider_name: null,
+      })
+      .eq('id', orderId)
+      .eq('rider_id', riderId)
+      .select()
+      .single()
+
+    if (error) throw new Error('Failed to cancel delivery: ' + error.message)
+
+    await supabase
+      .from('riders')
+      .update({ status: 'online' })
+      .eq('id', riderId)
+
+    return data
+  }
+
+  throw new Error('Requires Supabase')
+}
+
 export async function updateKitchenStatus(orderId, status, progress) {
   const valid = ['pending', 'preparing', 'packing', 'ready']
   if (!valid.includes(status)) throw new Error('Invalid kitchen status')

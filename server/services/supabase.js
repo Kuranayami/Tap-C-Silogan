@@ -89,6 +89,21 @@ export async function updateOrderStatus(id, status) {
   return order
 }
 
+export async function getOrdersByContact(contact) {
+  const clean = contact.replace(/\D/g, '').slice(0, 11)
+  if (hasSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('customer_contact', clean)
+        .order('created_at', { ascending: false })
+      if (!error && data) return data
+    } catch (e) { console.warn('Supabase contact lookup failed:', e.message) }
+  }
+  return inMemoryOrders.filter(o => o.customer_contact === clean)
+}
+
 export async function deleteOrder(id) {
   if (hasSupabase) {
     try {

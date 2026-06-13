@@ -7,6 +7,7 @@ import {
   claimOrderHandler,
   myActiveOrders,
   completeDelivery,
+  cancelDeliveryHandler,
   setStatus,
   getRiderProfileHandler,
   riderStatsHandler,
@@ -24,6 +25,7 @@ router.get('/ready-orders', requireRider, listReadyOrders)
 router.post('/claim', requireRider, claimOrderHandler)
 router.get('/my-orders', requireRider, myActiveOrders)
 router.post('/deliver', requireRider, completeDelivery)
+router.post('/cancel', requireRider, cancelDeliveryHandler)
 router.post('/status', requireRider, setStatus)
 router.get('/profile', requireRider, getRiderProfileHandler)
 router.get('/stats', riderStatsHandler)

@@ -14,6 +14,7 @@ import Admin from './components/Admin'
 import RiderPanel from './components/RiderPanel'
 import RiderRegistration from './components/RiderRegistration'
 import LoginPage from './components/LoginPage'
+import OrderTracking from './components/OrderTracking'
 
 export default function App() {
   const [page, setPage] = useState(() => {
@@ -34,8 +35,10 @@ export default function App() {
         setPage('rider')
       } else if (hash === '#/rider/register') {
         setPage('rider-register')
-      } else if (hash === '#/login') {
+      } else     if (hash === '#/login') {
         setPage('login')
+      } else if (hash === '#/track') {
+        setPage('track')
       } else {
         setPage('main')
         const id = hash.slice(1)
@@ -63,6 +66,10 @@ export default function App() {
 
   if (page === 'login') {
     return <LoginPage onLogin={() => { window.location.hash = '' }} />
+  }
+
+  if (page === 'track') {
+    return <OrderTracking />
   }
 
   return (

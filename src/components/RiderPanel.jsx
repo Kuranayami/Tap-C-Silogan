@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bike, Clock, MapPin, Phone, User, Package, Check, AlertTriangle,
-  LogOut, Navigation, RefreshCw, Zap, ArrowLeft,
+  LogOut, Navigation, RefreshCw, Zap, ArrowLeft, XCircle,
 } from 'lucide-react'
 import { api } from '../api'
 import RiderLogin from './RiderLogin'
@@ -83,6 +83,23 @@ export default function RiderPanel() {
   }
 
   const goBack = () => { window.location.hash = '' }
+
+  const handleCancel = async (orderId) => {
+    if (!confirm('Cancel this delivery?')) return
+    try {
+      const res = await fetch(api('/api/rider/cancel'), {
+        method: 'POST',
+        headers: { ...riderHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId }),
+      })
+      if (!res.ok) throw new Error('Failed to cancel')
+      showNotification('Delivery canceled')
+      fetchActiveOrders()
+      fetchReadyOrders()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
 
   const handleClaim = async (orderId) => {
     setClaimingId(orderId)
@@ -343,12 +360,20 @@ export default function RiderPanel() {
                       <div className="text-right shrink-0">
                         <p className="text-lg font-bold text-white">₱{order.total}</p>
                         <p className="text-[10px] text-[#71717a] mt-0.5">{timeAgo(order.claimed_at)}</p>
-                        <button
-                          onClick={() => handleDeliver(order.id)}
-                          className="mt-2 inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all"
-                        >
-                          <Check className="w-3.5 h-3.5" /> Mark Delivered
-                        </button>
+                        <div className="flex items-center gap-2 mt-2 justify-end">
+                          <button
+                            onClick={() => handleCancel(order.id)}
+                            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-semibold transition-all"
+                          >
+                            <XCircle className="w-3.5 h-3.5" /> Cancel
+                          </button>
+                          <button
+                            onClick={() => handleDeliver(order.id)}
+                            className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all"
+                          >
+                            <Check className="w-3.5 h-3.5" /> Mark Delivered
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>

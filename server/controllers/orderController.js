@@ -1,4 +1,4 @@
-import { createOrder, getAllOrders, updateOrderStatus, deleteOrder, getMenuItemById, ensureMenuLoaded } from '../services/supabase.js'
+import { createOrder, getAllOrders, updateOrderStatus, deleteOrder, getMenuItemById, ensureMenuLoaded, getOrdersByContact } from '../services/supabase.js'
 
 const VALID_ADDON_IDS = ['extra-rice', 'egg', 'mang-tomas']
 const MAX_ITEMS_PER_ORDER = 50
@@ -134,9 +134,9 @@ export async function updateOrder(req, res) {
     const { id } = req.params
     const { status } = req.body
 
-    const VALID_STATUSES = ['pending', 'ongoing', 'in_delivery', 'done']
+    const VALID_STATUSES = ['pending', 'ongoing', 'in_delivery', 'done', 'canceled']
     if (!status || !VALID_STATUSES.includes(status.toLowerCase())) {
-      return res.status(400).json({ error: 'Status must be pending, ongoing, in_delivery, or done' })
+      return res.status(400).json({ error: 'Status must be pending, ongoing, in_delivery, done, or canceled' })
     }
 
     const order = await updateOrderStatus(id, status.toLowerCase())
@@ -148,5 +148,30 @@ export async function updateOrder(req, res) {
   } catch (err) {
     console.error('updateOrder error:', err)
     res.status(500).json({ error: 'Failed to update order' })
+  }
+}
+
+export async function trackOrder(req, res) {
+  try {
+    const { contact } = req.params
+    if (!contact) return res.status(400).json({ error: 'Contact number is required' })
+
+    const orders = await getOrdersByContact(contact)
+    res.json(orders)
+  } catch (err) {
+    console.error('trackOrder error:', err)
+    res.status(500).json({ error: 'Failed to fetch orders' })
+  }
+}
+
+export async function cancelOrder(req, res) {
+  try {
+    const { id } = req.params
+    const order = await updateOrderStatus(id, 'canceled')
+    if (!order) return res.status(404).json({ error: 'Order not found' })
+    res.json({ message: 'Order canceled', order })
+  } catch (err) {
+    console.error('cancelOrder error:', err)
+    res.status(500).json({ error: 'Failed to cancel order' })
   }
 }

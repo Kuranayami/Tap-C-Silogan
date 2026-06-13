@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Menu, X, ChefHat, User, Bike } from 'lucide-react'
+import { ShoppingCart, Menu, X, ChefHat, User, Bike, Package } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 
 const links = [
@@ -55,6 +55,12 @@ export default function Navbar() {
 
           <div className="flex items-center gap-2">
             <a
+              href="#/track"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-[#f97316] hover:border-[#f97316]/30 text-xs font-medium transition-all"
+            >
+              <Package className="w-3.5 h-3.5" /> Track
+            </a>
+            <a
               href="#/rider"
               className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-emerald-400 hover:border-emerald-500/30 text-xs font-medium transition-all"
             >
@@ -106,6 +112,13 @@ export default function Navbar() {
                   {l.label}
                 </a>
               ))}
+              <a
+                href="#/track"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 w-full text-left text-sm font-medium text-[#a1a1aa] hover:text-[#f97316] transition-colors py-2"
+              >
+                <Package className="w-4 h-4" /> Track Order
+              </a>
               <a
                 href="#/rider"
                 onClick={() => setMobileOpen(false)}

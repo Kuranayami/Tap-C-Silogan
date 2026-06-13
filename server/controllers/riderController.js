@@ -7,6 +7,7 @@ import {
   markDelivered,
   getOnlineRiderCount,
   updateKitchenStatus,
+  cancelDelivery,
 } from '../services/rider.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { saveFile } from '../services/storage.js'
@@ -143,6 +144,18 @@ export async function updateKitchen(req, res) {
     res.json({ message: 'Kitchen status updated', order })
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to update kitchen status' })
+  }
+}
+
+export async function cancelDeliveryHandler(req, res) {
+  try {
+    const { order_id } = req.body
+    if (!order_id) return res.status(400).json({ error: 'order_id is required' })
+
+    const order = await cancelDelivery(order_id, req.riderId)
+    res.json({ message: 'Delivery canceled', order })
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to cancel delivery' })
   }
 }
 
