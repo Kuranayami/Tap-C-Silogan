@@ -86,7 +86,7 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
       .select('*')
       .eq('identifier', identifier)
       .eq('purpose', purpose)
-      .eq('verified_at', null)
+      .is('verified_at', null)
       .gte('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
