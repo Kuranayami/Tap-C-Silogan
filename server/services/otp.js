@@ -26,13 +26,8 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
       max_attempts: MAX_ATTEMPTS, expires_at: expiresAt,
     })
     if (error) {
-      const msg = error.message || ''
-      if (msg.includes('relation') && msg.includes('does not exist')) {
-        console.warn('otp_verifications table missing — using in-memory fallback')
-        otpStore.set(identifier + ':' + purpose, store)
-      } else {
-        throw new Error('Failed to store OTP: ' + msg)
-      }
+      console.warn('Supabase OTP insert failed, using in-memory:', error.message)
+      otpStore.set(identifier + ':' + purpose, store)
     }
   } else {
     otpStore.set(identifier + ':' + purpose, store)
@@ -56,12 +51,8 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
       .limit(1)
 
     if (error) {
-      const msg = error.message || ''
-      if (msg.includes('relation') && msg.includes('does not exist')) {
-        console.warn('otp_verifications table missing — using in-memory fallback')
-        return verifyOtpInMemory(identifier + ':' + purpose, otpCode)
-      }
-      throw new Error('OTP lookup failed: ' + msg)
+      console.warn('Supabase OTP lookup failed, using in-memory:', error.message)
+      return verifyOtpInMemory(identifier + ':' + purpose, otpCode)
     }
 
     if (!rows || rows.length === 0) {
