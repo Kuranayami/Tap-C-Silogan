@@ -68,16 +68,18 @@ app.use(cors({
 
 // Manual body parser helper
 function parseJsonBody(req, res, next) {
-  let data = ''
-  req.on('data', chunk => data += chunk)
+  if (req.body !== undefined) return next()
+  const chunks = []
+  req.on('data', chunk => chunks.push(chunk))
   req.on('end', () => {
     try {
-      if (data) {
+      const raw = Buffer.concat(chunks).toString('utf8')
+      if (raw) {
         const ct = req.headers['content-type'] || ''
         if (ct.includes('application/json')) {
-          req.body = JSON.parse(data)
+          req.body = JSON.parse(raw)
         } else if (ct.includes('application/x-www-form-urlencoded')) {
-          const params = new URLSearchParams(data)
+          const params = new URLSearchParams(raw)
           req.body = Object.fromEntries(params)
         } else {
           req.body = {}
