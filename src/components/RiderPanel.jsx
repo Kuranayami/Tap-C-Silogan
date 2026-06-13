@@ -99,7 +99,7 @@ export default function RiderPanel() {
       }
 
       const data = await res.json()
-      showNotification(`✅ You claimed order #${orderId.slice(-4)} — heading to store!`)
+      showNotification(`✅ Claimed! SMS sent to ${data.order.customer_name} — rider ${rider?.name || 'en route'}!`)
       setActiveTab('active')
       fetchReadyOrders()
       fetchActiveOrders()

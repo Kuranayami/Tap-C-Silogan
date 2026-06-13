@@ -170,7 +170,7 @@ export async function getOnlineRiderCount() {
     }
   }
 
-  return { online: 1, busy: 0, idle: 0, total: 1 }
+  return { online: 0, busy: 0, idle: 0, total: 0 }
 }
 
 export async function updateKitchenStatus(orderId, status, progress) {

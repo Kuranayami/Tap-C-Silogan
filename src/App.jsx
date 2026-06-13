@@ -12,12 +12,14 @@ import CartDrawer from './components/CartDrawer'
 import CheckoutModal from './components/CheckoutModal'
 import Admin from './components/Admin'
 import RiderPanel from './components/RiderPanel'
+import LoginPage from './components/LoginPage'
 
 export default function App() {
   const [page, setPage] = useState(() => {
     const hash = window.location.hash
     if (hash === '#/admin') return 'admin'
     if (hash === '#/rider') return 'rider'
+    if (hash === '#/login') return 'login'
     return 'main'
   })
 
@@ -28,6 +30,8 @@ export default function App() {
         setPage('admin')
       } else if (hash === '#/rider') {
         setPage('rider')
+      } else if (hash === '#/login') {
+        setPage('login')
       } else {
         setPage('main')
         const id = hash.slice(1)
@@ -47,6 +51,10 @@ export default function App() {
 
   if (page === 'rider') {
     return <RiderPanel />
+  }
+
+  if (page === 'login') {
+    return <LoginPage onLogin={() => { window.location.hash = '' }} />
   }
 
   return (

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   loginRider,
+  registerRider,
   listReadyOrders,
   claimOrderHandler,
   myActiveOrders,
@@ -15,6 +16,7 @@ import { requireRider } from '../middleware/riderAuth.js'
 const router = Router()
 
 router.post('/login', loginRider)
+router.post('/register', registerRider)
 
 router.get('/ready-orders', requireRider, listReadyOrders)
 router.post('/claim', requireRider, claimOrderHandler)

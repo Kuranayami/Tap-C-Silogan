@@ -144,3 +144,36 @@ export async function updateKitchen(req, res) {
     res.status(500).json({ error: err.message || 'Failed to update kitchen status' })
   }
 }
+
+export async function registerRider(req, res) {
+  try {
+    const { name, phone, password } = req.body
+    if (!name || !phone || !password) {
+      return res.status(400).json({ error: 'Name, phone, and password are required' })
+    }
+    if (!hasSupabase) {
+      return res.status(500).json({ error: 'Registration requires database' })
+    }
+    const cleanPhone = phone.replace(/\D/g, '').replace(/^0?/, '09').slice(0, 11)
+    const hash = createHash('sha256').update(password).digest('hex')
+    const { data, error } = await supabase
+      .from('riders')
+      .insert({ name: name.trim(), phone: cleanPhone, password_hash: hash, status: 'online' })
+      .select()
+      .single()
+    if (error) {
+      if (error.code === '23505') return res.status(409).json({ error: 'Phone number already registered' })
+      return res.status(500).json({ error: 'Registration failed: ' + error.message })
+    }
+    const token = randomUUID()
+    res.status(201).json({
+      token,
+      rider: {
+        id: data.id, name: data.name, phone: data.phone,
+        status: data.status, total_deliveries: 0, rating: 0,
+      },
+    })
+  } catch (err) {
+    res.status(500).json({ error: 'Registration failed' })
+  }
+}

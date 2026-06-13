@@ -132,19 +132,22 @@ export default function Admin() {
         if (res.ok) setRiderStats(await res.json())
       } catch {}
     }
-    const fetchActiveUsers = async () => {
-      try {
-        const res = await fetch(api('/api/auth/profile'), { headers: adminHeaders() })
-        if (res.ok) setActiveUsers(prev => prev + 0)
-      } catch {}
+    const fetchActiveUsers = () => {
+      const today = new Date().toDateString()
+      const unique = new Set(orders.filter(o => {
+        const d = o.created_at ? new Date(o.created_at).toDateString() : ''
+        return d === today
+      }).map(o => o.customer_name?.toLowerCase().trim()).filter(Boolean))
+      setActiveUsers(unique.size)
     }
     fetchRiderStats()
+    fetchActiveUsers()
     const interval = setInterval(() => {
       fetchRiderStats()
-      setActiveUsers(Math.floor(Math.random() * 5) + 3)
-    }, 15000)
+      fetchActiveUsers()
+    }, 30000)
     return () => clearInterval(interval)
-  }, [loggedIn])
+  }, [loggedIn, orders])
 
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />
 
