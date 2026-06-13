@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronRight, ChevronLeft, Check, Upload, Bike, Car, Smartphone,
-  User, Mail, Phone, Camera, AlertCircle, ArrowLeft, Loader2, Lock,
+  User, Mail, Phone, Camera, AlertCircle, ArrowLeft, Loader2, Lock, Eye, EyeOff,
 } from 'lucide-react'
 import { api } from '../api'
 
@@ -36,6 +36,7 @@ export default function RiderRegistration({ onComplete, onBack }) {
   const [licensePlate, setLicensePlate] = useState('')
   const [profileFile, setProfileFile] = useState(null)
   const [profilePreview, setProfilePreview] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
 
@@ -360,16 +361,25 @@ export default function RiderRegistration({ onComplete, onBack }) {
                   <label className="text-xs text-[#a1a1aa] mb-1.5 flex items-center gap-1.5">
                     <Lock className="w-3.5 h-3.5 text-emerald-400" /> Password
                   </label>
-                  <input
-                    type="password" placeholder="At least 6 characters"
-                    value={form.password}
-                    onChange={e => { setForm(f => ({ ...f, password: e.target.value })); setErrors(prev => ({ ...prev, password: '' })) }}
-                    onBlur={() => handleBlur('password')}
-                    className={`w-full px-4 py-2.5 rounded-xl bg-[#09090b] border text-sm text-white placeholder-[#71717a] focus:outline-none transition-all ${
-                      fieldError('password') ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500/30' :
-                      'border-[#27272a] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30'
-                    }`}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'} placeholder="At least 6 characters"
+                      value={form.password}
+                      onChange={e => { setForm(f => ({ ...f, password: e.target.value })); setErrors(prev => ({ ...prev, password: '' })) }}
+                      onBlur={() => handleBlur('password')}
+                      className={`w-full px-4 py-2.5 pr-10 rounded-xl bg-[#09090b] border text-sm text-white placeholder-[#71717a] focus:outline-none transition-all ${
+                        fieldError('password') ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500/30' :
+                        'border-[#27272a] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717a] hover:text-[#a1a1aa] transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   {fieldError('password') && <p className="text-red-400 text-[10px] mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.password}</p>}
                 </div>
 
