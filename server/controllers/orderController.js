@@ -139,7 +139,7 @@ export async function updateOrder(req, res) {
       return res.status(400).json({ error: 'Status must be pending, ongoing, in_delivery, or done' })
     }
 
-    const order = updateOrderStatus(id, status.toLowerCase())
+    const order = await updateOrderStatus(id, status.toLowerCase())
     if (!order) {
       return res.status(404).json({ error: 'Order not found' })
     }
