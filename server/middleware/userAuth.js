@@ -1,9 +1,20 @@
 import { supabase, hasSupabase } from '../services/supabase.js'
 
-const tokenStore = new Map()
+const tokenCache = new Map()
 
-export function storeToken(token, userId) {
-  tokenStore.set(token, userId)
+export async function storeToken(token, userId) {
+  tokenCache.set(token, userId)
+
+  if (hasSupabase) {
+    try {
+      await supabase.from('user_tokens').upsert(
+        { token, user_id: userId },
+        { onConflict: 'token' }
+      )
+    } catch {
+      // table may not exist yet
+    }
+  }
 }
 
 export async function requireUser(req, res, next) {
@@ -14,11 +25,11 @@ export async function requireUser(req, res, next) {
 
   const token = header.slice(7)
 
-  // Check in-memory store first
-  const localUserId = tokenStore.get(token)
-  if (localUserId) {
-    req.userId = localUserId
-    req.user = { id: localUserId }
+  // Check in-memory cache first
+  const cachedUserId = tokenCache.get(token)
+  if (cachedUserId) {
+    req.userId = cachedUserId
+    req.user = { id: cachedUserId }
     return next()
   }
 
@@ -26,17 +37,23 @@ export async function requireUser(req, res, next) {
   if (hasSupabase) {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('id, name, phone, email')
-        .eq('id', token)
+        .from('user_tokens')
+        .select('user_id')
+        .eq('token', token)
         .maybeSingle()
 
       if (!error && data) {
-        req.userId = data.id
-        req.user = data
+        tokenCache.set(token, data.user_id)
+        req.userId = data.user_id
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, name, phone, email')
+          .eq('id', data.user_id)
+          .maybeSingle()
+        req.user = userData || { id: data.user_id }
         return next()
       }
-    } catch (e) {
+    } catch {
       // fall through
     }
   }
