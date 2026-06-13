@@ -1,9 +1,24 @@
 import { randomInt } from 'crypto'
+import { createTransport } from 'nodemailer'
 import { supabase, hasSupabase } from './supabase.js'
 
 const OTP_LENGTH = 6
 const OTP_TTL_MIN = 5
 const MAX_ATTEMPTS = 5
+
+const smtpUser = process.env.SMTP_USER
+const smtpPass = process.env.SMTP_PASS
+const emailFrom = process.env.EMAIL_FROM || smtpUser
+let transporter = null
+
+if (smtpUser && smtpPass) {
+  transporter = createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: false,
+    auth: { user: smtpUser, pass: smtpPass },
+  })
+}
 
 export function generateOtpCode() {
   const num = randomInt(0, 999999)
@@ -34,6 +49,26 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
   }
 
   console.log(`[OTP:${channel.toUpperCase()}] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
+
+  if (channel === 'email' && transporter && identifier.includes('@')) {
+    try {
+      await transporter.sendMail({
+        from: emailFrom,
+        to: identifier,
+        subject: 'Your TAP-C Silogan verification code',
+        text: `Your verification code is: ${otpCode}\n\nThis code expires in ${OTP_TTL_MIN} minutes.\n\nIf you did not request this, please ignore this email.`,
+        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#1a1a2e;border-radius:12px;text-align:center">
+          <h2 style="color:#f97316;margin:0 0 16px">TAP-C Silogan</h2>
+          <p style="color:#a1a1aa;font-size:14px;margin:0 0 8px">Your verification code</p>
+          <div style="background:#09090b;border-radius:8px;padding:16px;margin:0 0 16px;letter-spacing:8px;font-size:32px;font-weight:bold;color:#f97316">${otpCode}</div>
+          <p style="color:#71717a;font-size:12px;margin:0">Expires in ${OTP_TTL_MIN} minutes</p>
+        </div>`,
+      })
+      console.log(`[EMAIL] Sent OTP to ${identifier}`)
+    } catch (err) {
+      console.error(`[EMAIL] Failed to send to ${identifier}:`, err.message)
+    }
+  }
 
   return { message: 'OTP sent', ttl_min: OTP_TTL_MIN }
 }
