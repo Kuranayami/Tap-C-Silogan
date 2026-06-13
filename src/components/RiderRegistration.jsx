@@ -53,9 +53,9 @@ export default function RiderRegistration({ onComplete, onBack }) {
   const otpRefs = useRef([])
   const fileInputRef = useRef(null)
 
-  const nameRegex = /^[a-zA-ZÀ-ÿ\s'-]{2,50}$/
+  const nameRegex = /^.{2,100}$/
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const phoneRegex = /^\d{7,15}$/
+  const phoneRegex = /.+/
 
   // ── OTP countdown ──
   useEffect(() => {
@@ -73,11 +73,11 @@ export default function RiderRegistration({ onComplete, onBack }) {
     const errs = {}
     if (s === 1 || !s) {
       if (!form.name.trim()) errs.name = 'Full name is required'
-      else if (!nameRegex.test(form.name.trim())) errs.name = 'Enter a valid name (letters only)'
+      else if (form.name.trim().length < 2) errs.name = 'Name must be at least 2 characters'
       if (!form.email.trim()) errs.email = 'Email is required'
-      else if (!emailRegex.test(form.email.trim())) errs.email = 'Enter a valid email address'
+      else if (!emailRegex.test(form.email.trim())) errs.email = 'Enter a valid email address (e.g., name@domain.com)'
       if (!form.phone.trim()) errs.phone = 'Phone number is required'
-      else if (!phoneRegex.test(form.phone.replace(/\D/g, ''))) errs.phone = 'Enter a valid phone number'
+      else if (form.phone.replace(/\D/g, '').length < 7) errs.phone = 'Enter at least 7 digits'
     }
     if (s === 3) {
       if (!vehicle) errs.vehicle = 'Select a vehicle type'
@@ -97,9 +97,9 @@ export default function RiderRegistration({ onComplete, onBack }) {
   const fieldError = (field) => touched[field] ? errors[field] : ''
 
   // ── Step navigation ──
-  const canProceedTo2 = form.name.trim() && nameRegex.test(form.name.trim()) &&
-    form.email.trim() && emailRegex.test(form.email.trim()) &&
-    form.phone.trim() && phoneRegex.test(form.phone.replace(/\D/g, ''))
+  const canProceedTo2 = form.name.trim().length >= 2 &&
+    form.email.trim().length >= 5 && form.email.includes('@') &&
+    form.phone.replace(/\D/g, '').length >= 7
 
   const canProceedTo3 = otpVerified
 
