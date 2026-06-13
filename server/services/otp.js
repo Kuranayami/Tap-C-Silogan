@@ -18,25 +18,27 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
   const otpCode = generateOtpCode()
   const expiresAt = getExpiry()
 
+  const store = { otpCode, expiresAt, attempts: 0 }
+
   if (hasSupabase) {
     const { error } = await supabase.from('otp_verifications').insert({
-      identifier,
-      channel,
-      otp_code: otpCode,
-      purpose,
-      max_attempts: MAX_ATTEMPTS,
-      expires_at: expiresAt,
+      identifier, channel, otp_code: otpCode, purpose,
+      max_attempts: MAX_ATTEMPTS, expires_at: expiresAt,
     })
-    if (error) throw new Error('Failed to store OTP: ' + error.message)
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes('relation') && msg.includes('does not exist')) {
+        console.warn('otp_verifications table missing — using in-memory fallback')
+        otpStore.set(identifier + ':' + purpose, store)
+      } else {
+        throw new Error('Failed to store OTP: ' + msg)
+      }
+    }
   } else {
-    otpStore.set(identifier + ':' + purpose, { otpCode, expiresAt, attempts: 0 })
+    otpStore.set(identifier + ':' + purpose, store)
   }
 
-  if (channel === 'sms') {
-    console.log(`[OTP:SMS] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
-  } else if (channel === 'email') {
-    console.log(`[OTP:EMAIL] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
-  }
+  console.log(`[OTP:${channel.toUpperCase()}] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
 
   return { message: 'OTP sent', ttl_min: OTP_TTL_MIN }
 }
@@ -53,7 +55,14 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
       .order('created_at', { ascending: false })
       .limit(1)
 
-    if (error) throw new Error('OTP lookup failed: ' + error.message)
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes('relation') && msg.includes('does not exist')) {
+        console.warn('otp_verifications table missing — using in-memory fallback')
+        return verifyOtpInMemory(identifier + ':' + purpose, otpCode)
+      }
+      throw new Error('OTP lookup failed: ' + msg)
+    }
 
     if (!rows || rows.length === 0) {
       throw new Error('No valid OTP found. Request a new one.')
@@ -81,8 +90,11 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
     return { verified: true, channel: record.channel }
   }
 
-  // In-memory fallback
-  const record = otpStore.get(identifier + ':' + purpose)
+  return verifyOtpInMemory(identifier + ':' + purpose, otpCode)
+}
+
+function verifyOtpInMemory(key, otpCode) {
+  const record = otpStore.get(key)
   if (!record) throw new Error('No valid OTP found. Request a new one.')
   if (new Date(record.expiresAt) < new Date()) throw new Error('OTP has expired.')
   if (record.attempts >= MAX_ATTEMPTS) throw new Error('Too many failed attempts. Request a new OTP.')
@@ -90,7 +102,7 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
     record.attempts++
     throw new Error('Invalid OTP code.')
   }
-  otpStore.delete(identifier + ':' + purpose)
+  otpStore.delete(key)
   return { verified: true, channel: record.channel || 'sms' }
 }
 
