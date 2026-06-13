@@ -19,6 +19,9 @@ async function getTransporter() {
       port: Number(process.env.SMTP_PORT) || 587,
       secure: false,
       auth: { user, pass },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 30000,
     })
   } catch (err) {
     console.error('[EMAIL] Failed to load nodemailer:', err.message)
@@ -56,30 +59,27 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
 
   console.log(`[OTP:${channel.toUpperCase()}] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
 
-  let emailSent = false
   const transporter = await getTransporter()
   if (channel === 'email' && transporter && identifier.includes('@')) {
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-        to: identifier,
-        subject: 'Your TAP-C Silogan verification code',
-        text: `Your verification code is: ${otpCode}\n\nThis code expires in ${OTP_TTL_MIN} minutes.\n\nIf you did not request this, please ignore this email.`,
-        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#1a1a2e;border-radius:12px;text-align:center">
-          <h2 style="color:#f97316;margin:0 0 16px">TAP-C Silogan</h2>
-          <p style="color:#a1a1aa;font-size:14px;margin:0 0 8px">Your verification code</p>
-          <div style="background:#09090b;border-radius:8px;padding:16px;margin:0 0 16px;letter-spacing:8px;font-size:32px;font-weight:bold;color:#f97316">${otpCode}</div>
-          <p style="color:#71717a;font-size:12px;margin:0">Expires in ${OTP_TTL_MIN} minutes</p>
-        </div>`,
-      })
-      emailSent = true
+    transporter.sendMail({
+      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+      to: identifier,
+      subject: 'Your TAP-C Silogan verification code',
+      text: `Your verification code is: ${otpCode}\n\nThis code expires in ${OTP_TTL_MIN} minutes.\n\nIf you did not request this, please ignore this email.`,
+      html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#1a1a2e;border-radius:12px;text-align:center">
+        <h2 style="color:#f97316;margin:0 0 16px">TAP-C Silogan</h2>
+        <p style="color:#a1a1aa;font-size:14px;margin:0 0 8px">Your verification code</p>
+        <div style="background:#09090b;border-radius:8px;padding:16px;margin:0 0 16px;letter-spacing:8px;font-size:32px;font-weight:bold;color:#f97316">${otpCode}</div>
+        <p style="color:#71717a;font-size:12px;margin:0">Expires in ${OTP_TTL_MIN} minutes</p>
+      </div>`,
+    }).then(() => {
       console.log(`[EMAIL] Sent OTP to ${identifier}`)
-    } catch (err) {
+    }).catch(err => {
       console.error(`[EMAIL] Failed to send to ${identifier}:`, err.message)
-    }
+    })
   }
 
-  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!transporter, emailDelivered: emailSent }
+  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!transporter }
 }
 
 export async function verifyOtp(identifier, otpCode, purpose = 'login') {
