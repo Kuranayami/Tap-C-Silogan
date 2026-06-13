@@ -66,34 +66,26 @@ app.use(cors({
   },
 }))
 
-// Manual body parser helper
-function parseJsonBody(req, res, next) {
-  if (req.body !== undefined) return next()
-  const chunks = []
-  req.on('data', chunk => chunks.push(chunk))
-  req.on('end', () => {
-    try {
-      const raw = Buffer.concat(chunks).toString('utf8')
-      if (raw) {
-        const ct = req.headers['content-type'] || ''
-        if (ct.includes('application/json')) {
-          req.body = JSON.parse(raw)
-        } else if (ct.includes('application/x-www-form-urlencoded')) {
-          const params = new URLSearchParams(raw)
-          req.body = Object.fromEntries(params)
-        } else {
-          req.body = {}
-        }
-      } else {
-        req.body = {}
-      }
-    } catch {
+// Body parser — use Express 5 built-in text parser then manual JSON parse
+app.use(express.text({ type: '*/*' }))
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'string') {
+    const ct = req.headers['content-type'] || ''
+    if (ct.includes('application/json')) {
+      try { req.body = JSON.parse(req.body) } catch { req.body = {} }
+    } else if (ct.includes('application/x-www-form-urlencoded')) {
+      try {
+        const params = new URLSearchParams(req.body)
+        req.body = Object.fromEntries(params)
+      } catch { req.body = {} }
+    } else {
       req.body = {}
     }
-    next()
-  })
-  req.on('error', () => { req.body = {}; next() })
-}
+  } else if (!req.body) {
+    req.body = {}
+  }
+  next()
+})
 
 app.use(parseJsonBody)
 
