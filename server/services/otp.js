@@ -5,28 +5,34 @@ const OTP_LENGTH = 6
 const OTP_TTL_MIN = 5
 const MAX_ATTEMPTS = 5
 
-let _transporter = null
+async function sendEmailViaSendGrid(to, subject, html) {
+  const apiKey = process.env.SENDGRID_API_KEY
+  if (!apiKey) return false
 
-async function getTransporter() {
-  if (_transporter) return _transporter
-  const user = process.env.SMTP_USER
-  const pass = process.env.SMTP_PASS
-  if (!user || !pass) return null
   try {
-    const { createTransport } = await import('nodemailer')
-    _transporter = createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: Number(process.env.SMTP_PORT) || 465,
-      secure: true,
-      auth: { user, pass },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 30000,
+    const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: process.env.EMAIL_FROM || 'ayenndevera@gmail.com' },
+        subject,
+        content: [{ type: 'text/html', value: html }],
+      }),
     })
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      console.error(`[SENDGRID] HTTP ${res.status}: ${body}`)
+      return false
+    }
+    return true
   } catch (err) {
-    console.error('[EMAIL] Failed to load nodemailer:', err.message)
+    console.error('[SENDGRID] Network error:', err.message)
+    return false
   }
-  return _transporter
 }
 
 export function generateOtpCode() {
@@ -59,27 +65,18 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
 
   console.log(`[OTP:${channel.toUpperCase()}] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
 
-  const transporter = await getTransporter()
-  if (channel === 'email' && transporter && identifier.includes('@')) {
-    transporter.sendMail({
-      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-      to: identifier,
-      subject: 'Your TAP-C Silogan verification code',
-      text: `Your verification code is: ${otpCode}\n\nThis code expires in ${OTP_TTL_MIN} minutes.\n\nIf you did not request this, please ignore this email.`,
-      html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#1a1a2e;border-radius:12px;text-align:center">
-        <h2 style="color:#f97316;margin:0 0 16px">TAP-C Silogan</h2>
-        <p style="color:#a1a1aa;font-size:14px;margin:0 0 8px">Your verification code</p>
-        <div style="background:#09090b;border-radius:8px;padding:16px;margin:0 0 16px;letter-spacing:8px;font-size:32px;font-weight:bold;color:#f97316">${otpCode}</div>
-        <p style="color:#71717a;font-size:12px;margin:0">Expires in ${OTP_TTL_MIN} minutes</p>
-      </div>`,
-    }).then(() => {
-      console.log(`[EMAIL] Sent OTP to ${identifier}`)
-    }).catch(err => {
-      console.error(`[EMAIL] Failed to send to ${identifier}:`, err.message)
-    })
+  if (channel === 'email' && identifier.includes('@')) {
+    const html = `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#1a1a2e;border-radius:12px;text-align:center">
+      <h2 style="color:#f97316;margin:0 0 16px">TAP-C Silogan</h2>
+      <p style="color:#a1a1aa;font-size:14px;margin:0 0 8px">Your verification code</p>
+      <div style="background:#09090b;border-radius:8px;padding:16px;margin:0 0 16px;letter-spacing:8px;font-size:32px;font-weight:bold;color:#f97316">${otpCode}</div>
+      <p style="color:#71717a;font-size:12px;margin:0">Expires in ${OTP_TTL_MIN} minutes</p>
+    </div>`
+    sendEmailViaSendGrid(identifier, 'Your TAP-C Silogan verification code', html)
+      .then(sent => console.log(sent ? `[EMAIL] Sent OTP to ${identifier}` : `[EMAIL] Failed to send to ${identifier}`))
   }
 
-  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!transporter }
+  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!process.env.SENDGRID_API_KEY }
 }
 
 export async function verifyOtp(identifier, otpCode, purpose = 'login') {

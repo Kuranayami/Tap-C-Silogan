@@ -153,12 +153,9 @@ export async function googleAuth(req, res) {
 }
 
 export async function testEmail(req, res) {
-  const smtpUser = process.env.SMTP_USER
-  const smtpPass = process.env.SMTP_PASS ? 'SET (' + process.env.SMTP_PASS.length + ' chars)' : 'NOT SET'
   res.json({
-    smtpUser: smtpUser || 'NOT SET',
-    smtpPass,
-    nodemailerInstalled: true,
+    sendgridKey: process.env.SENDGRID_API_KEY ? 'SET (' + process.env.SENDGRID_API_KEY.length + ' chars)' : 'NOT SET',
+    emailFrom: process.env.EMAIL_FROM || 'NOT SET',
     nodeVersion: process.version,
   })
 }
