@@ -103,6 +103,13 @@ app.use('/api/location', locationRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/rider', riderRoutes)
 
+app.get('/api/debug/body', (req, res) => {
+  res.json({ bodyType: typeof req.body, body: req.body, keys: req.body ? Object.keys(req.body) : null })
+})
+app.post('/api/debug/body', (req, res) => {
+  res.json({ bodyType: typeof req.body, body: req.body, keys: req.body ? Object.keys(req.body) : null, constructor: req.body?.constructor?.name })
+})
+
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err?.message || err, err?.stack || '')
   if (err.code === 'LIMIT_FILE_SIZE') {
