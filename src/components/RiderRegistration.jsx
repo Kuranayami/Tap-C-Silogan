@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronRight, ChevronLeft, Check, Upload, Bike, Car, Smartphone,
-  User, Mail, Phone, Camera, AlertCircle, ArrowLeft, Loader2,
+  User, Mail, Phone, Camera, AlertCircle, ArrowLeft, Loader2, Lock,
 } from 'lucide-react'
 import { api } from '../api'
 
@@ -30,7 +30,7 @@ const COUNTRY_CODES = [
 export default function RiderRegistration({ onComplete, onBack }) {
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({
-    name: '', email: '', phone: '', countryCode: '+63',
+    name: '', email: '', phone: '', password: '', countryCode: '+63',
   })
   const [vehicle, setVehicle] = useState('')
   const [licensePlate, setLicensePlate] = useState('')
@@ -78,6 +78,8 @@ export default function RiderRegistration({ onComplete, onBack }) {
       else if (!emailRegex.test(form.email.trim())) errs.email = 'Enter a valid email address (e.g., name@domain.com)'
       if (!form.phone.trim()) errs.phone = 'Phone number is required'
       else if (form.phone.replace(/\D/g, '').length < 7) errs.phone = 'Enter at least 7 digits'
+      if (!form.password) errs.password = 'Password is required'
+      else if (form.password.length < 6) errs.password = 'Password must be at least 6 characters'
     }
     if (s === 3) {
       if (!vehicle) errs.vehicle = 'Select a vehicle type'
@@ -99,7 +101,8 @@ export default function RiderRegistration({ onComplete, onBack }) {
   // ── Step navigation ──
   const canProceedTo2 = form.name.trim().length >= 2 &&
     form.email.trim().length >= 5 && form.email.includes('@') &&
-    form.phone.replace(/\D/g, '').length >= 7
+    form.phone.replace(/\D/g, '').length >= 7 &&
+    form.password.length >= 6
 
   const canProceedTo3 = otpVerified
 
@@ -216,7 +219,7 @@ export default function RiderRegistration({ onComplete, onBack }) {
       fd.append('name', form.name.trim())
       fd.append('phone', form.countryCode + form.phone.replace(/\D/g, ''))
       fd.append('email', form.email.trim().toLowerCase())
-      fd.append('password', 'temp-' + Math.random().toString(36).slice(2, 10))
+      fd.append('password', form.password)
       fd.append('vehicle_type', vehicle)
       if (licensePlate.trim()) fd.append('license_plate', licensePlate.trim())
       if (profileFile) fd.append('avatar', profileFile)
@@ -350,6 +353,24 @@ export default function RiderRegistration({ onComplete, onBack }) {
                     }`}
                   />
                   {fieldError('email') && <p className="text-red-400 text-[10px] mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.email}</p>}
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="text-xs text-[#a1a1aa] mb-1.5 flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-emerald-400" /> Password
+                  </label>
+                  <input
+                    type="password" placeholder="At least 6 characters"
+                    value={form.password}
+                    onChange={e => { setForm(f => ({ ...f, password: e.target.value })); setErrors(prev => ({ ...prev, password: '' })) }}
+                    onBlur={() => handleBlur('password')}
+                    className={`w-full px-4 py-2.5 rounded-xl bg-[#09090b] border text-sm text-white placeholder-[#71717a] focus:outline-none transition-all ${
+                      fieldError('password') ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500/30' :
+                      'border-[#27272a] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30'
+                    }`}
+                  />
+                  {fieldError('password') && <p className="text-red-400 text-[10px] mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.password}</p>}
                 </div>
 
                 {/* Phone with country code */}
