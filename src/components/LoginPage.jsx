@@ -1,20 +1,12 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
 import OtpVerification from './OtpVerification'
 import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
 
-function decodeJwtPayload(token) {
-  try {
-    const payload = token.split('.')[1]
-    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
-    return JSON.parse(atob(base64))
-  } catch { return null }
-}
-
 export default function LoginPage({ onLogin, onBack }) {
-  const [mode, setMode] = useState(null) // null | 'phone' | 'email' | 'otp'
+  const [mode, setMode] = useState(null)
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -22,53 +14,6 @@ export default function LoginPage({ onLogin, onBack }) {
   const [identifier, setIdentifier] = useState('')
   const [channel, setChannel] = useState('sms')
   const { login } = useAuth()
-  const googleBtnRef = useRef(null)
-
-  useEffect(() => {
-    if (window.google && googleBtnRef.current) {
-      window.google.accounts.id.initialize({
-        client_id: '834447278082-2tkqv2hcnqr3152oau40brra7m8jo88k.apps.googleusercontent.com',
-        callback: handleGoogleCredential,
-      })
-      window.google.accounts.id.renderButton(googleBtnRef.current, {
-        type: 'standard',
-        shape: 'pill',
-        theme: 'outline',
-        text: 'continue_with',
-        size: 'large',
-        width: '100%',
-      })
-    }
-  }, [])
-
-  const handleGoogleCredential = async (response) => {
-    const payload = decodeJwtPayload(response.credential)
-    if (!payload) { setError('Google sign-in failed'); return }
-
-    setLoading(true)
-    try {
-      const res = await fetch(api('/api/auth/google'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          google_id: payload.sub,
-          email: payload.email,
-          name: payload.name,
-          avatar_url: payload.picture,
-        }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Google sign-in failed')
-
-      if (data.user) login(data.user, data.token)
-      onLogin(data.user)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSendOtp = async (type) => {
     setError('')
@@ -201,39 +146,26 @@ export default function LoginPage({ onLogin, onBack }) {
                 </button>
               </motion.div>
             ) : (
-              <motion.div key="select" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                <div className="text-center">
+              <motion.div key="select" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
+                <div className="text-center mb-4">
                   <h1 className="text-xl font-bold text-white">Sign In</h1>
                   <p className="text-sm text-[#a1a1aa] mt-1">Choose how to log in</p>
                 </div>
 
-                <div ref={googleBtnRef} className="w-full flex justify-center [&>div]:!w-full" />
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[#27272a]" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-[#18181b] px-2 text-[#71717a]">or</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setMode('phone')}
-                    className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#27272a] hover:bg-[#202024] text-white text-sm font-medium transition-all"
-                  >
-                    <Phone className="w-4 h-4 text-[#f97316]" />
-                    Continue with Phone
-                  </button>
-                  <button
-                    onClick={() => setMode('email')}
-                    className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#27272a] hover:bg-[#202024] text-white text-sm font-medium transition-all"
-                  >
-                    <Mail className="w-4 h-4 text-[#f97316]" />
-                    Continue with Email
-                  </button>
-                </div>
+                <button
+                  onClick={() => setMode('phone')}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#27272a] hover:bg-[#202024] text-white text-sm font-medium transition-all"
+                >
+                  <Phone className="w-4 h-4 text-[#f97316]" />
+                  Continue with Phone
+                </button>
+                <button
+                  onClick={() => setMode('email')}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#27272a] hover:bg-[#202024] text-white text-sm font-medium transition-all"
+                >
+                  <Mail className="w-4 h-4 text-[#f97316]" />
+                  Continue with Email
+                </button>
 
                 {error && <p className="text-red-400 text-xs text-center">{error}</p>}
 
