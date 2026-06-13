@@ -2,7 +2,6 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
-import bodyParser from 'body-parser'
 import { config } from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, resolve, join } from 'path'
@@ -66,7 +65,35 @@ app.use(cors({
     cb(null, false)
   },
 }))
-app.use(bodyParser.json({ limit: '1mb' }))
+
+// Manual body parser helper
+function parseJsonBody(req, res, next) {
+  let data = ''
+  req.on('data', chunk => data += chunk)
+  req.on('end', () => {
+    try {
+      if (data) {
+        const ct = req.headers['content-type'] || ''
+        if (ct.includes('application/json')) {
+          req.body = JSON.parse(data)
+        } else if (ct.includes('application/x-www-form-urlencoded')) {
+          const params = new URLSearchParams(data)
+          req.body = Object.fromEntries(params)
+        } else {
+          req.body = {}
+        }
+      } else {
+        req.body = {}
+      }
+    } catch {
+      req.body = {}
+    }
+    next()
+  })
+  req.on('error', () => { req.body = {}; next() })
+}
+
+app.use(parseJsonBody)
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -95,9 +122,6 @@ const orderLimiter = rateLimit({
 app.use('/uploads', express.static(uploadsDir, { maxAge: '1d' }))
 app.post('/api/login', authLimiter, loginHandler)
 app.post('/api/logout', requireAdmin, revokeToken)
-app.post('/api/test', (req, res) => { try { res.json({ ok: true }) } catch (e) { res.status(500).json({ e: e.message }) } })
-app.post('/api/test-body', (req, res) => { try { const { username } = req.body; res.json({ username }) } catch (e) { res.status(500).json({ e: e.message }) } })
-app.post('/api/test-login', loginHandler)
 app.use('/api/orders', orderLimiter, orderRoutes)
 app.use('/api/menu', menuRoutes)
 app.use('/api/about', aboutRoutes)
