@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
+import bodyParser from 'body-parser'
 import { config } from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, resolve, join } from 'path'
@@ -65,7 +66,7 @@ app.use(cors({
     cb(null, false)
   },
 }))
-app.use(express.json({ limit: '1mb' }))
+app.use(bodyParser.json({ limit: '1mb' }))
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -101,9 +102,6 @@ app.use('/api/config', configRoutes)
 app.use('/api/location', locationRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/rider', riderRoutes)
-
-app.get('/api/ping', (req, res) => res.json({ ok: true }))
-app.post('/api/echo', (req, res) => { try { res.json(req.body || {}) } catch (e) { res.status(500).json({ e: e.message }) } })
 
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err?.message || err, err?.stack || '')
