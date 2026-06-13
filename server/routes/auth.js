@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { requestOtp, verifyOtpHandler, googleAuth, getProfile, testEmail } from '../controllers/authController.js'
+import { requestOtp, verifyOtpHandler, googleAuth, getProfile, updateProfile, testEmail } from '../controllers/authController.js'
 import { requireUser } from '../middleware/userAuth.js'
 
 const router = Router()
@@ -9,5 +9,6 @@ router.post('/otp/send', requestOtp)
 router.post('/otp/verify', verifyOtpHandler)
 router.post('/google', googleAuth)
 router.get('/profile', requireUser, getProfile)
+router.patch('/profile', requireUser, updateProfile)
 
 export default router

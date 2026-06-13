@@ -180,7 +180,7 @@ export async function getProfile(req, res) {
     if (hasSupabase) {
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, phone, email, avatar_url, auth_provider, created_at')
+        .select('id, name, phone, email, avatar_url, auth_provider, created_at, name_edited')
         .eq('id', userId)
         .single()
 
@@ -188,8 +188,49 @@ export async function getProfile(req, res) {
       return res.json(data)
     }
 
-    res.json({ id: userId, name: 'Customer', phone: userId })
+    res.json({ id: userId, name: 'Customer', phone: userId, name_edited: false })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch profile' })
+  }
+}
+
+export async function updateProfile(req, res) {
+  try {
+    const userId = req.userId
+    const { name, otp_verified } = req.body
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: 'Name is required' })
+    }
+
+    const safeName = name.trim().slice(0, 100)
+
+    if (hasSupabase) {
+      const { data: current } = await supabase
+        .from('users')
+        .select('name_edited, email, phone')
+        .eq('id', userId)
+        .single()
+
+      if (current?.name_edited && !otp_verified) {
+        const contact = current.email || (current.phone ? `63${current.phone.replace(/^0/, '')}` : null)
+        return res.json({ needs_otp: true, email: current.email, phone: contact })
+      }
+
+      const { data, error } = await supabase
+        .from('users')
+        .update({ name: safeName, name_edited: true })
+        .eq('id', userId)
+        .select('id, name, phone, email, name_edited')
+        .single()
+
+      if (error) throw error
+      return res.json(data)
+    }
+
+    res.json({ id: userId, name: safeName, name_edited: true })
+  } catch (err) {
+    console.error('updateProfile error:', err)
+    res.status(500).json({ error: 'Failed to update profile' })
   }
 }
