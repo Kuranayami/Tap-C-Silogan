@@ -66,28 +66,26 @@ app.use(cors({
   },
 }))
 
-// Body parser — use Express 5 built-in text parser then manual JSON parse
-app.use(express.text({ type: '*/*' }))
+// Body parser — manual stream reader
 app.use((req, res, next) => {
-  if (req.body && typeof req.body === 'string') {
-    const ct = req.headers['content-type'] || ''
-    if (ct.includes('application/json')) {
-      try { req.body = JSON.parse(req.body) } catch { req.body = {} }
-    } else if (ct.includes('application/x-www-form-urlencoded')) {
-      try {
-        const params = new URLSearchParams(req.body)
-        req.body = Object.fromEntries(params)
-      } catch { req.body = {} }
-    } else {
-      req.body = {}
-    }
-  } else if (!req.body) {
-    req.body = {}
-  }
-  next()
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'DELETE') return next()
+  const ct = req.headers['content-type'] || ''
+  if (!ct.includes('json') && !ct.includes('urlencoded') && !ct.includes('text')) return next()
+  let body = ''
+  req.on('data', d => { body += d })
+  req.on('end', () => {
+    try {
+      if (body) {
+        if (ct.includes('json')) req.body = JSON.parse(body)
+        else if (ct.includes('urlencoded')) req.body = Object.fromEntries(new URLSearchParams(body))
+        else req.body = body
+      } else {
+        req.body = {}
+      }
+    } catch { req.body = {} }
+    next()
+  })
 })
-
-app.use(parseJsonBody)
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
