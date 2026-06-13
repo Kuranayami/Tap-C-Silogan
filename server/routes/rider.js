@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import multer from 'multer'
 import {
   loginRider,
   registerRider,
@@ -13,10 +14,11 @@ import {
 } from '../controllers/riderController.js'
 import { requireRider } from '../middleware/riderAuth.js'
 
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
 const router = Router()
 
 router.post('/login', loginRider)
-router.post('/register', registerRider)
+router.post('/register', upload.single('avatar'), registerRider)
 
 router.get('/ready-orders', requireRider, listReadyOrders)
 router.post('/claim', requireRider, claimOrderHandler)

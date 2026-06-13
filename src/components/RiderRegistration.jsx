@@ -47,6 +47,8 @@ export default function RiderRegistration({ onComplete, onBack }) {
   const [otpLoading, setOtpLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [otpVerified, setOtpVerified] = useState(false)
+  const [otpSending, setOtpSending] = useState(false)
 
   const otpRefs = useRef([])
   const fileInputRef = useRef(null)
@@ -99,21 +101,69 @@ export default function RiderRegistration({ onComplete, onBack }) {
     form.email.trim() && emailRegex.test(form.email.trim()) &&
     form.phone.trim() && phoneRegex.test(form.phone.replace(/\D/g, ''))
 
-  const canProceedTo3 = otpDigits.every(d => d) && countdown < 60
+  const canProceedTo3 = otpVerified
 
-  const goToStep2 = () => {
+  const goToStep2 = async () => {
     const errs = validate(1)
     setErrors(errs)
     setTouched({ name: true, email: true, phone: true })
     if (Object.keys(errs).length > 0) return
-    setOtpSent(true)
-    setCountdown(60)
-    setStep(2)
+    setOtpSending(true)
+    setOtpError('')
+    try {
+      const res = await fetch(api('/api/auth/otp/send'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email.trim().toLowerCase(), channel: 'email', purpose: 'register' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to send code')
+      setOtpSent(true)
+      setCountdown(60)
+      setStep(2)
+    } catch (err) {
+      setOtpError(err.message)
+    } finally {
+      setOtpSending(false)
+    }
   }
 
-  const goToStep3 = () => {
-    if (!canProceedTo3) return
-    setStep(3)
+  const handleVerifyOtp = async () => {
+    const code = otpDigits.join('')
+    if (code.length !== 6) { setOtpError('Enter all 6 digits'); return }
+    setOtpLoading(true)
+    setOtpError('')
+    try {
+      const res = await fetch(api('/api/auth/otp/verify'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email.trim().toLowerCase(), otp_code: code, purpose: 'register' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Verification failed')
+      setOtpVerified(true)
+      setStep(3)
+    } catch (err) {
+      setOtpError(err.message)
+      setOtpDigits(Array(6).fill(''))
+      otpRefs.current[0]?.focus()
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    setCountdown(60)
+    setOtpDigits(Array(6).fill(''))
+    setOtpError('')
+    otpRefs.current[0]?.focus()
+    try {
+      await fetch(api('/api/auth/otp/send'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email.trim().toLowerCase(), channel: 'email', purpose: 'register' }),
+      })
+    } catch {}
   }
 
   const goToStep1 = () => setStep(1)
@@ -152,13 +202,6 @@ export default function RiderRegistration({ onComplete, onBack }) {
     otpRefs.current[Math.min(text.length, 5)]?.focus()
   }
 
-  const handleResend = () => {
-    setCountdown(60)
-    setOtpDigits(Array(6).fill(''))
-    setOtpError('')
-    otpRefs.current[0]?.focus()
-  }
-
   // ── Final submit ──
   const handleSubmit = async () => {
     const errs = validate(3)
@@ -167,18 +210,20 @@ export default function RiderRegistration({ onComplete, onBack }) {
     if (Object.keys(errs).length > 0) return
 
     setSubmitting(true)
+    setOtpError('')
     try {
+      const fd = new FormData()
+      fd.append('name', form.name.trim())
+      fd.append('phone', form.countryCode + form.phone.replace(/\D/g, ''))
+      fd.append('email', form.email.trim().toLowerCase())
+      fd.append('password', 'temp-' + Math.random().toString(36).slice(2, 10))
+      fd.append('vehicle_type', vehicle)
+      if (licensePlate.trim()) fd.append('license_plate', licensePlate.trim())
+      if (profileFile) fd.append('avatar', profileFile)
+
       const res = await fetch(api('/api/rider/register'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name.trim(),
-          phone: form.countryCode + form.phone.replace(/\D/g, ''),
-          email: form.email.trim().toLowerCase(),
-          password: 'temp-' + Math.random().toString(36).slice(2, 10),
-          vehicle_type: vehicle,
-          license_plate: licensePlate.trim() || null,
-        }),
+        body: fd,
       })
 
       if (!res.ok) {
@@ -392,12 +437,16 @@ export default function RiderRegistration({ onComplete, onBack }) {
                   </button>
                 </div>
 
+                {otpSending && (
+                  <p className="text-center text-xs text-[#a1a1aa]">Sending verification code...</p>
+                )}
                 <button
-                  onClick={goToStep3}
-                  disabled={!canProceedTo3}
+                  onClick={handleVerifyOtp}
+                  disabled={otpLoading || otpDigits.join('').length !== 6}
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Verify & Continue <ChevronRight className="w-4 h-4" />
+                  {otpLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : 'Verify & Continue'}
+                  {!otpLoading && <ChevronRight className="w-4 h-4" />}
                 </button>
               </motion.div>
             )}

@@ -9,6 +9,7 @@ import {
   updateKitchenStatus,
 } from '../services/rider.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
+import { saveFile } from '../services/storage.js'
 
 export async function loginRider(req, res) {
   try {
@@ -147,7 +148,7 @@ export async function updateKitchen(req, res) {
 
 export async function registerRider(req, res) {
   try {
-    const { name, phone, password } = req.body
+    const { name, phone, password, email, vehicle_type, license_plate } = req.body
     if (!name || !phone || !password) {
       return res.status(400).json({ error: 'Name, phone, and password are required' })
     }
@@ -156,9 +157,28 @@ export async function registerRider(req, res) {
     }
     const cleanPhone = phone.replace(/\D/g, '').replace(/^0?/, '09').slice(0, 11)
     const hash = createHash('sha256').update(password).digest('hex')
+
+    let avatarUrl = null
+    if (req.file) {
+      const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const filename = 'rider-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
+      avatarUrl = await saveFile(filename, req.file.buffer, req.file.mimetype)
+    }
+
+    const insertData = {
+      name: name.trim(),
+      phone: cleanPhone,
+      password_hash: hash,
+      status: 'online',
+    }
+    if (email) insertData.email = email.trim().toLowerCase()
+    if (vehicle_type) insertData.vehicle_type = vehicle_type
+    if (license_plate) insertData.license_plate = license_plate.trim()
+    if (avatarUrl) insertData.avatar_url = avatarUrl
+
     const { data, error } = await supabase
       .from('riders')
-      .insert({ name: name.trim(), phone: cleanPhone, password_hash: hash, status: 'online' })
+      .insert(insertData)
       .select()
       .single()
     if (error) {
@@ -169,11 +189,12 @@ export async function registerRider(req, res) {
     res.status(201).json({
       token,
       rider: {
-        id: data.id, name: data.name, phone: data.phone,
+        id: data.id, name: data.name, phone: data.phone, email: data.email,
         status: data.status, total_deliveries: 0, rating: 0,
       },
     })
   } catch (err) {
+    console.error('registerRider error:', err)
     res.status(500).json({ error: 'Registration failed' })
   }
 }
