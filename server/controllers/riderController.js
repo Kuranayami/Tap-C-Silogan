@@ -1,4 +1,4 @@
-import { randomUUID, createHash } from 'crypto'
+import { createHash } from 'crypto'
 import {
   getReadyOrders,
   claimOrder,
@@ -39,10 +39,8 @@ export async function loginRider(req, res) {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
-    const token = randomUUID()
-
     res.json({
-      token,
+      token: String(data.id),
       rider: {
         id: data.id,
         name: data.name,
@@ -187,9 +185,8 @@ export async function registerRider(req, res) {
       if (error.code === '23505') return res.status(409).json({ error: 'Phone number already registered' })
       return res.status(500).json({ error: 'Registration failed: ' + error.message })
     }
-    const token = randomUUID()
     res.status(201).json({
-      token,
+      token: String(data.id),
       rider: {
         id: data.id, name: data.name, phone: data.phone, email: data.email,
         status: data.status, total_deliveries: 0, rating: 0,
