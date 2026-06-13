@@ -11,6 +11,8 @@ import orderRoutes from './routes/orders.js'
 import aboutRoutes from './routes/about.js'
 import configRoutes from './routes/config.js'
 import locationRoutes from './routes/location.js'
+import authRoutes from './routes/auth.js'
+import riderRoutes from './routes/rider.js'
 import { loginHandler, requireAdmin, revokeToken } from './middleware/auth.js'
 import { ensureMenuLoaded } from './services/supabase.js'
 import { ensureBucket } from './services/storage.js'
@@ -97,6 +99,8 @@ app.use('/api/menu', menuRoutes)
 app.use('/api/about', aboutRoutes)
 app.use('/api/config', configRoutes)
 app.use('/api/location', locationRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/rider', riderRoutes)
 
 app.use((err, req, res, next) => {
   console.error(err)
