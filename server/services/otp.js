@@ -16,8 +16,8 @@ async function getTransporter() {
     const { createTransport } = await import('nodemailer')
     _transporter = createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
+      port: Number(process.env.SMTP_PORT) || 465,
+      secure: true,
       auth: { user, pass },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
