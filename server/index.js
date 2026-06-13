@@ -10,6 +10,7 @@ import menuRoutes from './routes/menu.js'
 import orderRoutes from './routes/orders.js'
 import aboutRoutes from './routes/about.js'
 import configRoutes from './routes/config.js'
+import locationRoutes from './routes/location.js'
 
 import authRoutes from './routes/auth.js'
 import riderRoutes from './routes/rider.js'
@@ -118,6 +119,7 @@ app.use('/api/orders', orderLimiter, orderRoutes)
 app.use('/api/menu', menuRoutes)
 app.use('/api/about', aboutRoutes)
 app.use('/api/config', configRoutes)
+app.use('/api/location', locationRoutes)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/rider', riderRoutes)

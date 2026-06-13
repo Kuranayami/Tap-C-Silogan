@@ -1,19 +1,43 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Loader2 } from 'lucide-react'
+import { X, Check, Loader2, MapPin } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
 import { api } from '../api'
-import { DELIVERY_FEE } from '../data/deliveryZone'
+import { DELIVERY_FEE, extractCoordinatesFromUrl } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
   const { items, subtotal, total, clearCart, closeCart } = useCart()
   const { checkoutOpen, closeCheckout } = useCheckout()
   const [form, setForm] = useState({ name: '', contact: '', address: '' })
+  const [mapsLink, setMapsLink] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [resolving, setResolving] = useState(false)
 
   const showTotal = subtotal + DELIVERY_FEE
+
+  const resolveLink = async (link) => {
+    if (!link) return
+    if (extractCoordinatesFromUrl(link)) return
+    if (!link.includes('google') && !link.includes('goo.gl') && !link.includes('maps.app')) return
+    setResolving(true)
+    try {
+      await fetch(api('/api/location/resolve'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: link }),
+      })
+    } catch {} finally {
+      setResolving(false)
+    }
+  }
+
+  const handleMapsLinkChange = (value) => {
+    setMapsLink(value)
+    setError('')
+    resolveLink(value)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -33,6 +57,7 @@ export default function CheckoutModal() {
           customer_name: form.name,
           customer_contact: form.contact,
           address: form.address,
+          maps_link: mapsLink || null,
           items: items.map(i => ({
             id: i.id,
             name: i.name,
@@ -66,6 +91,7 @@ export default function CheckoutModal() {
       closeCheckout()
       setDone(false)
       setError('')
+      setMapsLink('')
     }
   }
 
@@ -178,6 +204,23 @@ export default function CheckoutModal() {
                         onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
                         className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
                       />
+                    </div>
+                    <div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Paste Google Maps link (optional)"
+                          value={mapsLink}
+                          onChange={e => handleMapsLinkChange(e.target.value)}
+                          className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors pr-10"
+                        />
+                        {resolving && (
+                          <Loader2 className="w-4 h-4 animate-spin text-[#f97316] absolute right-3 top-1/2 -translate-y-1/2" />
+                        )}
+                      </div>
+                      <p className="text-[#71717a] text-xs mt-1.5">
+                        Helps the rider find your exact location. Open Google Maps, drop a pin, and paste the link.
+                      </p>
                     </div>
                     {error && (
                       <p className="text-red-400 text-xs">{error}</p>
