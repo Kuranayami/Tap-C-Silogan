@@ -14,32 +14,32 @@ export async function requireUser(req, res, next) {
 
   const token = header.slice(7)
 
+  // Check in-memory store first
+  const localUserId = tokenStore.get(token)
+  if (localUserId) {
+    req.userId = localUserId
+    req.user = { id: localUserId }
+    return next()
+  }
+
+  // Fallback to Supabase lookup
   if (hasSupabase) {
     try {
       const { data, error } = await supabase
         .from('users')
         .select('id, name, phone, email')
-        .eq('token', token)
+        .eq('id', token)
         .maybeSingle()
 
-      if (error || !data) {
-        return res.status(401).json({ error: 'Invalid or expired token' })
+      if (!error && data) {
+        req.userId = data.id
+        req.user = data
+        return next()
       }
-
-      req.userId = data.id
-      req.user = data
-      return next()
     } catch (e) {
-      return res.status(500).json({ error: 'Auth check failed' })
+      // fall through
     }
   }
 
-  const userId = tokenStore.get(token)
-  if (!userId) {
-    return res.status(401).json({ error: 'Invalid or expired token' })
-  }
-
-  req.userId = userId
-  req.user = { id: userId }
-  next()
+  return res.status(401).json({ error: 'Invalid or expired token' })
 }

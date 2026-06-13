@@ -89,9 +89,7 @@ export async function verifyOtpHandler(req, res) {
 
     const token = randomUUID()
 
-    if (user && hasSupabase) {
-      await supabase.from('users').update({ token }).eq('id', user.id).maybeSingle()
-    } else if (user) {
+    if (user) {
       storeUserToken(token, user.id)
     }
 
@@ -149,9 +147,7 @@ export async function googleAuth(req, res) {
 
     const token = randomUUID()
 
-    if (user && hasSupabase) {
-      await supabase.from('users').update({ token }).eq('id', user.id).maybeSingle()
-    } else if (user) {
+    if (user) {
       storeUserToken(token, user.id)
     }
 
