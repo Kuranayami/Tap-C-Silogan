@@ -98,11 +98,11 @@ export default function RiderLogin({ onLogin }) {
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Sign In
               </button>
-              <button type="button" onClick={() => { setMode('register'); setError('') }}
-                className="w-full text-xs text-[#71717a] hover:text-[#a1a1aa] transition-colors"
+              <a href="#/rider/register"
+                className="block w-full text-center text-xs text-[#71717a] hover:text-emerald-400 transition-colors"
               >
-                No account? Register as rider
-              </button>
+                No account? Create rider account →
+              </a>
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
