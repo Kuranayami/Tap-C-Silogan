@@ -74,7 +74,7 @@ app.use(async (req, res, next) => {
   try {
     const chunks = []
     for await (const chunk of req) chunks.push(chunk)
-    const raw = Buffer.concat(chunks).toString('utf8')
+    const raw = Buffer.concat(chunks).toString('utf8').replace(/^\uFEFF/, '')
     req.rawBody = raw
     if (raw) {
       if (ct.includes('json')) req.body = JSON.parse(raw)
@@ -114,7 +114,6 @@ const orderLimiter = rateLimit({
 app.use('/uploads', express.static(uploadsDir, { maxAge: '1d' }))
 app.post('/api/login', authLimiter, loginHandler)
 app.post('/api/logout', requireAdmin, revokeToken)
-app.post('/api/debug-body', (req, res) => { res.json({ body: req.body, ct: req.headers['content-type'], method: req.method, rawBody: req.rawBody }) })
 app.use('/api/orders', orderLimiter, orderRoutes)
 app.use('/api/menu', menuRoutes)
 app.use('/api/about', aboutRoutes)
