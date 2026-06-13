@@ -1,104 +1,24 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Loader2, MapPin } from 'lucide-react'
+import { X, Check, Loader2 } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
 import { api } from '../api'
-import { IVC_POLYGON, DELIVERY_FEE, isInsideIVC, extractCoordinatesFromUrl, addressMentionsIVC } from '../data/deliveryZone'
+import { DELIVERY_FEE } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
   const { items, subtotal, total, clearCart, closeCart } = useCart()
   const { checkoutOpen, closeCheckout } = useCheckout()
   const [form, setForm] = useState({ name: '', contact: '', address: '' })
-  const [mapsLink, setMapsLink] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
-  const [zoneStatus, setZoneStatus] = useState(null) // null | 'validating' | 'inside' | 'outside'
 
-  const deliveryFee = zoneStatus === 'inside' ? DELIVERY_FEE : 0
-  const showTotal = subtotal + deliveryFee
-
-  const [resolving, setResolving] = useState(false)
-
-  const validateAddress = (address, link, coords) => {
-    const text = address || ''
-
-    if (coords) {
-      if (isInsideIVC(coords.lat, coords.lng)) return 'inside'
-      return 'outside'
-    }
-
-    if (link) {
-      const parsed = extractCoordinatesFromUrl(link)
-      if (parsed) {
-        if (isInsideIVC(parsed.lat, parsed.lng)) return 'inside'
-        return 'outside'
-      }
-    }
-
-    const mention = addressMentionsIVC(text)
-    if (mention === true) return 'inside'
-    if (mention === 'needs_verification') return 'needs_link'
-
-    return 'outside'
-  }
-
-  const resolveLink = async (link) => {
-    if (!link) return
-    const parsed = extractCoordinatesFromUrl(link)
-    if (parsed) {
-      setZoneStatus(validateAddress(form.address, link, null))
-      return
-    }
-    if (!link.includes('google') && !link.includes('goo.gl') && !link.includes('maps.app')) return
-    setResolving(true)
-    try {
-      const res = await fetch(api('/api/location/resolve'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: link }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setZoneStatus(validateAddress(form.address, link, data))
-      }
-    } catch {} finally {
-      setResolving(false)
-    }
-  }
-
-  const handleMapsLinkChange = (value) => {
-    setMapsLink(value)
-    setError('')
-    setZoneStatus(null)
-    resolveLink(value)
-  }
-
-  const handleAddressChange = (value) => {
-    setForm(f => ({ ...f, address: value }))
-    setError('')
-    setZoneStatus(null)
-    if (mapsLink) resolveLink(mapsLink)
-    else {
-      const result = validateAddress(value, '', null)
-      setZoneStatus(result)
-    }
-  }
+  const showTotal = subtotal + DELIVERY_FEE
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name || !form.contact || !form.address) {
       setError('Please fill in all fields')
-      return
-    }
-
-    // Re-validate zone
-    if (zoneStatus === 'outside' || zoneStatus === 'needs_link') {
-      if (zoneStatus === 'outside') {
-        setError('Delivery is currently restricted to Barangay IVC only. Your address falls outside our local radius.')
-      } else {
-        setError('Please paste your Google Maps location link so we can verify your address is within our delivery zone.')
-      }
       return
     }
 
@@ -113,7 +33,6 @@ export default function CheckoutModal() {
           customer_name: form.name,
           customer_contact: form.contact,
           address: form.address,
-          maps_link: mapsLink || null,
           items: items.map(i => ({
             id: i.id,
             name: i.name,
@@ -122,7 +41,7 @@ export default function CheckoutModal() {
             addons: i.addons || [],
           })),
           subtotal,
-          delivery_fee: deliveryFee,
+          delivery_fee: DELIVERY_FEE,
           total: showTotal,
         }),
       })
@@ -147,8 +66,6 @@ export default function CheckoutModal() {
       closeCheckout()
       setDone(false)
       setError('')
-      setZoneStatus(null)
-      setMapsLink('')
     }
   }
 
@@ -223,33 +140,6 @@ export default function CheckoutModal() {
                     </div>
                   ))}
 
-                  {/* Zone status banner */}
-                  {zoneStatus === 'outside' && (
-                    <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
-                      <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-red-400">Outside delivery zone</p>
-                          <p className="text-xs text-red-300/70 mt-1">
-                            Delivery is currently restricted to Barangay IVC only. Your address falls outside our local radius.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {zoneStatus === 'inside' && (
-                    <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-4">
-                      <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-green-400">Within delivery zone</p>
-                          <p className="text-xs text-green-300/70 mt-1">Your address is inside Barangay IVC. ✓</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="border-t border-[#27272a] pt-3 space-y-1">
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
                       <span>Subtotal</span>
@@ -257,7 +147,7 @@ export default function CheckoutModal() {
                     </div>
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
                       <span>Delivery</span>
-                      <span>{deliveryFee > 0 ? `₱${deliveryFee}` : '—'}</span>
+                      <span>₱{DELIVERY_FEE}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-[#27272a]">
                       <span>Total</span>
@@ -285,28 +175,16 @@ export default function CheckoutModal() {
                         type="text"
                         placeholder="House/street address"
                         value={form.address}
-                        onChange={e => handleAddressChange(e.target.value)}
+                        onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
                         className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
                       />
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        placeholder="Paste Google Maps link (for zone verification)"
-                        value={mapsLink}
-                        onChange={e => handleMapsLinkChange(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
-                      />
-                      <p className="text-[#71717a] text-xs mt-1.5">
-                        Open Google Maps, drop a pin at your location, and paste the link here
-                      </p>
                     </div>
                     {error && (
                       <p className="text-red-400 text-xs">{error}</p>
                     )}
                     <button
                       type="submit"
-                      disabled={submitting || zoneStatus === 'outside'}
+                      disabled={submitting}
                       className="w-full px-4 py-3 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold transition-all hover:shadow-lg hover:shadow-[#f97316]/30 active:scale-[0.98] disabled:opacity-50 inline-flex items-center justify-center gap-2"
                     >
                       {submitting ? (
