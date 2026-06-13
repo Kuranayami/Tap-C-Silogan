@@ -35,8 +35,10 @@ export async function requestOtp(req, res) {
     const result = await sendOtp(identifier, channel, purpose)
     res.json(result)
   } catch (err) {
-    console.error('requestOtp error:', err)
-    res.status(500).json({ error: 'Failed to send OTP' })
+    console.error('requestOtp error:', err?.message || err, err?.stack || '')
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Failed to send OTP' })
+    }
   }
 }
 

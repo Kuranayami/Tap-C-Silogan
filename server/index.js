@@ -102,8 +102,11 @@ app.use('/api/location', locationRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/rider', riderRoutes)
 
+app.get('/api/ping', (req, res) => res.json({ ok: true }))
+app.post('/api/echo', (req, res) => { try { res.json(req.body || {}) } catch (e) { res.status(500).json({ e: e.message }) } })
+
 app.use((err, req, res, next) => {
-  console.error(err)
+  console.error('Global error handler:', err?.message || err, err?.stack || '')
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).json({ error: 'File too large (max 5MB)' })
   }
