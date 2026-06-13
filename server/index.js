@@ -95,6 +95,7 @@ const orderLimiter = rateLimit({
 app.use('/uploads', express.static(uploadsDir, { maxAge: '1d' }))
 app.post('/api/login', authLimiter, loginHandler)
 app.post('/api/logout', requireAdmin, revokeToken)
+app.post('/api/test', (req, res) => { try { res.json({ ok: true }) } catch (e) { res.status(500).json({ e: e.message }) } })
 app.use('/api/orders', orderLimiter, orderRoutes)
 app.use('/api/menu', menuRoutes)
 app.use('/api/about', aboutRoutes)
