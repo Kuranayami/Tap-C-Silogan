@@ -3,7 +3,10 @@ import { sendOtp, verifyOtp } from '../services/otp.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
 
 function sanitizePhone(raw) {
-  return raw.replace(/\D/g, '').replace(/^0?/, '09').slice(0, 11)
+  let d = raw.replace(/\D/g, '')
+  if (d.startsWith('63')) d = d.slice(2)
+  if (!d.startsWith('0')) d = '0' + d
+  return d.slice(0, 11)
 }
 
 function validateEmail(email) {

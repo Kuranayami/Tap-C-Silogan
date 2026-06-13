@@ -22,10 +22,12 @@ export async function loginRider(req, res) {
       return res.status(500).json({ error: 'Authentication requires database' })
     }
 
+    const lookupPhone = (function(p){ let d=p.replace(/\D/g,''); if(d.startsWith('63'))d=d.slice(2); if(!d.startsWith('0'))d='0'+d; return d.slice(0,11); })(username)
+
     const { data, error } = await supabase
       .from('riders')
       .select('*')
-      .eq('phone', username)
+      .eq('phone', lookupPhone)
       .single()
 
     if (error || !data) {
@@ -155,7 +157,7 @@ export async function registerRider(req, res) {
     if (!hasSupabase) {
       return res.status(500).json({ error: 'Registration requires database' })
     }
-    const cleanPhone = phone.replace(/\D/g, '').replace(/^0?/, '09').slice(0, 11)
+    const cleanPhone = (function(p){ let d=p.replace(/\D/g,''); if(d.startsWith('63'))d=d.slice(2); if(!d.startsWith('0'))d='0'+d; return d.slice(0,11); })(phone)
     const hash = createHash('sha256').update(password).digest('hex')
 
     let avatarUrl = null
