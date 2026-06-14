@@ -14,13 +14,7 @@ const categories = [
   { key: 'extra', label: 'Extra' },
 ]
 
-const categoryImages = {
-  silog: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400&q=80',
-  ulam: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80',
-  shake: 'https://images.unsplash.com/photo-1553530666-ba11a7e3885a?w=400&q=80',
-  solo: 'https://images.unsplash.com/photo-1625943553852-781c6dd46faa?w=400&q=80',
-  extra: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80',
-}
+const categoryImages = {}
 
 function MenuItemCard({ item, index, onAdd, addingId }) {
   const { items, addItem, removeItem, updateQuantity } = useCart()
@@ -41,9 +35,10 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="group relative rounded-2xl border border-[#27272a] bg-[#18181b] hover:border-[#f97316]/30 transition-all hover:shadow-xl hover:shadow-black/30"
+      className="group relative rounded-2xl bg-[#FFFBDA] overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-[#ED9455]/5"
+      style={{ boxShadow: '0 10px 25px rgba(237, 148, 85, 0.05)' }}
     >
-      <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-[#202024]">
+      <div className="aspect-[4/3] overflow-hidden bg-[#FFEC9E]/30">
         <img
           src={imageUrl(item.image) || categoryImages[item.category] || categoryImages.ulam}
           alt={item.name}
@@ -51,25 +46,25 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
         />
       </div>
       <div className="relative px-3 py-3 sm:px-4 sm:py-4 pr-4 sm:pr-5">
-        <h3 className="text-sm sm:text-base font-semibold text-white truncate">
+        <h3 className="text-sm sm:text-base font-semibold text-[#ED9455] truncate">
           {item.name}
         </h3>
         <div className="flex items-center justify-between mt-2">
           {item.category === 'extra' ? (
             <div className="flex items-center gap-2 w-full justify-between">
-              <span className="text-lg font-bold text-[#f97316]">₱{item.price}</span>
+              <span className="text-lg font-bold text-[#ED9455]">₱{item.price}</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleExtraDecrement}
                   disabled={cartQty === 0}
-                  className="w-7 h-7 rounded-md border border-[#27272a] text-[#71717a] hover:text-white hover:border-red-400/30 flex items-center justify-center transition-all disabled:opacity-30"
+                  className="w-7 h-7 rounded-md border border-[#FFEC9E] text-[#ED9455]/60 hover:text-[#ED9455] hover:border-[#FFBB70] flex items-center justify-center transition-all disabled:opacity-30"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
-                <span className="w-6 text-center text-white font-bold text-sm">{cartQty}</span>
+                <span className="w-6 text-center text-[#ED9455] font-bold text-sm">{cartQty}</span>
                 <button
                   onClick={handleExtraIncrement}
-                  className="w-7 h-7 rounded-md bg-[#f97316] hover:bg-[#ea580c] text-white flex items-center justify-center transition-all active:scale-90"
+                  className="w-7 h-7 rounded-md bg-[#ED9455] hover:bg-[#FFBB70] text-[#FFFBDA] flex items-center justify-center transition-all active:scale-90"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
@@ -77,14 +72,14 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
             </div>
           ) : (
             <>
-              <span className="text-lg font-bold text-[#f97316]">₱{item.price}</span>
+              <span className="text-lg font-bold text-[#ED9455]">₱{item.price}</span>
               <button
                 onClick={() => onAdd(item, [])}
                 disabled={addingId === item.id}
-                className="p-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white transition-all active:scale-90 disabled:opacity-50"
+                className="p-2 rounded-lg bg-[#ED9455] hover:bg-[#FFBB70] text-[#FFFBDA] transition-all active:scale-90 disabled:opacity-50"
               >
                 {addingId === item.id ? (
-                  <span className="block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="block w-4 h-4 border-2 border-[#FFFBDA] border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Plus className="w-4 h-4" />
                 )}
@@ -122,8 +117,8 @@ export default function MenuSection() {
   }, [addItem])
 
   return (
-    <section id="menu" className="relative py-24 sm:py-32 scroll-mt-24">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#18181b]/30 to-[#09090b] pointer-events-none" />
+    <section id="menu" className="relative py-24 sm:py-32 scroll-mt-24 bg-[#FFFBDA]">
+      <div className="absolute inset-0 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <motion.div
@@ -132,13 +127,10 @@ export default function MenuSection() {
           viewport={{ once: true, margin: '-100px' }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
-            Signature{' '}
-            <span className="bg-[#f97316] bg-clip-text text-transparent">
-              Dishes
-            </span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-[#ED9455]">
+            Signature Dishes
           </h2>
-          <p className="text-[#a1a1aa] max-w-xl mx-auto">
+          <p className="text-[#ED9455]/80 max-w-xl mx-auto">
             From classic silogs to refreshing shakes — every dish is made to satisfy.
           </p>
         </motion.div>
@@ -150,8 +142,8 @@ export default function MenuSection() {
               onClick={() => setActiveCategory(cat.key)}
               className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${
                 activeCategory === cat.key
-                  ? 'bg-[#f97316] text-white shadow-lg shadow-[#f97316]/20'
-                  : 'bg-[#18181b] text-[#a1a1aa] hover:text-white border border-[#27272a] hover:border-[#f97316]/30'
+                  ? 'bg-[#ED9455] text-[#FFFBDA] shadow-md shadow-[#ED9455]/10'
+                  : 'bg-[#FFFBDA] text-[#ED9455] border border-[#FFEC9E] hover:border-[#FFBB70]'
               }`}
             >
               {cat.label}
@@ -182,9 +174,9 @@ export default function MenuSection() {
         >
           <button
             onClick={openCart}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#18181b] border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-[#f97316]/40 font-medium transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] hover:border-[#FFBB70] font-medium transition-all shadow-sm"
           >
-            <ShoppingCart className="w-4 h-4" />
+            <ShoppingCart className="w-4 h-4 text-[#FFBB70]" />
             View Cart
           </button>
         </motion.div>

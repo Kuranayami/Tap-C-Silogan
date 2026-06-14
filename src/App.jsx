@@ -29,7 +29,7 @@ function MainLayout() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-[#fafafa] overflow-x-hidden">
+    <div className="min-h-screen bg-[#FFFBDA] text-[#ED9455] overflow-x-hidden">
       <Navbar />
       <Hero />
       <MenuSection />

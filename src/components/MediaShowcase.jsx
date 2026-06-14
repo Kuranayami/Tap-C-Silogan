@@ -16,7 +16,7 @@ export default function MediaShowcase() {
   }, [])
 
   return (
-    <section id="about" className="relative py-24 sm:py-32 scroll-mt-24">
+    <section id="about" className="relative py-24 sm:py-32 scroll-mt-24 bg-[#FFFBDA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -24,20 +24,20 @@ export default function MediaShowcase() {
           viewport={{ once: true, margin: '-100px' }}
           className="text-center mb-14"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EBB866]/10 border border-[#EBB866]/20 text-[#EBB866] text-xs sm:text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFEC9E] border border-[#FFBB70] text-[#ED9455] text-xs sm:text-sm font-medium mb-4">
             <Eye className="w-4 h-4" />
             A Feast for Your Eyes
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#ED9455]">
             Behind the{' '}
-            <span className="bg-[#EBB866] bg-clip-text text-transparent">
+            <span className="text-[#FFBB70]">
               Flavors
             </span>
           </h2>
         </motion.div>
 
         {!loading && images.length === 0 && (
-          <div className="text-center py-20 text-[#71717a]">
+          <div className="text-center py-20 text-[#ED9455]/60">
             <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-30" />
             <p className="text-sm">No images yet.</p>
           </div>
@@ -52,9 +52,10 @@ export default function MediaShowcase() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07 }}
-                className={`overflow-hidden rounded-2xl border border-[#27272a] bg-[#18181b] group cursor-pointer ${
+                className={`overflow-hidden rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] group cursor-pointer ${
                   i === 0 && images.length > 1 ? 'row-span-2 col-span-2' : ''
                 } ${i === images.length - 1 && i !== 0 && images.length % 3 === 2 ? 'col-span-2' : ''}`}
+                style={{ boxShadow: '0 10px 25px rgba(237, 148, 85, 0.04)' }}
               >
                 <div className="aspect-square overflow-hidden">
                   <img

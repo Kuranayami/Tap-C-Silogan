@@ -45,25 +45,23 @@ export default function RatingSection() {
   }
 
   return (
-    <section className="relative py-24 sm:py-32">
+    <section className="relative py-24 sm:py-32 bg-[#FFFBDA]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#f97316]/10 border border-[#f97316]/20 text-[#EBB866] text-xs sm:text-sm font-medium mb-4">
-            <Star className="w-4 h-4 fill-[#EBB866]" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFEC9E] border border-[#FFBB70] text-[#ED9455] text-xs sm:text-sm font-medium mb-4">
+            <Star className="w-4 h-4 fill-[#ED9455] text-[#ED9455]" />
             Rate Us
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-            What{' '}
-            <span className="bg-[#EBB866] bg-clip-text text-transparent">You</span>{' '}
-            Say Matters
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#ED9455]">
+            What <span className="text-[#FFBB70]">You</span> Say Matters
           </h2>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl border border-[#27272a] bg-[#18181b] p-6 sm:p-8 mb-8">
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-6 sm:p-8 mb-8" style={{ boxShadow: '0 10px 25px rgba(237, 148, 85, 0.04)' }}>
           {submitted ? (
             <div className="text-center py-6">
-              <Star className="w-12 h-12 text-[#EBB866] fill-[#EBB866] mx-auto mb-3" />
-              <p className="text-white font-semibold text-lg">Thank you for your rating!</p>
+              <Star className="w-12 h-12 text-[#FFBB70] fill-[#FFBB70] mx-auto mb-3" />
+              <p className="text-[#ED9455] font-semibold text-lg">Thank you for your rating!</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,26 +70,26 @@ export default function RatingSection() {
                   <button key={n} type="button" onClick={() => setRating(n)} onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(0)}
                     className="p-1 transition-all"
                   >
-                    <Star className={`w-8 h-8 transition-colors ${n <= (hover || rating) ? 'fill-[#EBB866] text-[#EBB866]' : 'text-[#27272a]'}`} />
+                    <Star className={`w-8 h-8 transition-colors ${n <= (hover || rating) ? 'fill-[#FFBB70] text-[#FFBB70]' : 'text-[#FFEC9E]'}`} />
                   </button>
                 ))}
               </div>
               {user ? (
                 <>
-                  <div className="px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-white text-sm opacity-60">
+                  <div className="px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] text-sm opacity-80">
                     {user.name}
                   </div>
                   <input type="hidden" name="name" value={user.name} />
                 </>
               ) : (
-                <a href="#/login" className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-[#EBB866] text-sm hover:border-[#EBB866]/50 transition-colors">
+                <a href="#/login" className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] text-sm hover:border-[#FFBB70] transition-colors font-medium">
                   Sign in to leave a rating
                 </a>
               )}
               <textarea placeholder="Comment (optional)" value={comment} onChange={e => setComment(e.target.value)} rows={3}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#EBB866]/50 transition-colors" />
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] text-sm placeholder-[#ED9455]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
               <button type="submit" disabled={!user || !rating || submitting}
-                className="w-full px-6 py-3 rounded-xl bg-[#EBB866] hover:bg-[#EBB866] text-white font-semibold transition-all disabled:opacity-50 active:scale-[0.98]">
+                className="w-full px-6 py-3 rounded-xl bg-[#ED9455] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold transition-all disabled:opacity-40 active:scale-[0.98]">
                 {submitting ? 'Submitting...' : 'Submit Rating'}
               </button>
             </form>
@@ -102,32 +100,32 @@ export default function RatingSection() {
           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-1">
               {[1, 2, 3, 4, 5].map(n => (
-                <Star key={n} className={`w-5 h-5 ${n <= Math.round(average) ? 'fill-[#EBB866] text-[#EBB866]' : 'text-[#27272a]'}`} />
+                <Star key={n} className={`w-5 h-5 ${n <= Math.round(average) ? 'fill-[#FFBB70] text-[#FFBB70]' : 'text-[#FFEC9E]'}`} />
               ))}
             </div>
-            <p className="text-2xl font-bold text-white">{average} <span className="text-sm text-[#a1a1aa] font-normal">({count} review{count !== 1 ? 's' : ''})</span></p>
+            <p className="text-2xl font-bold text-[#ED9455]">{average} <span className="text-sm text-[#ED9455]/60 font-normal">({count} review{count !== 1 ? 's' : ''})</span></p>
           </motion.div>
         )}
 
         <div className="space-y-3">
           {ratings.slice(0, 10).map((item, i) => (
             <motion.div key={item.id || i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-              className="rounded-xl border border-[#27272a] bg-[#18181b] p-4"
+              className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-4"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-[#EBB866]/10 flex items-center justify-center">
-                    <span className="text-xs font-bold text-[#EBB866]">{item.name[0]}</span>
+                  <div className="w-7 h-7 rounded-full bg-[#FFBB70]/20 flex items-center justify-center">
+                    <span className="text-xs font-bold text-[#ED9455]">{item.name[0]}</span>
                   </div>
-                  <span className="text-sm font-medium text-white">{item.name}</span>
+                  <span className="text-sm font-medium text-[#ED9455]">{item.name}</span>
                 </div>
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map(n => (
-                    <Star key={n} className={`w-3.5 h-3.5 ${n <= item.rating ? 'fill-[#EBB866] text-[#EBB866]' : 'text-[#27272a]'}`} />
+                    <Star key={n} className={`w-3.5 h-3.5 ${n <= item.rating ? 'fill-[#FFBB70] text-[#FFBB70]' : 'text-[#FFEC9E]'}`} />
                   ))}
                 </div>
               </div>
-              {item.comment && <p className="text-sm text-[#a1a1aa]">{item.comment}</p>}
+              {item.comment && <p className="text-sm text-[#ED9455]/80 leading-relaxed">{item.comment}</p>}
             </motion.div>
           ))}
         </div>
