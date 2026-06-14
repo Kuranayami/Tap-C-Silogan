@@ -138,7 +138,7 @@ export default function MenuSection() {
                     </button>
                   </div>
 
-                  <div className="relative mt-2">
+                  <div className="mt-2">
                     <button
                       onClick={() => setExtraOpen(extraOpen === item.id ? null : item.id)}
                       className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
@@ -152,38 +152,36 @@ export default function MenuSection() {
                         : '+ Extra'}
                     </button>
                     {extraOpen === item.id && (
-                      <>
-                        <div className="fixed inset-0 z-[5]" onClick={() => setExtraOpen(null)} />
-                        <motion.div
-                          initial={{ opacity: 0, y: -4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="absolute bottom-full left-0 mb-1 bg-[#202024] border border-[#27272a] rounded-xl p-2 shadow-xl shadow-black/40 min-w-[180px] z-10"
-                        >
-                          {addons.map(addon => {
-                            const qty = (addonQtys[item.id] || {})[addon.id] || 0
-                            return (
-                              <div key={addon.id} className="flex items-center justify-between px-3 py-2 rounded-lg text-sm">
-                                <span className="text-[#a1a1aa]">{addon.name}</span>
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={() => setAddonQtys(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), [addon.id]: Math.max(0, qty - 1) } }))}
-                                    className="w-6 h-6 rounded-md border border-[#27272a] text-[#71717a] hover:text-white flex items-center justify-center transition-all"
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </button>
-                                  <span className="w-5 text-center text-white font-medium text-xs">{qty}</span>
-                                  <button
-                                    onClick={() => setAddonQtys(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), [addon.id]: qty + 1 } }))}
-                                    className="w-6 h-6 rounded-md bg-[#f97316] hover:bg-[#ea580c] text-white flex items-center justify-center transition-all"
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </button>
-                                </div>
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-2 bg-[#202024] border border-[#27272a] rounded-xl p-2"
+                      >
+                        {addons.map(addon => {
+                          const qty = (addonQtys[item.id] || {})[addon.id] || 0
+                          return (
+                            <div key={addon.id} className="flex items-center justify-between px-3 py-2 rounded-lg text-sm">
+                              <span className="text-[#a1a1aa]">{addon.name}</span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => setAddonQtys(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), [addon.id]: Math.max(0, qty - 1) } }))}
+                                  className="w-6 h-6 rounded-md border border-[#27272a] text-[#71717a] hover:text-white flex items-center justify-center transition-all"
+                                >
+                                  <Minus className="w-3 h-3" />
+                                </button>
+                                <span className="w-5 text-center text-white font-medium text-xs">{qty}</span>
+                                <button
+                                  onClick={() => setAddonQtys(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), [addon.id]: qty + 1 } }))}
+                                  className="w-6 h-6 rounded-md bg-[#f97316] hover:bg-[#ea580c] text-white flex items-center justify-center transition-all"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </button>
                               </div>
-                            )
-                          })}
-                        </motion.div>
-                      </>
+                            </div>
+                          )
+                        })}
+                      </motion.div>
                     )}
                   </div>
                 </div>
