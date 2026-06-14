@@ -4,7 +4,7 @@ import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike,
-  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare,
+  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
@@ -1052,6 +1052,33 @@ export default function Admin() {
             </div>
           </div>
         </div>
+
+        {/* ── Order History ── */}
+        {orders.some(o => ['done', 'canceled'].includes(o.status)) && (
+          <details className="mt-6 rounded-2xl border border-[#27272a] bg-[#18181b]">
+            <summary className="px-4 py-3 text-sm text-[#a1a1aa] cursor-pointer hover:text-white transition-colors flex items-center gap-2">
+              <ListChecks className="w-4 h-4 text-[#71717a]" />
+              Order History ({orders.filter(o => ['done', 'canceled'].includes(o.status)).length})
+            </summary>
+            <div className="px-4 pb-3 space-y-1.5 max-h-64 overflow-y-auto">
+              {orders.filter(o => ['done', 'canceled'].includes(o.status)).map(order => (
+                <div key={order.id} className="flex items-center justify-between text-xs text-[#71717a] py-1.5 border-b border-[#27272a] last:border-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[10px] font-mono text-[#52525b] shrink-0">#{String(order.id).slice(-4)}</span>
+                    <span className="truncate">{order.customer_name || order.customer_contact}</span>
+                    {order.total !== undefined && <span className="text-[10px] text-[#52525b] shrink-0">₱{Number(order.total).toLocaleString()}</span>}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[10px]">{order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}</span>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${order.status === 'done' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
 
         {/* ── Loading / Error / Empty ── */}
         {loading && orders.length === 0 && (
