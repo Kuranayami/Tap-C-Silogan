@@ -35,10 +35,10 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="group relative rounded-2xl bg-[#FFFBDA] overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-[#ED9455]/5"
+      className="group relative rounded-2xl border-2 border-[#FFEC9E] bg-[#FFFBDA] overflow-hidden transition-all duration-300 hover:border-[#FFBB70] hover:shadow-xl hover:shadow-[#ED9455]/5"
       style={{ boxShadow: '0 10px 25px rgba(237, 148, 85, 0.05)' }}
     >
-      <div className="aspect-[4/3] overflow-hidden bg-[#FFEC9E]/30">
+      <div className="aspect-[4/3] overflow-hidden bg-[#FFEC9E]/30 border-b border-[#FFEC9E] group-hover:border-[#FFBB70] transition-colors">
         <img
           src={imageUrl(item.image) || categoryImages[item.category] || categoryImages.ulam}
           alt={item.name}
@@ -64,7 +64,7 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
                 <span className="w-6 text-center text-[#ED9455] font-bold text-sm">{cartQty}</span>
                 <button
                   onClick={handleExtraIncrement}
-                  className="w-7 h-7 rounded-md bg-[#ED9455] hover:bg-[#FFBB70] text-[#FFFBDA] flex items-center justify-center transition-all active:scale-90"
+                  className="w-7 h-7 rounded-md bg-[#ED9455] hover:bg-[#302b26] text-[#FFFBDA] flex items-center justify-center transition-all active:scale-90"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
