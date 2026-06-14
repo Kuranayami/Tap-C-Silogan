@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
+import { useOrderRealtime } from '../hooks/useOrderRealtime'
 
 const COLUMNS = [
   { key: 'pending', label: 'Pending', icon: Clock, color: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400', text: 'text-amber-400' },
@@ -280,6 +281,17 @@ export default function Admin() {
   useEffect(() => {
     if (loggedIn) { fetchOrders(); fetchMenu(); fetchAboutImages(); fetchHero() }
   }, [loggedIn])
+
+  useOrderRealtime(useCallback((payload) => {
+    if (payload.eventType === 'INSERT') {
+      setOrders(prev => [payload.new, ...prev])
+      addActivity(`New order from ${payload.new.customer_name || 'someone'}`, 'success')
+    } else if (payload.eventType === 'UPDATE') {
+      setOrders(prev => prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o))
+    } else if (payload.eventType === 'DELETE') {
+      setOrders(prev => prev.filter(o => o.id !== payload.old.id))
+    }
+  }, [addActivity]))
 
   useEffect(() => {
     if (!loggedIn) return

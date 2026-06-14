@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, Package, Bike, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, Timer, ListChecks, TrendingUp, AlertTriangle } from 'lucide-react'
 import { api } from '../api'
 import CashierLogin from './CashierLogin'
+import { useOrderRealtime } from '../hooks/useOrderRealtime'
 
 const COLUMNS = [
   { key: 'pending', label: 'Pending', icon: Clock, color: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400', text: 'text-amber-400' },
@@ -70,6 +71,17 @@ export default function CashierPanel() {
     const interval = setInterval(fetchOrders, 15000)
     return () => clearInterval(interval)
   }, [loggedIn, fetchOrders])
+
+  useOrderRealtime(useCallback((payload) => {
+    if (!loggedIn) return
+    if (payload.eventType === 'INSERT') {
+      setOrders(prev => [payload.new, ...prev])
+    } else if (payload.eventType === 'UPDATE') {
+      setOrders(prev => prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o))
+    } else if (payload.eventType === 'DELETE') {
+      setOrders(prev => prev.filter(o => o.id !== payload.old.id))
+    }
+  }, [loggedIn]))
 
   const changeStatus = async (id, newStatus) => {
     const prev = orders.find(o => o.id === id)

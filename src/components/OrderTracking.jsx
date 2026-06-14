@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Package, Clock, Bike, CheckCircle, XCircle, ArrowLeft, MapPin, Phone, User, ShoppingBag } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
+import { useOrderRealtime } from '../hooks/useOrderRealtime'
 
 const STATUS_CONFIG = {
   pending:       { label: 'Pending',       icon: Clock,       color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400' },
@@ -113,6 +114,19 @@ export default function OrderTracking() {
       .catch(() => setOrders([]))
       .finally(() => setLoading(false))
   }, [token, user])
+
+  useOrderRealtime(useCallback((payload) => {
+    if (!user) return
+    const belongsToUser = payload.new?.user_id === user.id || payload.old?.user_id === user.id
+    if (!belongsToUser) return
+    if (payload.eventType === 'INSERT') {
+      setOrders(prev => prev ? [payload.new, ...prev] : [payload.new])
+    } else if (payload.eventType === 'UPDATE') {
+      setOrders(prev => prev ? prev.map(o => o.id === payload.new.id ? { ...o, ...payload.new } : o) : prev)
+    } else if (payload.eventType === 'DELETE') {
+      setOrders(prev => prev ? prev.filter(o => o.id !== payload.old.id) : prev)
+    }
+  }, [user]))
 
   if (!user || !token) {
     return (
