@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ShoppingCart, Minus, ChevronDown } from 'lucide-react'
-import { menuItems as localMenu, addons } from '../data/menu'
+import { Plus, ShoppingCart, Minus } from 'lucide-react'
+import { menuItems as localMenu } from '../data/menu'
 import { useCart } from '../context/CartContext'
 import { api, imageUrl } from '../api'
 
@@ -22,20 +22,10 @@ const categoryImages = {
   extra: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80',
 }
 
-function MenuItemCard({ item, index, addons, onAdd, addingId }) {
-  const [extraOpen, setExtraOpen] = useState(false)
-  const [addonQtys, setAddonQtys] = useState({})
+function MenuItemCard({ item, index, onAdd, addingId }) {
   const { items, addItem, removeItem, updateQuantity } = useCart()
 
-  const totalAddonCount = Object.values(addonQtys).reduce((s, q) => s + q, 0)
   const cartQty = items.filter(i => i.id === item.id).reduce((s, i) => s + i.quantity, 0)
-
-  const handleAddClick = () => {
-    const chosen = addons.filter(a => (addonQtys[a.id] || 0) > 0).map(a => ({ ...a, quantity: addonQtys[a.id] }))
-    onAdd(item, chosen)
-    setAddonQtys({})
-    setExtraOpen(false)
-  }
 
   const handleExtraIncrement = () => addItem(item)
   const handleExtraDecrement = () => {
@@ -89,7 +79,7 @@ function MenuItemCard({ item, index, addons, onAdd, addingId }) {
             <>
               <span className="text-lg font-bold text-[#f97316]">₱{item.price}</span>
               <button
-                onClick={handleAddClick}
+                onClick={() => onAdd(item, [])}
                 disabled={addingId === item.id}
                 className="p-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white transition-all active:scale-90 disabled:opacity-50"
               >
@@ -102,52 +92,6 @@ function MenuItemCard({ item, index, addons, onAdd, addingId }) {
             </>
           )}
         </div>
-
-        {item.category !== 'extra' && (
-          <div className="mt-2">
-            <button
-            onClick={() => setExtraOpen(prev => !prev)}
-            className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
-              totalAddonCount > 0
-                ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]'
-                : 'border-[#27272a] text-[#71717a] hover:text-[#a1a1aa]'
-            }`}
-          >
-            {totalAddonCount > 0 ? `Extra (${totalAddonCount})` : '+ Extra'}
-            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${extraOpen ? 'rotate-180' : ''}`} />
-          </button>
-
-          <div
-            className="overflow-hidden transition-all duration-300 ease-in-out"
-            style={{ maxHeight: extraOpen ? '200px' : '0', opacity: extraOpen ? 1 : 0 }}
-          >
-            <div className="mt-2 bg-[#202024] border border-[#27272a] rounded-xl p-2">
-              {addons.map(addon => {
-                const qty = addonQtys[addon.id] || 0
-                return (
-                  <div key={addon.id} className="flex items-center justify-between px-3 py-2 rounded-lg text-sm">
-                    <span className="text-[#a1a1aa]">{addon.name}</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setAddonQtys(prev => ({ ...prev, [addon.id]: Math.max(0, qty - 1) }))}
-                        className="w-6 h-6 rounded-md border border-[#27272a] text-[#71717a] hover:text-white flex items-center justify-center transition-all"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="w-5 text-center text-white font-medium text-xs">{qty}</span>
-                      <button
-                        onClick={() => setAddonQtys(prev => ({ ...prev, [addon.id]: qty + 1 }))}
-                        className="w-6 h-6 rounded-md bg-[#f97316] hover:bg-[#ea580c] text-white flex items-center justify-center transition-all"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>)}
       </div>
     </motion.div>
   )
@@ -225,7 +169,7 @@ export default function MenuSection() {
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
           >
             {filtered.map((item, i) => (
-              <MenuItemCard key={item.id} item={item} index={i} addons={addons} onAdd={handleAdd} addingId={addingId} />
+              <MenuItemCard key={item.id} item={item} index={i} onAdd={handleAdd} addingId={addingId} />
             ))}
           </motion.div>
         </AnimatePresence>
