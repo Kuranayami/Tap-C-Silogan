@@ -23,8 +23,9 @@ export default function CashierLogin({ onLogin }) {
         setError(body.error || 'Invalid credentials')
         return
       }
-      const { token } = await res.json()
+      const { token, cashier } = await res.json()
       localStorage.setItem('cashier_token', token)
+      if (cashier) localStorage.setItem('cashier_profile', JSON.stringify(cashier))
       onLogin()
     } catch {
       setError('Connection failed')

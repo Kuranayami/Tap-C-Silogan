@@ -82,6 +82,11 @@ export default function Admin() {
   const [showRidersManager, setShowRidersManager] = useState(false)
   const [riders, setRiders] = useState([])
   const [ridersLoading, setRidersLoading] = useState(false)
+  const [showCashiersManager, setShowCashiersManager] = useState(false)
+  const [cashiers, setCashiers] = useState([])
+  const [cashiersLoading, setCashiersLoading] = useState(false)
+  const [newCashier, setNewCashier] = useState({ name: '', username: '', password: '' })
+  const [addingCashier, setAddingCashier] = useState(false)
 
   const addActivity = useCallback((msg, type = 'info') => {
     const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
@@ -196,6 +201,38 @@ export default function Admin() {
       const res = await fetch(api(`/api/admin/riders/${id}`), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
       if (res.ok) { fetchRiders(); addActivity(`Rider "${name}" deleted`, 'info') }
+    } catch {}
+  }
+
+  const fetchCashiers = async () => {
+    setCashiersLoading(true)
+    try {
+      const res = await fetch(api('/api/cashier/manage'), { headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) setCashiers(await res.json().then(d => d.cashiers))
+    } catch {} finally { setCashiersLoading(false) }
+  }
+
+  const handleAddCashier = async (e) => {
+    e.preventDefault()
+    if (!newCashier.name || !newCashier.username || !newCashier.password) return
+    setAddingCashier(true)
+    try {
+      const res = await fetch(api('/api/cashier/register'), {
+        method: 'POST', headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCashier),
+      })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { setNewCashier({ name: '', username: '', password: '' }); fetchCashiers(); addActivity('Cashier added', 'info') }
+    } catch {} finally { setAddingCashier(false) }
+  }
+
+  const handleDeleteCashier = async (id, name) => {
+    if (!confirm(`Delete cashier "${name}"? This cannot be undone.`)) return
+    try {
+      const res = await fetch(api(`/api/cashier/manage/${id}`), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { fetchCashiers(); addActivity(`Cashier "${name}" deleted`, 'info') }
     } catch {}
   }
 
@@ -482,6 +519,7 @@ export default function Admin() {
             <button onClick={() => setShowAboutManager(!showAboutManager)} className={`p-2 rounded-lg border transition-colors ${showAboutManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="About Images"><ImageIcon className="w-4 h-4" /></button>
             <button onClick={() => { setShowUsersManager(!showUsersManager); if (!showUsersManager && users.length === 0) fetchUsers() }} className={`p-2 rounded-lg border transition-colors ${showUsersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Users"><Users className="w-4 h-4" /></button>
             <button onClick={() => { setShowRidersManager(!showRidersManager); if (!showRidersManager && riders.length === 0) fetchRiders() }} className={`p-2 rounded-lg border transition-colors ${showRidersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Riders"><Bike className="w-4 h-4" /></button>
+            <button onClick={() => { setShowCashiersManager(!showCashiersManager); if (!showCashiersManager && cashiers.length === 0) fetchCashiers() }} className={`p-2 rounded-lg border transition-colors ${showCashiersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Cashiers"><User className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
           </div>
@@ -779,6 +817,67 @@ export default function Admin() {
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Cashiers Manager ── */}
+        <AnimatePresence>
+          {showCashiersManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><User className="w-4 h-4 text-[#f97316]" />Manage Cashiers</h3>
+                  <button onClick={fetchCashiers} disabled={cashiersLoading} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50">
+                    <RefreshCw className={`w-3.5 h-3.5 ${cashiersLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddCashier} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#202024]">
+                  <input type="text" placeholder="Full name" value={newCashier.name} onChange={e => setNewCashier(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <input type="text" placeholder="Username" value={newCashier.username} onChange={e => setNewCashier(f => ({ ...f, username: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <input type="password" placeholder="Password" value={newCashier.password} onChange={e => setNewCashier(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <button type="submit" disabled={addingCashier || !newCashier.name || !newCashier.username || !newCashier.password} className="px-3 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{addingCashier ? 'Adding...' : 'Add Cashier'}</button>
+                </form>
+
+                {cashiers.length === 0 ? (
+                  <p className="text-sm text-[#71717a] text-center py-4">{cashiersLoading ? 'Loading...' : 'No cashiers yet.'}</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-[#71717a] text-xs border-b border-[#27272a]">
+                          <th className="text-left py-2 pr-2">Name</th>
+                          <th className="text-left py-2 pr-2">Username</th>
+                          <th className="text-left py-2 pr-2">Status</th>
+                          <th className="text-left py-2 pr-2">Created</th>
+                          <th className="text-right py-2">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cashiers.map(c => (
+                          <tr key={c.id} className="border-b border-[#27272a] hover:bg-[#202024] transition-colors">
+                            <td className="py-2 pr-2 text-white font-medium truncate max-w-[120px]">{c.name}</td>
+                            <td className="py-2 pr-2 text-[#a1a1aa]">{c.username}</td>
+                            <td className="py-2 pr-2">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${c.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
+                                <span className={`w-1 h-1 rounded-full ${c.status === 'active' ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                {c.status || 'active'}
+                              </span>
+                            </td>
+                            <td className="py-2 pr-2 text-[#71717a] text-xs">{c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}</td>
+                            <td className="py-2 text-right">
+                              <button onClick={() => handleDeleteCashier(c.id, c.name)} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </td>
                           </tr>
                         ))}

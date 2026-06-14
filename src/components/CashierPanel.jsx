@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Clock, Package, Bike, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, ShoppingBag } from 'lucide-react'
+import { Clock, Package, Bike, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone } from 'lucide-react'
 import { api } from '../api'
 import CashierLogin from './CashierLogin'
 
@@ -27,12 +27,16 @@ function timeAgo(dateStr) {
 
 export default function CashierPanel() {
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem('cashier_token'))
+  const [cashier, setCashier] = useState(() => {
+    try { const p = localStorage.getItem('cashier_profile'); return p ? JSON.parse(p) : null } catch { return null }
+  })
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const logout = useCallback(() => {
     localStorage.removeItem('cashier_token')
+    localStorage.removeItem('cashier_profile')
     setLoggedIn(false)
   }, [])
 
@@ -98,7 +102,7 @@ export default function CashierPanel() {
   const columnOrders = (key) => orders.filter(o => (o.status || 'pending') === key)
   const activeTotal = orders.filter(o => !['done', 'canceled'].includes(o.status || 'pending')).length
 
-  if (!loggedIn) return <CashierLogin onLogin={() => { setLoggedIn(true); fetchOrders() }} />
+  if (!loggedIn) return <CashierLogin onLogin={() => { setLoggedIn(true); try { const p = localStorage.getItem('cashier_profile'); setCashier(p ? JSON.parse(p) : null) } catch {}; fetchOrders() }} />
 
   return (
     <div className="min-h-screen bg-[#09090b] text-[#fafafa]">
@@ -110,7 +114,7 @@ export default function CashierPanel() {
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Cashier <span className="bg-gradient-to-r from-[#f97316] to-[#f59e0b] bg-clip-text text-transparent">Dashboard</span></h1>
-              <p className="text-xs text-[#71717a]">{activeTotal} active orders</p>
+              <p className="text-xs text-[#71717a]">{cashier?.name ? `${cashier.name} · ` : ''}{activeTotal} active orders</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
