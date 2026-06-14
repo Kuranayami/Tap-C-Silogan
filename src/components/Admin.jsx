@@ -257,6 +257,11 @@ export default function Admin() {
     setTestimonialsForm({ name: '', text: '', rating: 5 })
   }
 
+  const handleClearTestimonials = () => {
+    if (!window.confirm('Delete ALL testimonials? This cannot be undone.')) return
+    setTestimonials([])
+  }
+
   const handleDeleteTestimonial = (idx) => {
     if (!confirm(`Delete testimonial from "${testimonials[idx].name}"?`)) return
     const updated = testimonials.filter((_, i) => i !== idx)
@@ -934,7 +939,10 @@ export default function Admin() {
               <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><MessageSquare className="w-4 h-4 text-[#f97316]" />Manage Testimonials</h3>
-                  <button onClick={() => { handleSaveTestimonials(); addActivity('Testimonials saved', 'info') }} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-semibold transition-all"><Save className="w-3.5 h-3.5" />Save</button>
+                  <div className="flex items-center gap-1.5">
+                    <button onClick={handleClearTestimonials} disabled={testimonials.length === 0} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-all disabled:opacity-50"><Trash2 className="w-3 h-3" />Clear All</button>
+                    <button onClick={() => { handleSaveTestimonials(); addActivity('Testimonials saved', 'info') }} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-semibold transition-all"><Save className="w-3.5 h-3.5" />Save</button>
+                  </div>
                 </div>
 
                 <form onSubmit={handleAddTestimonial} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#202024]">
