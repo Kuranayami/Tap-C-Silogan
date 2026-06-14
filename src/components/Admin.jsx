@@ -79,6 +79,9 @@ export default function Admin() {
   const [riderStats, setRiderStats] = useState({ online: 0, busy: 0, idle: 0, total: 0 })
   const [activeUsers, setActiveUsers] = useState(0)
   const [kitchenProgress, setKitchenProgress] = useState({})
+  const [showRidersManager, setShowRidersManager] = useState(false)
+  const [riders, setRiders] = useState([])
+  const [ridersLoading, setRidersLoading] = useState(false)
 
   const addActivity = useCallback((msg, type = 'info') => {
     const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
@@ -162,7 +165,37 @@ export default function Admin() {
     try {
       const res = await fetch(api(`/api/admin/users/${id}`), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
-      if (res.ok) fetchUsers()
+      if (res.ok) { fetchUsers(); addActivity(`User "${name}" deleted`, 'info') }
+    } catch {}
+  }
+
+  const fetchRiders = async () => {
+    setRidersLoading(true)
+    try {
+      const res = await fetch(api('/api/admin/riders'), { headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) setRiders(await res.json().then(d => d.riders))
+    } catch {} finally { setRidersLoading(false) }
+  }
+
+  const handleBanRider = async (id, status) => {
+    try {
+      const res = await fetch(api(`/api/admin/riders/${id}/status`), {
+        method: 'PATCH',
+        headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) fetchRiders()
+    } catch {}
+  }
+
+  const handleDeleteRider = async (id, name) => {
+    if (!confirm(`Delete rider "${name}"? This cannot be undone.`)) return
+    try {
+      const res = await fetch(api(`/api/admin/riders/${id}`), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { fetchRiders(); addActivity(`Rider "${name}" deleted`, 'info') }
     } catch {}
   }
 
@@ -448,6 +481,7 @@ export default function Admin() {
             <button onClick={() => setShowHeroManager(!showHeroManager)} className={`p-2 rounded-lg border transition-colors ${showHeroManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Hero Image"><Camera className="w-4 h-4" /></button>
             <button onClick={() => setShowAboutManager(!showAboutManager)} className={`p-2 rounded-lg border transition-colors ${showAboutManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="About Images"><ImageIcon className="w-4 h-4" /></button>
             <button onClick={() => { setShowUsersManager(!showUsersManager); if (!showUsersManager && users.length === 0) fetchUsers() }} className={`p-2 rounded-lg border transition-colors ${showUsersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Users"><Users className="w-4 h-4" /></button>
+            <button onClick={() => { setShowRidersManager(!showRidersManager); if (!showRidersManager && riders.length === 0) fetchRiders() }} className={`p-2 rounded-lg border transition-colors ${showRidersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Riders"><Bike className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
           </div>
@@ -657,6 +691,91 @@ export default function Admin() {
                                   </button>
                                 )}
                                 <button onClick={() => handleDeleteUser(u.id, u.name)} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Riders Manager ── */}
+        <AnimatePresence>
+          {showRidersManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Bike className="w-4 h-4 text-[#f97316]" />Manage Delivery Drivers</h3>
+                  <button onClick={fetchRiders} disabled={ridersLoading} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50">
+                    <RefreshCw className={`w-3.5 h-3.5 ${ridersLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+                {riders.length === 0 ? (
+                  <p className="text-sm text-[#71717a] text-center py-4">{ridersLoading ? 'Loading...' : 'No riders found.'}</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-[#71717a] text-xs border-b border-[#27272a]">
+                          <th className="text-left py-2 pr-2">Name</th>
+                          <th className="text-left py-2 pr-2">Phone</th>
+                          <th className="text-left py-2 pr-2">Vehicle</th>
+                          <th className="text-left py-2 pr-2">Status</th>
+                          <th className="text-left py-2 pr-2">Deliveries</th>
+                          <th className="text-right py-2">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {riders.map(r => (
+                          <tr key={r.id} className="border-b border-[#27272a] hover:bg-[#202024] transition-colors">
+                            <td className="py-2 pr-2 text-white font-medium truncate max-w-[120px]">{r.name || '—'}</td>
+                            <td className="py-2 pr-2 text-[#a1a1aa] truncate max-w-[130px]">{r.phone || '—'}</td>
+                            <td className="py-2 pr-2 text-[#a1a1aa] capitalize">{r.vehicle_type || '—'}</td>
+                            <td className="py-2 pr-2">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
+                                ${r.status === 'banned' ? 'bg-red-500/10 text-red-400 border border-red-500/30'
+                                : r.status === 'disabled' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                                : r.status === 'online' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                : r.status === 'busy' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                                : 'bg-[#27272a]/50 text-[#71717a] border border-[#27272a]'}`}>
+                                <span className={`w-1 h-1 rounded-full
+                                  ${r.status === 'banned' ? 'bg-red-400'
+                                  : r.status === 'disabled' ? 'bg-amber-400'
+                                  : r.status === 'online' ? 'bg-emerald-400'
+                                  : r.status === 'busy' ? 'bg-blue-400'
+                                  : 'bg-[#71717a]'}`} />
+                                {r.status || 'offline'}
+                              </span>
+                            </td>
+                            <td className="py-2 pr-2 text-[#71717a] text-xs">{r.total_deliveries || 0}</td>
+                            <td className="py-2 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {(!r.status || r.status === 'online' || r.status === 'idle' || r.status === 'offline' || r.status === 'busy') ? (
+                                  <button onClick={() => handleBanRider(r.id, 'disabled')} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-amber-400 hover:border-amber-400/30 transition-all" title="Disable">
+                                    <Zap className="w-3.5 h-3.5" />
+                                  </button>
+                                ) : r.status === 'disabled' ? (
+                                  <button onClick={() => handleBanRider(r.id, 'online')} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-emerald-400 hover:border-emerald-400/30 transition-all" title="Enable">
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
+                                ) : null}
+                                {r.status !== 'banned' ? (
+                                  <button onClick={() => handleBanRider(r.id, 'banned')} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Ban">
+                                    <XCircle className="w-3.5 h-3.5" />
+                                  </button>
+                                ) : (
+                                  <button onClick={() => handleBanRider(r.id, 'online')} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-emerald-400 hover:border-emerald-400/30 transition-all" title="Unban">
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <button onClick={() => handleDeleteRider(r.id, r.name)} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>

@@ -57,3 +57,63 @@ export async function deleteUser(req, res) {
     res.status(500).json({ error: 'Failed to delete user' })
   }
 }
+
+// ── Rider Management ──
+
+export async function getRiders(req, res) {
+  try {
+    if (!hasSupabase) {
+      return res.json({ riders: [] })
+    }
+    const { data, error } = await supabase
+      .from('riders')
+      .select('id, name, phone, email, vehicle_type, license_plate, status, total_deliveries, rating, created_at')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    res.json({ riders: data || [] })
+  } catch (err) {
+    console.error('getRiders error:', err)
+    res.status(500).json({ error: 'Failed to fetch riders' })
+  }
+}
+
+export async function updateRiderStatus(req, res) {
+  try {
+    const { id } = req.params
+    const { status } = req.body
+    if (!['active', 'online', 'idle', 'offline', 'banned', 'disabled'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' })
+    }
+    if (!hasSupabase) {
+      return res.status(500).json({ error: 'No database' })
+    }
+    const { data, error } = await supabase
+      .from('riders')
+      .update({ status })
+      .eq('id', id)
+      .select('id, name, phone, email, vehicle_type, license_plate, status, total_deliveries, rating')
+      .single()
+
+    if (error) throw error
+    res.json({ rider: data, message: `Rider ${status}` })
+  } catch (err) {
+    console.error('updateRiderStatus error:', err)
+    res.status(500).json({ error: 'Failed to update rider status' })
+  }
+}
+
+export async function deleteRider(req, res) {
+  try {
+    const { id } = req.params
+    if (!hasSupabase) {
+      return res.status(500).json({ error: 'No database' })
+    }
+    const { error } = await supabase.from('riders').delete().eq('id', id)
+    if (error) throw error
+    res.json({ message: 'Rider deleted' })
+  } catch (err) {
+    console.error('deleteRider error:', err)
+    res.status(500).json({ error: 'Failed to delete rider' })
+  }
+}
