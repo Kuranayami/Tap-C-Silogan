@@ -1001,9 +1001,9 @@ export default function Admin() {
         </AnimatePresence>
 
         {/* ── Main Board + Activity Feed ── */}
-        <div className="flex gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* Kanban */}
-          <div className="flex-1 grid grid-cols-3 gap-3 min-h-[60vh]">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 min-h-[60vh]">
             {COLUMNS.map(col => {
               const items = columnOrders(col.key)
               const isOver = dragId && items.every(o => o.id !== dragId)
@@ -1036,7 +1036,7 @@ export default function Admin() {
           </div>
 
           {/* Activity Feed */}
-          <div className="w-64 shrink-0 rounded-2xl border border-[#27272a] bg-[#18181b] p-4 max-h-[70vh] flex flex-col">
+          <div className="w-full lg:w-64 shrink-0 rounded-2xl border border-[#27272a] bg-[#18181b] p-4 max-h-[70vh] flex flex-col">
             <div className="flex items-center gap-2 text-sm font-semibold text-white mb-3"><Clock className="w-4 h-4 text-[#f97316]" />Activity</div>
             <div className="flex-1 overflow-y-auto space-y-2 text-xs" ref={feedEndRef}>
               {activityFeed.length === 0 && <p className="text-[#71717a] text-center py-6">No activity yet</p>}
