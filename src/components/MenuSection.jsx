@@ -108,16 +108,16 @@ export default function MenuSection() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="group relative rounded-2xl border border-[#27272a] bg-[#18181b] overflow-hidden hover:border-[#f97316]/30 transition-all hover:shadow-xl hover:shadow-black/30"
+                className="group relative rounded-2xl border border-[#27272a] bg-[#18181b] hover:border-[#f97316]/30 transition-all hover:shadow-xl hover:shadow-black/30"
               >
-                <div className="aspect-[4/3] overflow-hidden bg-[#202024]">
+                <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-[#202024]">
                   <img
                     src={imageUrl(item.image) || categoryImages[item.category] || categoryImages.ulam}
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
-                <div className="p-3 sm:p-4">
+                <div className="px-3 py-3 sm:px-4 sm:py-4 pr-4 sm:pr-5">
                   <h3 className="text-sm sm:text-base font-semibold text-white truncate">
                     {item.name}
                   </h3>

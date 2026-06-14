@@ -1,5 +1,5 @@
 export const menuItems = [
-  { id: 'p1', name: 'Papaitan', price: 75, category: 'ulam' },
+  { id: 'p1', name: 'Papaitan', price: 75, category: 'ulam', image: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Pinapaitan.jpg' },
   { id: 'p2', name: 'Porkchop with Rice', price: 100, category: 'ulam' },
   { id: 'p3', name: 'Liempo with Rice', price: 105, category: 'ulam' },
   { id: 'p4', name: 'Lechonsilog', price: 90, category: 'silog' },
@@ -21,7 +21,7 @@ export const menuItems = [
 export const addons = [
   { id: 'extra-rice', name: 'Extra Rice', price: 15 },
   { id: 'egg', name: 'Egg', price: 15 },
-  { id: 'mang-tomas', name: 'Mang Tomas', price: 5 },
+  { id: 'calamansi', name: 'Calamansi', price: 5 },
 ]
 
 export const storeInfo = {
