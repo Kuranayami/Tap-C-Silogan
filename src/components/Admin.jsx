@@ -53,6 +53,9 @@ export default function Admin() {
   const [showMenuManager, setShowMenuManager] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [showAboutManager, setShowAboutManager] = useState(false)
+  const [showUsersManager, setShowUsersManager] = useState(false)
+  const [users, setUsers] = useState([])
+  const [usersLoading, setUsersLoading] = useState(false)
   const [newItem, setNewItem] = useState({ name: '', price: '', category: 'ulam' })
   const [newImage, setNewImage] = useState(null)
   const [adding, setAdding] = useState(false)
@@ -117,6 +120,36 @@ export default function Admin() {
     try {
       const res = await fetch(api('/api/config'))
       if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null) }
+    } catch {}
+  }
+
+  const fetchUsers = async () => {
+    setUsersLoading(true)
+    try {
+      const res = await fetch(api('/api/admin/users'), { headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) setUsers(await res.json().then(d => d.users))
+    } catch {} finally { setUsersLoading(false) }
+  }
+
+  const handleBanUser = async (id, status) => {
+    try {
+      const res = await fetch(api(`/api/admin/users/${id}/status`), {
+        method: 'PATCH',
+        headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) fetchUsers()
+    } catch {}
+  }
+
+  const handleDeleteUser = async (id, name) => {
+    if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return
+    try {
+      const res = await fetch(api(`/api/admin/users/${id}`), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) fetchUsers()
     } catch {}
   }
 
@@ -380,6 +413,7 @@ export default function Admin() {
           <div className="flex items-center gap-1.5">
             <button onClick={() => setShowMenuManager(!showMenuManager)} className={`p-2 rounded-lg border transition-colors ${showMenuManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Menu"><Edit3 className="w-4 h-4" /></button>
             <button onClick={() => setShowAboutManager(!showAboutManager)} className={`p-2 rounded-lg border transition-colors ${showAboutManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="About Images"><ImageIcon className="w-4 h-4" /></button>
+            <button onClick={() => { setShowUsersManager(!showUsersManager); if (!showUsersManager && users.length === 0) fetchUsers() }} className={`p-2 rounded-lg border transition-colors ${showUsersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Users"><Users className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
           </div>
@@ -481,6 +515,87 @@ export default function Admin() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Users Manager ── */}
+        <AnimatePresence>
+          {showUsersManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Users className="w-4 h-4 text-[#f97316]" />Manage Users</h3>
+                  <button onClick={fetchUsers} disabled={usersLoading} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50">
+                    <RefreshCw className={`w-3.5 h-3.5 ${usersLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+                {users.length === 0 ? (
+                  <p className="text-sm text-[#71717a] text-center py-4">{usersLoading ? 'Loading...' : 'No users found.'}</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-[#71717a] text-xs border-b border-[#27272a]">
+                          <th className="text-left py-2 pr-2">Name</th>
+                          <th className="text-left py-2 pr-2">Email / Phone</th>
+                          <th className="text-left py-2 pr-2">Provider</th>
+                          <th className="text-left py-2 pr-2">Status</th>
+                          <th className="text-left py-2 pr-2">Joined</th>
+                          <th className="text-right py-2">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.map(u => (
+                          <tr key={u.id} className="border-b border-[#27272a] hover:bg-[#202024] transition-colors">
+                            <td className="py-2 pr-2 text-white font-medium truncate max-w-[120px]">{u.name || '—'}</td>
+                            <td className="py-2 pr-2 text-[#a1a1aa] truncate max-w-[150px]">{u.email || u.phone || '—'}</td>
+                            <td className="py-2 pr-2 text-[#a1a1aa] capitalize">{u.auth_provider || '—'}</td>
+                            <td className="py-2 pr-2">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
+                                ${u.status === 'banned' ? 'bg-red-500/10 text-red-400 border border-red-500/30'
+                                : u.status === 'disabled' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'}`}>
+                                <span className={`w-1 h-1 rounded-full
+                                  ${u.status === 'banned' ? 'bg-red-400'
+                                  : u.status === 'disabled' ? 'bg-amber-400'
+                                  : 'bg-emerald-400'}`} />
+                                {u.status || 'active'}
+                              </span>
+                            </td>
+                            <td className="py-2 pr-2 text-[#71717a] text-xs">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                            <td className="py-2 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {(!u.status || u.status === 'active') ? (
+                                  <button onClick={() => handleBanUser(u.id, 'disabled')} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-amber-400 hover:border-amber-400/30 transition-all" title="Disable">
+                                    <Zap className="w-3.5 h-3.5" />
+                                  </button>
+                                ) : u.status === 'disabled' ? (
+                                  <button onClick={() => handleBanUser(u.id, 'active')} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-emerald-400 hover:border-emerald-400/30 transition-all" title="Enable">
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
+                                ) : null}
+                                {u.status !== 'banned' ? (
+                                  <button onClick={() => handleBanUser(u.id, 'banned')} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Ban">
+                                    <XCircle className="w-3.5 h-3.5" />
+                                  </button>
+                                ) : (
+                                  <button onClick={() => handleBanUser(u.id, 'active')} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-emerald-400 hover:border-emerald-400/30 transition-all" title="Unban">
+                                    <Check className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <button onClick={() => handleDeleteUser(u.id, u.name)} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 )}
               </div>

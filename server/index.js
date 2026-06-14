@@ -14,6 +14,7 @@ import locationRoutes from './routes/location.js'
 
 import authRoutes from './routes/auth.js'
 import riderRoutes from './routes/rider.js'
+import adminRoutes from './routes/admin.js'
 import { loginHandler, requireAdmin, revokeToken } from './middleware/auth.js'
 import { ensureMenuLoaded } from './services/supabase.js'
 import { ensureBucket } from './services/storage.js'
@@ -32,11 +33,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://accounts.google.com'],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https://images.unsplash.com', 'https://*.supabase.co', 'blob:'],
       fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      connectSrc: ["'self'"],
+      frameSrc: ["'self'", 'https://accounts.google.com'],
+      connectSrc: ["'self'", 'https://accounts.google.com', 'https://*.googleapis.com'],
       frameAncestors: ["'none'"],
     },
   },
@@ -123,6 +125,7 @@ app.use('/api/location', locationRoutes)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/rider', riderRoutes)
+app.use('/api/admin', adminRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err?.message || err, err?.stack || '')

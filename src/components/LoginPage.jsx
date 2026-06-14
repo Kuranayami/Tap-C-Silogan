@@ -36,19 +36,25 @@ export default function LoginPage({ onLogin, onBack }) {
   }
 
   useEffect(() => {
-    if (!window.google || !googleBtnRef.current) return
-    google.accounts.id.initialize({
-      client_id: '604680540043-cg8i196rr9a40sgi3ut9f08cm82cs011.apps.googleusercontent.com',
-      callback: (response) => handleGoogleCredential(response.credential),
-    })
-    google.accounts.id.renderButton(googleBtnRef.current, {
-      type: 'standard',
-      shape: 'pill',
-      theme: 'outline',
-      text: 'signin_with',
-      size: 'large',
-      width: '100%',
-    })
+    const initGoogle = () => {
+      if (!window.google || !googleBtnRef.current) return false
+      google.accounts.id.initialize({
+        client_id: '604680540043-cg8i196rr9a40sgi3ut9f08cm82cs011.apps.googleusercontent.com',
+        callback: (response) => handleGoogleCredential(response.credential),
+      })
+      google.accounts.id.renderButton(googleBtnRef.current, {
+        type: 'standard',
+        shape: 'pill',
+        theme: 'outline',
+        text: 'signin_with',
+        size: 'large',
+        width: '100%',
+      })
+      return true
+    }
+    if (!initGoogle()) {
+      const interval = setInterval(() => { if (initGoogle()) clearInterval(interval) }, 200)
+    }
   }, [])
 
   const handleSendOtp = async (type) => {
