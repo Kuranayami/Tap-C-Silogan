@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike,
   Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks,
-} from 'lucide-react'
+} from 'lucide-react''
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
@@ -44,6 +44,102 @@ const statusLabel = {
   in_delivery: 'In Delivery',
   done: 'Done',
 }
+
+const STALE_FLASH_CLASS = 'animate-[pulse_1s_ease-in-out_infinite] border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.15)]'
+
+const OrderCard = memo(({ order, colKey, onChangeStatus, onDeleteOrder, onDragStart }) => {
+  const totalQty = (order.items || []).reduce((s, i) => s + i.quantity, 0)
+  const minsOld = order.created_at ? Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000) : 0
+  const isStale = colKey === 'pending' && minsOld >= STALE_THRESHOLD_MIN
+  const col = COLUMNS.find(c => c.key === colKey)
+  const kitchenStatus = order.kitchen_status || 'pending'
+  const packingProgress = order.packing_progress || 0
+
+  const kitchenLabel = kitchenStatus === 'pending' ? 'In queue' : kitchenStatus === 'preparing' ? 'Preparing' : kitchenStatus === 'packing' ? `Packing ${packingProgress}%` : kitchenStatus === 'ready' ? 'Ready for pickup' : ''
+  const progressColor = kitchenStatus === 'preparing' ? 'bg-amber-400' : kitchenStatus === 'packing' ? 'bg-blue-400' : kitchenStatus === 'ready' ? 'bg-emerald-400' : 'bg-[#27272a]'
+  const progressWidth = kitchenStatus === 'preparing' ? '40%' : kitchenStatus === 'packing' ? `${packingProgress}%` : kitchenStatus === 'ready' ? '100%' : '0%'
+
+  return (
+    <div
+      draggable
+      onDragStart={() => onDragStart(order.id)}
+      onClick={() => {
+        const next = colKey === 'pending' ? 'ongoing' : colKey === 'ongoing' ? 'in_delivery' : colKey === 'in_delivery' ? 'done' : null
+        if (next === 'done' && !confirm('Mark this order as done?')) return
+        if (next) onChangeStatus(order.id, next)
+      }}
+      className={`rounded-xl border ${isStale ? STALE_FLASH_CLASS + ' border-red-500/40 bg-red-500/5' : 'border-[#27272a] bg-[#18181b]'} p-3 cursor-grab active:cursor-grabbing hover:border-[#f97316]/30 transition-all text-sm space-y-1.5`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className={`w-1.5 h-1.5 rounded-full ${col?.dot} ${isStale ? 'animate-pulse' : ''}`} />
+            <p className="font-semibold text-white truncate text-sm">{order.customer_name}</p>
+          </div>
+          <p className="text-[#71717a] text-xs truncate mt-0.5">{order.customer_contact}</p>
+        </div>
+        <span className="text-[#f97316] font-bold text-sm shrink-0">₱{order.total}</span>
+      </div>
+
+      {order.address && (
+        <div className="flex items-start gap-1.5">
+          <MapPin className="w-3 h-3 text-[#71717a] mt-0.5 shrink-0" />
+          <p className="text-[10px] text-[#71717a] leading-relaxed line-clamp-2">{order.address}</p>
+          {order.maps_link && (
+            <a href={order.maps_link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[10px] text-[#f97316] hover:underline shrink-0 ml-auto">
+              Maps
+            </a>
+          )}
+        </div>
+      )}
+
+      {colKey === 'ongoing' && kitchenStatus !== 'pending' && (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-[10px]">
+            <span className="text-[#a1a1aa]">{kitchenLabel}</span>
+            <span className={`text-[10px] font-medium ${kitchenStatus === 'ready' ? 'text-emerald-400' : 'text-[#71717a]'}`}>{kitchenStatus === 'ready' ? '✓' : packingProgress + '%'}</span>
+          </div>
+          <div className="w-full h-1 rounded-full bg-[#27272a] overflow-hidden">
+            <div className={`h-full rounded-full transition-all duration-500 ${progressColor}`} style={{ width: progressWidth }} />
+          </div>
+        </div>
+      )}
+
+      <p className="text-[#a1a1aa] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` · ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
+
+      {colKey === 'in_delivery' && order.rider_name && (
+        <p className="text-[10px] text-emerald-400 flex items-center gap-1">
+          <Bike className="w-3 h-3" />{order.rider_name}
+        </p>
+      )}
+
+      <div className="flex items-center justify-between text-[10px] text-[#71717a]">
+        <span>{timeAgo(order.created_at)}</span>
+        <div className="flex items-center gap-1">
+          {colKey !== 'done' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onChangeStatus(order.id, 'canceled') }}
+              className="hover:text-red-400 transition-colors p-0.5 text-[10px] flex items-center gap-0.5"
+              title="Cancel order"
+            >
+              <XCircle className="w-3 h-3" /> Cancel
+            </button>
+          )}
+          {colKey === 'pending' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onChangeStatus(order.id, 'ongoing') }}
+              className="hover:text-emerald-400 transition-colors p-0.5 text-[10px] flex items-center gap-0.5"
+              title="Accept order"
+            >
+              <CheckCircle className="w-3 h-3" /> Accept
+            </button>
+          )}
+          <button onClick={(e) => { e.stopPropagation(); onDeleteOrder(order.id) }} className="hover:text-red-400 transition-colors p-0.5"><Trash2 className="w-3 h-3" /></button>
+        </div>
+      </div>
+    </div>
+  )
+})
 
 export default function Admin() {
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem('admin_token'))
@@ -461,105 +557,6 @@ export default function Admin() {
   const activeRiders = orders.filter(o => o.status === 'in_delivery').length
 
   const goBack = () => { window.location.hash = '' }
-
-  const STALE_FLASH_CLASS = 'animate-[pulse_1s_ease-in-out_infinite] border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.15)]'
-
-  const OrderCard = ({ order, colKey }) => {
-    const totalQty = (order.items || []).reduce((s, i) => s + i.quantity, 0)
-    const minsOld = order.created_at ? Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000) : 0
-    const isStale = colKey === 'pending' && minsOld >= STALE_THRESHOLD_MIN
-    const col = COLUMNS.find(c => c.key === colKey)
-    const kitchenStatus = order.kitchen_status || 'pending'
-    const packingProgress = order.packing_progress || 0
-
-    const kitchenLabel = kitchenStatus === 'pending' ? 'In queue' : kitchenStatus === 'preparing' ? 'Preparing' : kitchenStatus === 'packing' ? `Packing ${packingProgress}%` : kitchenStatus === 'ready' ? 'Ready for pickup' : ''
-    const progressColor = kitchenStatus === 'preparing' ? 'bg-amber-400' : kitchenStatus === 'packing' ? 'bg-blue-400' : kitchenStatus === 'ready' ? 'bg-emerald-400' : 'bg-[#27272a]'
-    const progressWidth = kitchenStatus === 'preparing' ? '40%' : kitchenStatus === 'packing' ? `${packingProgress}%` : kitchenStatus === 'ready' ? '100%' : '0%'
-
-    return (
-      <div
-        draggable
-        onDragStart={() => handleDragStart(order.id)}
-        onClick={() => {
-          const next = colKey === 'pending' ? 'ongoing' : colKey === 'ongoing' ? 'in_delivery' : colKey === 'in_delivery' ? 'done' : null
-          if (next === 'done' && !confirm('Mark this order as done?')) return
-          if (next) changeStatus(order.id, next)
-        }}
-        className={`rounded-xl border ${isStale ? STALE_FLASH_CLASS + ' border-red-500/40 bg-red-500/5' : 'border-[#27272a] bg-[#18181b]'} p-3 cursor-grab active:cursor-grabbing hover:border-[#f97316]/30 transition-all text-sm space-y-1.5`}
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${col?.dot} ${isStale ? 'animate-pulse' : ''}`} />
-              <p className="font-semibold text-white truncate text-sm">{order.customer_name}</p>
-            </div>
-            <p className="text-[#71717a] text-xs truncate mt-0.5">{order.customer_contact}</p>
-          </div>
-          <span className="text-[#f97316] font-bold text-sm shrink-0">₱{order.total}</span>
-        </div>
-
-        {/* Address & Maps Link */}
-        {order.address && (
-          <div className="flex items-start gap-1.5">
-            <MapPin className="w-3 h-3 text-[#71717a] mt-0.5 shrink-0" />
-            <p className="text-[10px] text-[#71717a] leading-relaxed line-clamp-2">{order.address}</p>
-            {order.maps_link && (
-              <a href={order.maps_link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[10px] text-[#f97316] hover:underline shrink-0 ml-auto">
-                Maps
-              </a>
-            )}
-          </div>
-        )}
-
-        {/* Kitchen status bar (Ongoing) */}
-        {colKey === 'ongoing' && kitchenStatus !== 'pending' && (
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-[10px]">
-              <span className="text-[#a1a1aa]">{kitchenLabel}</span>
-              <span className={`text-[10px] font-medium ${kitchenStatus === 'ready' ? 'text-emerald-400' : 'text-[#71717a]'}`}>{kitchenStatus === 'ready' ? '✓' : packingProgress + '%'}</span>
-            </div>
-            <div className="w-full h-1 rounded-full bg-[#27272a] overflow-hidden">
-              <div className={`h-full rounded-full transition-all duration-500 ${progressColor}`} style={{ width: progressWidth }} />
-            </div>
-          </div>
-        )}
-
-        <p className="text-[#a1a1aa] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` · ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
-
-        {/* Rider name (In Delivery) */}
-        {colKey === 'in_delivery' && order.rider_name && (
-          <p className="text-[10px] text-emerald-400 flex items-center gap-1">
-            <Bike className="w-3 h-3" />{order.rider_name}
-          </p>
-        )}
-
-        <div className="flex items-center justify-between text-[10px] text-[#71717a]">
-          <span>{timeAgo(order.created_at)}</span>
-          <div className="flex items-center gap-1">
-            {colKey !== 'done' && (
-              <button
-                onClick={(e) => { e.stopPropagation(); changeStatus(order.id, 'canceled') }}
-                className="hover:text-red-400 transition-colors p-0.5 text-[10px] flex items-center gap-0.5"
-                title="Cancel order"
-              >
-                <XCircle className="w-3 h-3" /> Cancel
-              </button>
-            )}
-            {colKey === 'pending' && (
-              <button
-                onClick={(e) => { e.stopPropagation(); changeStatus(order.id, 'ongoing') }}
-                className="hover:text-emerald-400 transition-colors p-0.5 text-[10px] flex items-center gap-0.5"
-                title="Accept order"
-              >
-                <CheckCircle className="w-3 h-3" /> Accept
-              </button>
-            )}
-            <button onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id) }} className="hover:text-red-400 transition-colors p-0.5"><Trash2 className="w-3 h-3" /></button>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   // Micro-analytics
   const bottleneckCount = staleOrders.length
@@ -1048,7 +1045,7 @@ export default function Admin() {
                   </div>
                   <div className="flex-1 space-y-2 overflow-y-auto min-h-[200px]">
                     {items.length === 0 && <p className="text-xs text-[#71717a] text-center py-8">No orders</p>}
-                    {items.map(order => <OrderCard key={order.id} order={order} colKey={col.key} />)}
+                    {items.map(order => <OrderCard key={order.id} order={order} colKey={col.key} onChangeStatus={changeStatus} onDeleteOrder={handleDeleteOrder} onDragStart={setDragId} />)}
                   </div>
                   {col.key === 'pending' && items.length > 0 && (
                     <button onClick={() => items.forEach(o => { if ((o.status || 'pending') === 'pending') changeStatus(o.id, 'ongoing') })} className="text-xs text-[#71717a] hover:text-white transition-colors py-1 text-center border-t border-[#27272a] mt-1">
