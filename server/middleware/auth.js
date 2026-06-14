@@ -1,18 +1,32 @@
 import { randomBytes } from 'crypto'
 import { config } from 'dotenv'
 import { fileURLToPath } from 'url'
-import { dirname, resolve } from 'path'
+import { dirname, resolve, join } from 'path'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 config({ path: resolve(__dirname, '../../.env') })
 
 const ADMIN_USER = process.env.ADMIN_USER || 'admin'
 const ADMIN_PASS = process.env.ADMIN_PASS || 'admin123'
-const tokens = new Set()
+
+const TOKENS_FILE = join(__dirname, '../data/admin_tokens.json')
+let tokens = new Set()
+
+function loadTokens() {
+  if (existsSync(TOKENS_FILE)) {
+    try { tokens = new Set(JSON.parse(readFileSync(TOKENS_FILE, 'utf-8'))) } catch {}
+  }
+}
+function saveTokens() {
+  writeFileSync(TOKENS_FILE, JSON.stringify([...tokens]), 'utf-8')
+}
+loadTokens()
 
 export function generateToken() {
   const token = randomBytes(32).toString('hex')
   tokens.add(token)
+  saveTokens()
   return token
 }
 
@@ -32,6 +46,7 @@ export function revokeToken(req, res) {
   const header = req.headers.authorization
   const token = header.slice(7)
   tokens.delete(token)
+  saveTokens()
   res.json({ message: 'Logged out' })
 }
 

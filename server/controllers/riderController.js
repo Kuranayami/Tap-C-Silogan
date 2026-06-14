@@ -8,6 +8,7 @@ import {
   getOnlineRiderCount,
   updateKitchenStatus,
   cancelDelivery,
+  getRiderProfile,
 } from '../services/rider.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { saveFile } from '../services/storage.js'
