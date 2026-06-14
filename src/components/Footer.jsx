@@ -112,6 +112,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71717a]">
           <p>© {new Date().getFullYear()} Tap C Silogan. All rights reserved.</p>
           <div className="flex items-center gap-4">
+            <a href="#/cashier" className="hover:text-[#f97316] transition-colors">Cashier</a>
             <a href="#/admin" className="hover:text-[#f97316] transition-colors">Admin</a>
           </div>
         </div>

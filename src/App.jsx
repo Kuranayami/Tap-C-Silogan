@@ -12,6 +12,7 @@ import Footer from './components/Footer'
 import CartDrawer from './components/CartDrawer'
 import CheckoutModal from './components/CheckoutModal'
 import Admin from './components/Admin'
+import CashierPanel from './components/CashierPanel'
 import RiderPanel from './components/RiderPanel'
 import RiderRegistration from './components/RiderRegistration'
 import LoginPage from './components/LoginPage'
@@ -47,6 +48,7 @@ function AppContent() {
   const [page, setPage] = useState(() => {
     const hash = window.location.hash
     if (hash === '#/admin') return 'admin'
+    if (hash === '#/cashier') return 'cashier'
     if (hash === '#/rider') return 'rider'
     if (hash === '#/rider/register') return 'rider-register'
     if (hash === '#/login') return 'login'
@@ -60,6 +62,8 @@ function AppContent() {
       const hash = window.location.hash
       if (hash === '#/admin') {
         setPage('admin')
+      } else if (hash === '#/cashier') {
+        setPage('cashier')
       } else if (hash === '#/rider') {
         setPage('rider')
       } else if (hash === '#/rider/register') {
@@ -85,6 +89,10 @@ function AppContent() {
 
   if (page === 'admin') {
     return <Admin />
+  }
+
+  if (page === 'cashier') {
+    return <CashierPanel />
   }
 
   if (page === 'rider') {
