@@ -1,30 +1,27 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Star, Quote } from 'lucide-react'
+import { api } from '../api'
 
-const testimonials = [
-  {
-    name: 'Maria Santos',
-    text: 'Best tapsilog in Marikina! The garlic rice is perfectly cooked and the portions are generous. Late night cravings solved!',
-    rating: 5,
-  },
-  {
-    name: 'Jose R.',
-    text: 'Their fresh fruit shakes are incredible. I love the dragon fruit shake — so refreshing after a long day. Highly recommend!',
-    rating: 5,
-  },
-  {
-    name: 'Ana Cruz',
-    text: 'Family-friendly place with amazing lechon kawali. Crunchy on the outside, tender inside. Will definitely order again!',
-    rating: 4,
-  },
-  {
-    name: 'Carlos M.',
-    text: 'Consistently good food at affordable prices. The staff are friendly and service is quick. My go-to for late dinner.',
-    rating: 5,
-  },
+const FALLBACK_TESTIMONIALS = [
+  { name: 'Maria Santos', text: 'Best tapsilog in Marikina! The garlic rice is perfectly cooked and the portions are generous. Late night cravings solved!', rating: 5 },
+  { name: 'Jose R.', text: 'Their fresh fruit shakes are incredible. I love the dragon fruit shake — so refreshing after a long day. Highly recommend!', rating: 5 },
+  { name: 'Ana Cruz', text: 'Family-friendly place with amazing lechon kawali. Crunchy on the outside, tender inside. Will definitely order again!', rating: 4 },
+  { name: 'Carlos M.', text: 'Consistently good food at affordable prices. The staff are friendly and service is quick. My go-to for late dinner.', rating: 5 },
 ]
 
 export default function Testimonials() {
+  const [testimonials, setTestimonials] = useState([])
+
+  useEffect(() => {
+    fetch(api('/api/config'))
+      .then(res => res.ok ? res.json() : { testimonials: [] })
+      .then(data => setTestimonials(data.testimonials?.length ? data.testimonials : FALLBACK_TESTIMONIALS))
+      .catch(() => setTestimonials(FALLBACK_TESTIMONIALS))
+  }, [])
+
+  if (testimonials.length === 0) return null
+
   return (
     <section className="relative py-24 sm:py-32">
       <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#18181b]/20 to-[#09090b] pointer-events-none" />

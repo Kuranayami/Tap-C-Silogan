@@ -4,7 +4,7 @@ import { saveFile } from '../services/storage.js'
 export async function getConfigHandler(req, res) {
   try {
     const cfg = await getConfig()
-    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140 })
+    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [] })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch config' })
   }
@@ -43,6 +43,17 @@ export async function updateHeroDish(req, res) {
     res.json({ message: 'Hero dish updated', ...updates })
   } catch (err) {
     res.status(500).json({ error: 'Failed to update hero dish' })
+  }
+}
+
+export async function updateTestimonials(req, res) {
+  try {
+    const { testimonials } = req.body
+    if (!Array.isArray(testimonials)) return res.status(400).json({ error: 'testimonials array required' })
+    await updateConfig({ testimonials })
+    res.json({ testimonials })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update testimonials' })
   }
 }
 

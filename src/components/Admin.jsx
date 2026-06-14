@@ -4,7 +4,7 @@ import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike,
-  Zap, Navigation, Users, Wifi, XCircle, CheckCircle,
+  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
@@ -87,6 +87,10 @@ export default function Admin() {
   const [cashiersLoading, setCashiersLoading] = useState(false)
   const [newCashier, setNewCashier] = useState({ name: '', username: '', password: '' })
   const [addingCashier, setAddingCashier] = useState(false)
+  const [showTestimonialsManager, setShowTestimonialsManager] = useState(false)
+  const [testimonials, setTestimonials] = useState([])
+  const [testimonialsForm, setTestimonialsForm] = useState({ name: '', text: '', rating: 5 })
+  const [editingTestimonialIdx, setEditingTestimonialIdx] = useState(null)
 
   const addActivity = useCallback((msg, type = 'info') => {
     const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
@@ -225,6 +229,38 @@ export default function Admin() {
       if (res.status === 401) { logout(); return }
       if (res.ok) { setNewCashier({ name: '', username: '', password: '' }); fetchCashiers(); addActivity('Cashier added', 'info') }
     } catch {} finally { setAddingCashier(false) }
+  }
+
+  const fetchTestimonials = async () => {
+    try {
+      const res = await fetch(api('/api/config'))
+      if (res.ok) { const d = await res.json(); setTestimonials(d.testimonials || []) }
+    } catch {}
+  }
+
+  const handleSaveTestimonials = async () => {
+    try {
+      const res = await fetch(api('/api/config/testimonials'), {
+        method: 'PATCH', headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ testimonials }),
+      })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) addActivity('Testimonials updated', 'info')
+    } catch {}
+  }
+
+  const handleAddTestimonial = (e) => {
+    e.preventDefault()
+    if (!testimonialsForm.name || !testimonialsForm.text) return
+    const updated = [...testimonials, { ...testimonialsForm }]
+    setTestimonials(updated)
+    setTestimonialsForm({ name: '', text: '', rating: 5 })
+  }
+
+  const handleDeleteTestimonial = (idx) => {
+    if (!confirm(`Delete testimonial from "${testimonials[idx].name}"?`)) return
+    const updated = testimonials.filter((_, i) => i !== idx)
+    setTestimonials(updated)
   }
 
   const handleDeleteCashier = async (id, name) => {
@@ -520,6 +556,7 @@ export default function Admin() {
             <button onClick={() => { setShowUsersManager(!showUsersManager); if (!showUsersManager && users.length === 0) fetchUsers() }} className={`p-2 rounded-lg border transition-colors ${showUsersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Users"><Users className="w-4 h-4" /></button>
             <button onClick={() => { setShowRidersManager(!showRidersManager); if (!showRidersManager && riders.length === 0) fetchRiders() }} className={`p-2 rounded-lg border transition-colors ${showRidersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Riders"><Bike className="w-4 h-4" /></button>
             <button onClick={() => { setShowCashiersManager(!showCashiersManager); if (!showCashiersManager && cashiers.length === 0) fetchCashiers() }} className={`p-2 rounded-lg border transition-colors ${showCashiersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Cashiers"><User className="w-4 h-4" /></button>
+            <button onClick={() => { setShowTestimonialsManager(!showTestimonialsManager); if (!showTestimonialsManager && testimonials.length === 0) fetchTestimonials() }} className={`p-2 rounded-lg border transition-colors ${showTestimonialsManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Testimonials"><MessageSquare className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
           </div>
@@ -883,6 +920,71 @@ export default function Admin() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Testimonials Manager ── */}
+        <AnimatePresence>
+          {showTestimonialsManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><MessageSquare className="w-4 h-4 text-[#f97316]" />Manage Testimonials</h3>
+                  <button onClick={() => { handleSaveTestimonials(); addActivity('Testimonials saved', 'info') }} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-semibold transition-all"><Save className="w-3.5 h-3.5" />Save</button>
+                </div>
+
+                <form onSubmit={handleAddTestimonial} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#202024]">
+                  <input type="text" placeholder="Name" value={testimonialsForm.name} onChange={e => setTestimonialsForm(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <input type="text" placeholder="Testimonial text" value={testimonialsForm.text} onChange={e => setTestimonialsForm(f => ({ ...f, text: e.target.value }))} className="col-span-2 w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <div className="flex items-center gap-2">
+                    <select value={testimonialsForm.rating} onChange={e => setTestimonialsForm(f => ({ ...f, rating: Number(e.target.value) }))} className="flex-1 px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50">
+                      {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} Star{r > 1 ? 's' : ''}</option>)}
+                    </select>
+                    <button type="submit" disabled={!testimonialsForm.name || !testimonialsForm.text} className="px-3 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50"><Plus className="w-3.5 h-3.5" /></button>
+                  </div>
+                </form>
+
+                {testimonials.length === 0 ? (
+                  <p className="text-sm text-[#71717a] text-center py-4">No testimonials yet. Add one above.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                    {testimonials.map((t, idx) => (
+                      <div key={idx} className="rounded-xl bg-[#202024] p-2.5">
+                        {editingTestimonialIdx === idx ? (
+                          <div className="grid sm:grid-cols-5 gap-2">
+                            <input type="text" value={testimonialsForm.name} onChange={e => setTestimonialsForm(f => ({ ...f, name: e.target.value }))} className="col-span-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" />
+                            <input type="text" value={testimonialsForm.text} onChange={e => setTestimonialsForm(f => ({ ...f, text: e.target.value }))} className="col-span-2 px-3 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" />
+                            <div className="flex items-center gap-1">
+                              <select value={testimonialsForm.rating} onChange={e => setTestimonialsForm(f => ({ ...f, rating: Number(e.target.value) }))} className="flex-1 px-2 py-1.5 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50">
+                                {[1,2,3,4,5].map(r => <option key={r} value={r}>{r}</option>)}
+                              </select>
+                              <button onClick={() => { const updated = [...testimonials]; updated[idx] = { ...testimonialsForm }; setTestimonials(updated); setEditingTestimonialIdx(null) }} className="p-1.5 rounded-lg bg-green-600 hover:bg-green-500 text-white transition-all"><Save className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => setEditingTestimonialIdx(null)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all"><X className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              {Array.from({ length: 5 }).map((_, j) => (
+                                <Star key={j} className={`w-3 h-3 ${j < t.rating ? 'fill-[#f97316] text-[#f97316]' : 'text-[#27272a]'}`} />
+                              ))}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-white truncate">{t.name}</p>
+                              <p className="text-xs text-[#71717a] truncate">{t.text}</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => { setEditingTestimonialIdx(idx); setTestimonialsForm({ name: t.name, text: t.text, rating: t.rating }) }} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all" title="Edit"><Upload className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleDeleteTestimonial(idx)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
