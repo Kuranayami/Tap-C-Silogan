@@ -133,7 +133,7 @@ export default function CashierPanel() {
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-3 min-h-[60vh]">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 min-h-[60vh]">
           {COLUMNS.map(col => {
             const items = columnOrders(col.key)
             return (
