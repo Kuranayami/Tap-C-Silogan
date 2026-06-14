@@ -22,9 +22,9 @@ export default function Hero() {
 
   return (
     <section id="home" className="relative min-h-screen flex items-start md:items-center pt-20 scroll-mt-20">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#f97316]/5 via-transparent to-[#09090b] pointer-events-none" />
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-[#f97316]/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-32 w-80 h-80 bg-[#f59e0b]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0  via-transparent to-[#09090b] pointer-events-none" />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 /5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-32 w-80 h-80 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -34,19 +34,22 @@ export default function Hero() {
             transition={{ duration: 0.7 }}
             className="text-center lg:text-left"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#f97316]/10 border border-[#f97316]/20 text-[#f97316] text-xs sm:text-sm font-medium mb-6">
-              <Star className="w-4 h-4 fill-[#f97316]" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EBB866]/10 border border-[#EBB866]/20 text-[#EBB866] text-xs sm:text-sm font-medium mb-6">
+              <Star className="w-4 h-4 fill-[#EBB866]" />
               <span>{storeInfo.rating} ★ ({storeInfo.reviewCount} Reviews)</span>
-              <span className="w-1 h-1 rounded-full bg-[#f97316]/40" />
+              <span className="w-1 h-1 rounded-full bg-[#EBB866]/40" />
               <span>Family-friendly</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight mb-6">
               Savor the{' '}
-              <span className="bg-gradient-to-r from-[#f97316] to-[#f59e0b] bg-clip-text text-transparent">
+              <span className="bg-[#f97316] bg-clip-text text-transparent">
                 Taste
               </span>{' '}
-              of Perfection.
+              of
+              <span className='bg-[#f97316] bg-clip-text text-transparent'> Perfection</span>
+              .
+
             </h1>
 
             <p className="text-lg sm:text-xl text-[#a1a1aa] max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
@@ -57,7 +60,7 @@ export default function Hero() {
             <div className="flex flex-wrap items-center gap-4 justify-center lg:justify-start mb-10">
               <button
                 onClick={openCart}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold transition-all hover:shadow-lg hover:shadow-[#f97316]/30 active:scale-95"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#964b00] hover:bg-[#ea580c] text-white font-semibold transition-all hover:shadow-lg hover:shadow-[#f97316]/30 active:scale-95"
               >
                 Order Now
                 <ChevronRight className="w-4 h-4" />
@@ -89,7 +92,7 @@ export default function Hero() {
             className="relative"
           >
             <div className="relative aspect-square max-w-md mx-auto lg:max-w-full">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#f97316]/20 to-[#f59e0b]/10 rounded-3xl blur-2xl" />
+              <div className="absolute inset-0 bg-[#996515] rounded-3xl blur-sm" />
               <div className="relative w-full h-full rounded-3xl border border-[#27272a] bg-gradient-to-br from-[#18181b] to-[#202024] overflow-hidden group cursor-pointer shadow-2xl shadow-black/40">
                 <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10" />
                 {heroImg ? (

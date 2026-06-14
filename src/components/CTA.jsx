@@ -14,16 +14,15 @@ export default function CTA() {
           viewport={{ once: true, margin: '-100px' }}
           className="relative rounded-3xl border border-[#27272a] bg-gradient-to-br from-[#18181b] to-[#202024] p-8 sm:p-12 lg:p-16 text-center overflow-hidden"
         >
-          <div className="absolute top-0 -right-20 w-64 h-64 bg-[#f97316]/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#f59e0b]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 -right-20 w-64 h-64 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-64 h-64rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#f97316] to-[#f59e0b] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-[#f97316]/20">
-              <ChefHat className="w-8 h-8 text-white" />
+            <div>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
               Don't Wait –{' '}
-              <span className="bg-gradient-to-r from-[#f97316] to-[#f59e0b] bg-clip-text text-transparent">
+              <span className="bg-[#EBB866] bg-clip-text text-transparent">
                 Order Now!
               </span>
             </h2>
@@ -33,7 +32,7 @@ export default function CTA() {
             </p>
             <button
               onClick={openCart}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-lg transition-all hover:shadow-xl hover:shadow-[#f97316]/30 active:scale-95"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#EBB866] hover:bg-[#EBB866] text-white font-semibold text-lg transition-all hover:shadow-xl hover:shadow-[#EBB866]/30 active:scale-95"
             >
               Place Your Order
               <ArrowRight className="w-5 h-5" />

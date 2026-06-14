@@ -24,13 +24,13 @@ export default function MediaShowcase() {
           viewport={{ once: true, margin: '-100px' }}
           className="text-center mb-14"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#f97316]/10 border border-[#f97316]/20 text-[#f97316] text-xs sm:text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EBB866]/10 border border-[#EBB866]/20 text-[#EBB866] text-xs sm:text-sm font-medium mb-4">
             <Eye className="w-4 h-4" />
             A Feast for Your Eyes
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
             Behind the{' '}
-            <span className="bg-gradient-to-r from-[#f97316] to-[#f59e0b] bg-clip-text text-transparent">
+            <span className="bg-[#EBB866] bg-clip-text text-transparent">
               Flavors
             </span>
           </h2>

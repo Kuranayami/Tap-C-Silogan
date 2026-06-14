@@ -35,11 +35,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           <a href="#home" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f97316] to-[#f59e0b] flex items-center justify-center shadow-lg shadow-[#f97316]/20 group-hover:shadow-[#f97316]/40 transition-shadow">
-              <ChefHat className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-lg sm:text-xl font-bold tracking-tight text-white">
-              Tap C <span className="text-[#f97316]">Silogan</span>
+            <span className="text-2xl sm:text-xl font-bold tracking-tight text-white">
+              Tap C <span className="text-[#f97316] text-3xl">Silogan</span>
             </span>
           </a>
 

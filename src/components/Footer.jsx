@@ -17,11 +17,10 @@ export default function Footer() {
             viewport={{ once: true }}
           >
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f97316] to-[#f59e0b] flex items-center justify-center">
-                <ChefHat className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center">
               </div>
               <span className="text-lg font-bold">
-                Tap C <span className="text-[#f97316]">Silogan</span>
+                Tap C <span className="text-[#EBB866]">Silogan</span>
               </span>
             </div>
             <p className="text-sm text-[#a1a1aa] leading-relaxed">
@@ -39,13 +38,13 @@ export default function Footer() {
             <h3 className="font-semibold text-white mb-4">Operating Hours</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-start gap-2 text-[#a1a1aa]">
-                <Clock className="w-4 h-4 mt-0.5 text-[#f97316] shrink-0" />
+                <Clock className="w-4 h-4 mt-0.5 text-[#EBB866] shrink-0" />
                 <div>
                   <p>{storeInfo.hours.days}</p>
                   <p>{storeInfo.hours.open} – {storeInfo.hours.close}</p>
                 </div>
               </div>
-              <div className={`flex items-center gap-2 text-xs ${isOpen ? 'text-green-400' : 'text-red-400'}`}>
+              <div className={`flex items-center gap-2 text-xs ${isOpen ? 'text-green-400' : 'text-[#EBB866]'}`}>
                 <AlertTriangle className="w-3 h-3" />
                 <span>
                   {isOpen ? 'Open now' : 'Closed — opens at 7:00 PM'}
@@ -64,13 +63,13 @@ export default function Footer() {
             <div className="space-y-3 text-sm">
               <a
                 href={`tel:${storeInfo.phone.replace(/\s/g, '')}`}
-                className="flex items-center gap-2 text-[#a1a1aa] hover:text-[#f97316] transition-colors"
+                className="flex items-center gap-2 text-[#a1a1aa] hover:text-[#EBB866] transition-colors"
               >
-                <Phone className="w-4 h-4 text-[#f97316] shrink-0" />
+                <Phone className="w-4 h-4 text-[#EBB866] shrink-0" />
                 <span>{storeInfo.phone}</span>
               </a>
               <div className="flex items-start gap-2 text-[#a1a1aa]">
-                <MapPin className="w-4 h-4 mt-0.5 text-[#f97316] shrink-0" />
+                <MapPin className="w-4 h-4 mt-0.5 text-[#EBB866] shrink-0" />
                 <div>
                   <p>{storeInfo.address}</p>
                   <p className="text-[#71717a] text-xs mt-1">{storeInfo.addressFull}</p>
@@ -88,7 +87,7 @@ export default function Footer() {
             <h3 className="font-semibold text-white mb-4">Find Us</h3>
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-2 text-[#a1a1aa]">
-                <MapPin className="w-4 h-4 mt-0.5 text-[#f97316] shrink-0" />
+                <MapPin className="w-4 h-4 mt-0.5 text-[#EBB866] shrink-0" />
                 <div>
                   <p>{storeInfo.address}</p>
                   <p className="text-[#71717a] text-xs mt-1">{storeInfo.addressFull}</p>
@@ -98,7 +97,7 @@ export default function Footer() {
                 href={storeInfo.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[#f97316] hover:text-[#ea580c] font-medium transition-colors"
+                className="inline-flex items-center gap-2 text-[#EBB866] hover:text-[#EBB866] font-medium transition-colors"
               >
                 <MapPin className="w-4 h-4" />
                 <span>View in Google Maps</span>

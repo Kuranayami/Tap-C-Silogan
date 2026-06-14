@@ -134,7 +134,7 @@ export default function MenuSection() {
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
             Signature{' '}
-            <span className="bg-gradient-to-r from-[#f97316] to-[#f59e0b] bg-clip-text text-transparent">
+            <span className="bg-[#f97316] bg-clip-text text-transparent">
               Dishes
             </span>
           </h2>
