@@ -59,6 +59,7 @@ export default function Admin() {
   const [newItem, setNewItem] = useState({ name: '', price: '', category: 'ulam' })
   const [newImage, setNewImage] = useState(null)
   const [adding, setAdding] = useState(false)
+  const [clearing, setClearing] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [editForm, setEditForm] = useState({ name: '', price: '', category: 'ulam' })
   const [editImage, setEditImage] = useState(null)
@@ -121,6 +122,15 @@ export default function Admin() {
       const res = await fetch(api('/api/config'))
       if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null) }
     } catch {}
+  }
+
+  const clearAllMenu = async () => {
+    if (!window.confirm('Delete ALL menu items? This cannot be undone.')) return
+    setClearing(true)
+    try {
+      const res = await fetch(api('/api/menu/clear'), { method: 'DELETE', headers: adminHeaders() })
+      if (res.ok) { setMenuItems([]); addActivity('All menu items cleared', 'info') }
+    } catch {} finally { setClearing(false) }
   }
 
   const fetchUsers = async () => {
@@ -450,7 +460,10 @@ export default function Admin() {
               <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Edit3 className="w-4 h-4 text-[#f97316]" />Manage Menu Items</h3>
-                  <button onClick={() => setShowAddForm(!showAddForm)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-semibold transition-all"><Plus className="w-3.5 h-3.5" />Add Item</button>
+                  <div className="flex items-center gap-1.5">
+                    <button onClick={clearAllMenu} disabled={clearing} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-all disabled:opacity-50"><Trash2 className="w-3 h-3" />{clearing ? 'Clearing...' : 'Clear All'}</button>
+                    <button onClick={() => setShowAddForm(!showAddForm)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white text-xs font-semibold transition-all"><Plus className="w-3.5 h-3.5" />Add Item</button>
+                  </div>
                 </div>
                 {showAddForm && (
                   <form onSubmit={handleAddItem} className="grid sm:grid-cols-5 gap-2 mb-3 p-3 rounded-xl bg-[#202024]">

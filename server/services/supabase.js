@@ -192,6 +192,18 @@ export async function removeMenuItem(id) {
   return removed
 }
 
+export async function clearMenu() {
+  if (hasSupabase) {
+    try {
+      const { data, error } = await supabase.from('menu').delete().neq('id', -1)
+      if (!error) return data || []
+    } catch (e) { console.warn('Supabase clear failed:', e.message) }
+  }
+  inMemoryMenu = []
+  saveMenu()
+  return []
+}
+
 export async function getMenuItemById(id) {
   if (hasSupabase) {
     try {

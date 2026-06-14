@@ -1,4 +1,4 @@
-import { getMenu, addMenuItem, updateMenuItem, removeMenuItem } from '../services/supabase.js'
+import { getMenu, addMenuItem, updateMenuItem, removeMenuItem, clearMenu } from '../services/supabase.js'
 import { saveFile, deleteFile } from '../services/storage.js'
 
 const MIME_TO_EXT = {
@@ -107,5 +107,15 @@ export async function deleteMenuItem(req, res) {
   } catch (err) {
     console.error('deleteMenuItem error:', err)
     res.status(500).json({ error: 'Failed to delete menu item' })
+  }
+}
+
+export async function clearAllMenuItems(req, res) {
+  try {
+    await clearMenu()
+    res.json({ message: 'All menu items cleared' })
+  } catch (err) {
+    console.error('clearAllMenuItems error:', err)
+    res.status(500).json({ error: 'Failed to clear menu items' })
   }
 }
