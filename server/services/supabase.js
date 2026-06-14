@@ -105,6 +105,20 @@ export async function getOrdersByContact(contact) {
   return inMemoryOrders.filter(o => o.customer_contact === clean)
 }
 
+export async function getOrdersByUser(userId) {
+  if (hasSupabase) {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+      if (!error && data) return data
+    } catch (e) { console.warn('Supabase user orders lookup failed:', e.message) }
+  }
+  return inMemoryOrders.filter(o => o.user_id === userId)
+}
+
 export async function deleteOrder(id) {
   if (hasSupabase) {
     try {

@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Package, Clock, Bike, CheckCircle, XCircle, Search, ArrowLeft, Loader2, MapPin, Phone, User } from 'lucide-react'
+import { Package, Clock, Bike, CheckCircle, XCircle, ArrowLeft, MapPin, Phone, User, ShoppingBag } from 'lucide-react'
 import { api } from '../api'
+import { useAuth } from '../context/AuthContext'
 
 const STATUS_CONFIG = {
   pending:       { label: 'Pending',       icon: Clock,       color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400' },
@@ -43,7 +44,6 @@ function OrderCard({ order }) {
         <span className="text-xs text-[#71717a]">{timeAgo(order.created_at)}</span>
       </div>
 
-      {/* Progress bar for non-canceled orders */}
       {order.status !== 'canceled' && idx >= 0 && (
         <div className="flex items-center gap-1">
           {STATUS_ORDER.map((s, i) => {
@@ -98,33 +98,38 @@ function OrderCard({ order }) {
 }
 
 export default function OrderTracking() {
-  const [contact, setContact] = useState('')
+  const { user, token } = useAuth()
   const [orders, setOrders] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [searched, setSearched] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  const handleSearch = async (e) => {
-    e.preventDefault()
-    const clean = contact.replace(/\D/g, '')
-    if (clean.length < 10) {
-      setError('Please enter a valid phone number')
-      return
-    }
-    setError('')
+  useEffect(() => {
+    if (!token || !user) return
     setLoading(true)
-    setSearched(true)
-    try {
-      const res = await fetch(api(`/api/orders/track/${clean}`))
-      const data = await res.json()
-      setOrders(data)
-      if (!data || data.length === 0) setError('No orders found for this number')
-    } catch {
-      setError('Failed to look up orders')
-      setOrders([])
-    } finally {
-      setLoading(false)
-    }
+    fetch(api('/api/orders/my'), {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setOrders(data))
+      .catch(() => setOrders([]))
+      .finally(() => setLoading(false))
+  }, [token, user])
+
+  if (!user || !token) {
+    return (
+      <div className="min-h-screen bg-[#09090b] text-[#fafafa] p-4 sm:p-6 max-w-2xl mx-auto flex items-center justify-center">
+        <div className="text-center">
+          <ShoppingBag className="w-16 h-16 text-[#27272a] mx-auto mb-4" />
+          <h1 className="text-xl font-bold mb-2">Sign in to track your orders</h1>
+          <p className="text-sm text-[#71717a] mb-6">You need to be logged in to view your order history.</p>
+          <a
+            href="#/login"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold transition-all"
+          >
+            Sign In
+          </a>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -136,44 +141,28 @@ export default function OrderTracking() {
         >
           <ArrowLeft className="w-5 h-5" />
         </a>
-        <h1 className="text-lg font-semibold">Track Your Order</h1>
+        <h1 className="text-lg font-semibold">My Orders</h1>
       </div>
 
-      <form onSubmit={handleSearch} className="mb-6">
-        <div className="relative">
-          <input
-            type="tel"
-            placeholder="Enter your phone number (09XXXXXXXXX)"
-            value={contact}
-            onChange={e => { setContact(e.target.value); setError('') }}
-            className="w-full px-4 py-3 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors pr-12"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#f97316] hover:text-[#ea580c] transition-colors disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-          </button>
-        </div>
-        <p className="text-[#71717a] text-xs mt-1.5">
-          Enter the mobile number you used when placing the order
-        </p>
-      </form>
-
-      {error && searched && (
+      {loading ? (
         <div className="text-center py-12">
-          <Search className="w-12 h-12 text-[#27272a] mx-auto mb-3" />
-          <p className="text-[#a1a1aa] text-sm">{error}</p>
+          <Package className="w-12 h-12 text-[#27272a] mx-auto mb-3 animate-pulse" />
+          <p className="text-[#71717a] text-sm">Loading your orders...</p>
         </div>
-      )}
-
-      {orders && orders.length > 0 && (
+      ) : orders && orders.length > 0 ? (
         <div className="space-y-3">
-          <p className="text-sm text-[#71717a]">{orders.length} order{orders.length !== 1 ? 's' : ''} found</p>
+          <p className="text-sm text-[#71717a]">{orders.length} order{orders.length !== 1 ? 's' : ''}</p>
           {orders.map(order => (
             <OrderCard key={order.id} order={order} />
           ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <Package className="w-12 h-12 text-[#27272a] mx-auto mb-3" />
+          <p className="text-[#a1a1aa] text-sm">No orders yet</p>
+          <a href="#menu" className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-semibold transition-all">
+            Browse Menu
+          </a>
         </div>
       )}
     </div>

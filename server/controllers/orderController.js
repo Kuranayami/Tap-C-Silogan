@@ -1,4 +1,4 @@
-import { createOrder, getAllOrders, updateOrderStatus, deleteOrder, getMenuItemById, ensureMenuLoaded, getOrdersByContact } from '../services/supabase.js'
+import { createOrder, getAllOrders, updateOrderStatus, deleteOrder, getMenuItemById, ensureMenuLoaded, getOrdersByContact, getOrdersByUser } from '../services/supabase.js'
 
 const VALID_ADDON_IDS = ['extra-rice', 'egg', 'mang-tomas']
 const MAX_ITEMS_PER_ORDER = 50
@@ -117,6 +117,16 @@ export async function getOrders(req, res) {
     res.json(orders)
   } catch (err) {
     console.error('getOrders error:', err)
+    res.status(500).json({ error: 'Failed to fetch orders' })
+  }
+}
+
+export async function getMyOrders(req, res) {
+  try {
+    const orders = await getOrdersByUser(req.userId)
+    res.json(orders)
+  } catch (err) {
+    console.error('getMyOrders error:', err)
     res.status(500).json({ error: 'Failed to fetch orders' })
   }
 }
