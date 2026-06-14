@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Star, Clock, MapPin, ChevronRight } from 'lucide-react'
+import { Star, Clock, MapPin, ChevronRight, ChefHat } from 'lucide-react'
 import { storeInfo } from '../data/menu'
 import { useCart } from '../context/CartContext'
 import { api, imageUrl } from '../api'
 
-const DEFAULT_HERO = 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&q=80'
+const DEFAULT_HERO = null
 
 export default function Hero() {
   const { openCart } = useCart()
   const [heroImg, setHeroImg] = useState(DEFAULT_HERO)
 
   useEffect(() => {
-    fetch(api('/api/config')).then(r => r.ok ? r.json() : {}).then(d => { if (d.heroImage) setHeroImg(imageUrl(d.heroImage)) }).catch(() => {})
+    fetch(api('/api/config')).then(r => r.ok ? r.json() : {}).then(d => { if (d.heroImage) setHeroImg(imageUrl(d.heroImage)); else setHeroImg(null) }).catch(() => {})
   }, [])
 
   return (
@@ -87,11 +87,20 @@ export default function Hero() {
               <div className="absolute inset-0 bg-gradient-to-br from-[#f97316]/20 to-[#f59e0b]/10 rounded-3xl blur-2xl" />
               <div className="relative w-full h-full rounded-3xl border border-[#27272a] bg-gradient-to-br from-[#18181b] to-[#202024] overflow-hidden group cursor-pointer shadow-2xl shadow-black/40">
                 <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10" />
-                <img
-                  src={heroImg}
-                  alt="Lechon Kawali"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+                {heroImg ? (
+                  <img
+                    src={heroImg}
+                    alt="Lechon Kawali"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center">
+                      <ChefHat className="w-16 h-16 text-[#27272a] mx-auto mb-2" />
+                      <p className="text-sm text-[#27272a]">No hero image set</p>
+                    </div>
+                  </div>
+                )}
                 <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
                   <div className="flex items-center justify-between">
                     <div>

@@ -24,6 +24,15 @@ export async function updateHeroImage(req, res) {
   }
 }
 
+export async function deleteHeroImage(req, res) {
+  try {
+    await updateConfig({ heroImage: null })
+    res.json({ message: 'Hero image cleared' })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear hero image' })
+  }
+}
+
 export async function submitRating(req, res) {
   try {
     const { name, rating, comment } = req.body

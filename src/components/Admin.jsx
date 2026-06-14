@@ -53,6 +53,7 @@ export default function Admin() {
   const [showMenuManager, setShowMenuManager] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const [showAboutManager, setShowAboutManager] = useState(false)
+  const [showHeroManager, setShowHeroManager] = useState(false)
   const [showUsersManager, setShowUsersManager] = useState(false)
   const [users, setUsers] = useState([])
   const [usersLoading, setUsersLoading] = useState(false)
@@ -269,6 +270,15 @@ export default function Admin() {
     } catch (err) { setUploadError(err.message) } finally { setUploadingHero(false) }
   }
 
+  const handleClearHero = async () => {
+    if (!window.confirm('Remove the hero image?')) return
+    try {
+      const res = await fetch(api('/api/config/hero'), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { setHeroImage(null); addActivity('Hero image removed', 'info') }
+    } catch {}
+  }
+
   const handleAddItem = async (e) => {
     e.preventDefault()
     if (!newItem.name || !newItem.price || !newItem.category) return
@@ -422,6 +432,7 @@ export default function Admin() {
           </div>
           <div className="flex items-center gap-1.5">
             <button onClick={() => setShowMenuManager(!showMenuManager)} className={`p-2 rounded-lg border transition-colors ${showMenuManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Menu"><Edit3 className="w-4 h-4" /></button>
+            <button onClick={() => setShowHeroManager(!showHeroManager)} className={`p-2 rounded-lg border transition-colors ${showHeroManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Hero Image"><Camera className="w-4 h-4" /></button>
             <button onClick={() => setShowAboutManager(!showAboutManager)} className={`p-2 rounded-lg border transition-colors ${showAboutManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="About Images"><ImageIcon className="w-4 h-4" /></button>
             <button onClick={() => { setShowUsersManager(!showUsersManager); if (!showUsersManager && users.length === 0) fetchUsers() }} className={`p-2 rounded-lg border transition-colors ${showUsersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Users"><Users className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
@@ -501,6 +512,33 @@ export default function Admin() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showHeroManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Camera className="w-4 h-4 text-[#f97316]" />Hero Image</h3>
+                  {heroImage && (
+                    <button onClick={handleClearHero} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-all"><Trash2 className="w-3 h-3" />Remove</button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors"><Upload className="w-4 h-4 shrink-0" /><span className="truncate">{heroFile ? heroFile.name : 'Choose image'}</span><input type="file" accept="image/*" onChange={e => { setHeroFile(e.target.files[0]); setUploadError('') }} className="hidden" /></label>
+                  <button onClick={handleUploadHero} disabled={!heroFile || uploadingHero} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{uploadingHero ? 'Uploading...' : 'Upload'}</button>
+                </div>
+                {uploadError && <p className="text-red-400 text-xs mb-3">{uploadError}</p>}
+                {heroImage ? (
+                  <div className="rounded-xl overflow-hidden border border-[#27272a] bg-[#202024] max-w-md">
+                    <img src={heroImage} alt="Hero" className="w-full aspect-video object-cover" />
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#71717a] text-center py-4">No hero image set.</p>
+                )}
               </div>
             </motion.div>
           )}
