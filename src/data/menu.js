@@ -1,31 +1,6 @@
-export const menuItems = [
-  { id: 'p1', name: 'Papaitan', price: 75, category: 'ulam', image: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Pinapaitan.jpg' },
-  { id: 'p2', name: 'Porkchop with Rice', price: 100, category: 'ulam' },
-  { id: 'p3', name: 'Liempo with Rice', price: 105, category: 'ulam' },
-  { id: 'p4', name: 'Lechonsilog', price: 90, category: 'silog' },
-  { id: 'p5', name: 'Tapsilog', price: 90, category: 'silog' },
-  { id: 'p6', name: 'Burgersilog', price: 75, category: 'silog' },
-  { id: 'p7', name: 'Spamsilog', price: 75, category: 'silog' },
-  { id: 'p8', name: 'Longsilog', price: 80, category: 'silog' },
-  { id: 'p9', name: 'Chicsilog', price: 80, category: 'silog' },
-  { id: 'p10', name: 'Hamsilog', price: 75, category: 'silog' },
-  { id: 'p11', name: 'Cornsilog', price: 70, category: 'silog' },
-  { id: 'p12', name: 'Hotsilog', price: 60, category: 'silog' },
-  { id: 's1', name: 'Melon Fresh Fruit Shake', price: 50, category: 'shake' },
-  { id: 's2', name: 'Mango Fresh Fruit Shake', price: 50, category: 'shake' },
-  { id: 's3', name: 'Grapes Fresh Fruit Shake', price: 50, category: 'shake' },
-  { id: 's4', name: 'Dragon Fruit Fresh Fruit Shake', price: 50, category: 'shake' },
-  { id: 'so1', name: 'Lechon Kawali (Solo)', price: 140, category: 'solo' },
-  { id: 'ext1', name: 'Extra Rice', price: 15, category: 'extra' },
-  { id: 'ext2', name: 'Egg', price: 15, category: 'extra' },
-  { id: 'ext3', name: 'Calamansi', price: 5, category: 'extra' },
-]
+export const menuItems = []
 
-export const addons = [
-  { id: 'extra-rice', name: 'Extra Rice', price: 15 },
-  { id: 'egg', name: 'Egg', price: 15 },
-  { id: 'calamansi', name: 'Calamansi', price: 5 },
-]
+export const addons = []
 
 export const storeInfo = {
   name: 'Tap C Silogan',
