@@ -88,7 +88,7 @@ export default function Hero() {
               <div className="relative w-full h-full rounded-3xl border border-[#27272a] bg-gradient-to-br from-[#18181b] to-[#202024] overflow-hidden group cursor-pointer shadow-2xl shadow-black/40">
                 <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10" />
                 <img
-                  src={heroImg}
+                  src={}
                   alt="Lechon Kawali"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
