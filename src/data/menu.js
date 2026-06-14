@@ -16,6 +16,9 @@ export const menuItems = [
   { id: 's3', name: 'Grapes Fresh Fruit Shake', price: 50, category: 'shake' },
   { id: 's4', name: 'Dragon Fruit Fresh Fruit Shake', price: 50, category: 'shake' },
   { id: 'so1', name: 'Lechon Kawali (Solo)', price: 140, category: 'solo' },
+  { id: 'ext1', name: 'Extra Rice', price: 15, category: 'extra' },
+  { id: 'ext2', name: 'Egg', price: 15, category: 'extra' },
+  { id: 'ext3', name: 'Calamansi', price: 5, category: 'extra' },
 ]
 
 export const addons = [

@@ -11,6 +11,7 @@ const categories = [
   { key: 'ulam', label: 'Ulam' },
   { key: 'shake', label: 'Shakes' },
   { key: 'solo', label: 'Solo' },
+  { key: 'extra', label: 'Extra' },
 ]
 
 const categoryImages = {
@@ -18,19 +19,31 @@ const categoryImages = {
   ulam: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400&q=80',
   shake: 'https://images.unsplash.com/photo-1553530666-ba11a7e3885a?w=400&q=80',
   solo: 'https://images.unsplash.com/photo-1625943553852-781c6dd46faa?w=400&q=80',
+  extra: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80',
 }
 
 function MenuItemCard({ item, index, addons, onAdd, addingId }) {
   const [extraOpen, setExtraOpen] = useState(false)
   const [addonQtys, setAddonQtys] = useState({})
+  const { items, addItem, removeItem, updateQuantity } = useCart()
 
   const totalAddonCount = Object.values(addonQtys).reduce((s, q) => s + q, 0)
+  const cartQty = items.filter(i => i.id === item.id).reduce((s, i) => s + i.quantity, 0)
 
   const handleAddClick = () => {
     const chosen = addons.filter(a => (addonQtys[a.id] || 0) > 0).map(a => ({ ...a, quantity: addonQtys[a.id] }))
     onAdd(item, chosen)
     setAddonQtys({})
     setExtraOpen(false)
+  }
+
+  const handleExtraIncrement = () => addItem(item)
+  const handleExtraDecrement = () => {
+    const entry = items.find(i => i.id === item.id)
+    if (entry) {
+      if (entry.quantity <= 1) removeItem(entry.key)
+      else updateQuantity(entry.key, entry.quantity - 1)
+    }
   }
 
   return (
@@ -52,24 +65,47 @@ function MenuItemCard({ item, index, addons, onAdd, addingId }) {
           {item.name}
         </h3>
         <div className="flex items-center justify-between mt-2">
-          <span className="text-lg font-bold text-[#f97316]">
-            ₱{item.price}
-          </span>
-          <button
-            onClick={handleAddClick}
-            disabled={addingId === item.id}
-            className="p-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white transition-all active:scale-90 disabled:opacity-50"
-          >
-            {addingId === item.id ? (
-              <span className="block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Plus className="w-4 h-4" />
-            )}
-          </button>
+          {item.category === 'extra' ? (
+            <div className="flex items-center gap-2 w-full justify-between">
+              <span className="text-lg font-bold text-[#f97316]">₱{item.price}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExtraDecrement}
+                  disabled={cartQty === 0}
+                  className="w-7 h-7 rounded-md border border-[#27272a] text-[#71717a] hover:text-white hover:border-red-400/30 flex items-center justify-center transition-all disabled:opacity-30"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="w-6 text-center text-white font-bold text-sm">{cartQty}</span>
+                <button
+                  onClick={handleExtraIncrement}
+                  className="w-7 h-7 rounded-md bg-[#f97316] hover:bg-[#ea580c] text-white flex items-center justify-center transition-all active:scale-90"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <span className="text-lg font-bold text-[#f97316]">₱{item.price}</span>
+              <button
+                onClick={handleAddClick}
+                disabled={addingId === item.id}
+                className="p-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white transition-all active:scale-90 disabled:opacity-50"
+              >
+                {addingId === item.id ? (
+                  <span className="block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
+              </button>
+            </>
+          )}
         </div>
 
-        <div className="mt-2">
-          <button
+        {item.category !== 'extra' && (
+          <div className="mt-2">
+            <button
             onClick={() => setExtraOpen(prev => !prev)}
             className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
               totalAddonCount > 0
@@ -111,7 +147,7 @@ function MenuItemCard({ item, index, addons, onAdd, addingId }) {
               })}
             </div>
           </div>
-        </div>
+        </div>)}
       </div>
     </motion.div>
   )
