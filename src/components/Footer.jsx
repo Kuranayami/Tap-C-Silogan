@@ -113,7 +113,6 @@ export default function Footer() {
           <p>© {new Date().getFullYear()} Tap C Silogan. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#/admin" className="hover:text-[#f97316] transition-colors">Admin</a>
-            <span>{storeInfo.priceRange}</span>
           </div>
         </div>
       </div>
