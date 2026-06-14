@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Star, MessageCircle } from 'lucide-react'
 import { api } from '../api'
+import { useAuth } from '../context/AuthContext'
 
 export default function RatingSection() {
+  const { user } = useAuth()
   const [ratings, setRatings] = useState([])
   const [average, setAverage] = useState(0)
   const [count, setCount] = useState(0)
-  const [name, setName] = useState('')
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
   const [hover, setHover] = useState(0)
@@ -22,17 +23,17 @@ export default function RatingSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!name || !rating) return
+    if (!user?.name || !rating) return
     setSubmitting(true)
     try {
       const res = await fetch(api('/api/config/ratings'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, rating, comment }),
+        body: JSON.stringify({ name: user.name, rating, comment }),
       })
       if (res.ok) {
         setSubmitted(true)
-        setName(''); setRating(0); setComment('')
+        setRating(0); setComment('')
         const d = await res.json()
         setRatings(prev => [d, ...prev])
         const all = [d, ...ratings]
@@ -75,11 +76,21 @@ export default function RatingSection() {
                   </button>
                 ))}
               </div>
-              <input type="text" placeholder="Your name" value={name} onChange={e => setName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors" />
+              {user ? (
+                <>
+                  <div className="px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-white text-sm opacity-60">
+                    {user.name}
+                  </div>
+                  <input type="hidden" name="name" value={user.name} />
+                </>
+              ) : (
+                <a href="#/login" className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-[#f97316] text-sm hover:border-[#f97316]/50 transition-colors">
+                  Sign in to leave a rating
+                </a>
+              )}
               <textarea placeholder="Comment (optional)" value={comment} onChange={e => setComment(e.target.value)} rows={3}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors resize-none" />
-              <button type="submit" disabled={!name || !rating || submitting}
+                className="w-full px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors" />
+              <button type="submit" disabled={!user || !rating || submitting}
                 className="w-full px-6 py-3 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold transition-all disabled:opacity-50 active:scale-[0.98]">
                 {submitting ? 'Submitting...' : 'Submit Rating'}
               </button>

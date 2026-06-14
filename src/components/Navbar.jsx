@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Menu, X, ChefHat, User, Bike, Package, LogOut, Edit3, Check, Loader2 } from 'lucide-react'
+import { ShoppingCart, Menu, X, ChefHat, User, Bike, Package, LogOut } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
@@ -14,66 +14,9 @@ const links = [
 
 export default function Navbar() {
   const { itemCount, openCart } = useCart()
-  const { user, token, logout, updateUser } = useAuth()
+  const { user, token, logout } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [editingName, setEditingName] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [nameLoading, setNameLoading] = useState(false)
-  const [nameError, setNameError] = useState('')
-  const [needsOtp, setNeedsOtp] = useState(false)
-  const [otpCode, setOtpCode] = useState('')
-  const [otpSent, setOtpSent] = useState(false)
-
-  const startEditName = () => {
-    setNewName(user?.name || '')
-    setEditingName(true)
-    setNameError('')
-    setNeedsOtp(false)
-    setOtpCode('')
-    setOtpSent(false)
-  }
-
-  const cancelEditName = () => {
-    setEditingName(false)
-    setNameError('')
-    setNeedsOtp(false)
-    setOtpCode('')
-    setOtpSent(false)
-  }
-
-  const handleSaveName = async () => {
-    if (!newName.trim()) { setNameError('Name cannot be empty'); return }
-    setNameLoading(true)
-    setNameError('')
-    try {
-      const res = await fetch(api('/api/auth/profile'), {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ name: newName.trim(), otp_verified: needsOtp }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed to update name')
-      if (data.needs_otp) {
-        setNeedsOtp(true)
-        if (!otpSent) {
-          await fetch(api('/api/auth/otp/send'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: data.email }),
-          })
-          setOtpSent(true)
-        }
-        return
-      }
-      updateUser({ name: data.name, name_edited: data.name_edited })
-      cancelEditName()
-    } catch (err) {
-      setNameError(err.message)
-    } finally {
-      setNameLoading(false)
-    }
-  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -128,46 +71,7 @@ export default function Navbar() {
             </a>
             {user ? (
               <div className="hidden md:flex items-center gap-2">
-                {editingName ? (
-                  <div className="flex items-center gap-1">
-                    <input
-                      value={newName}
-                      onChange={e => setNewName(e.target.value)}
-                      className="w-28 px-2 py-1 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-xs focus:outline-none focus:border-[#f97316]/50"
-                      placeholder="Your name"
-                      autoFocus
-                    />
-                    {!needsOtp ? (
-                      <>
-                        <button onClick={handleSaveName} disabled={nameLoading} className="p-1 rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Save">
-                          {nameLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                        </button>
-                        <button onClick={cancelEditName} className="p-1 rounded-lg text-[#71717a] hover:text-white transition-all" title="Cancel"><X className="w-3.5 h-3.5" /></button>
-                      </>
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        <input
-                          value={otpCode}
-                          onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                          className="w-20 px-2 py-1 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-xs text-center tracking-widest focus:outline-none focus:border-[#f97316]/50"
-                          placeholder="000000"
-                          maxLength={6}
-                          autoFocus
-                        />
-                        <button onClick={handleSaveName} disabled={nameLoading || otpCode.length !== 6} className="p-1 rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Verify OTP">
-                          {nameLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                        </button>
-                        <button onClick={cancelEditName} className="p-1 rounded-lg text-[#71717a] hover:text-white transition-all" title="Cancel"><X className="w-3.5 h-3.5" /></button>
-                      </div>
-                    )}
-                    {nameError && <span className="text-red-400 text-[10px]">{nameError}</span>}
-                  </div>
-                ) : (
-                  <>
-                    <span className="text-xs text-[#a1a1aa]">{user.name || 'User'}</span>
-                    <button onClick={startEditName} className="p-1 rounded-lg text-[#71717a] hover:text-[#f97316] transition-all" title="Edit name"><Edit3 className="w-3 h-3" /></button>
-                  </>
-                )}
+                <span className="text-xs text-[#a1a1aa]">{user.name || 'User'}</span>
                 <button
                   onClick={logout}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-500/30 text-xs font-medium transition-all"
@@ -239,23 +143,7 @@ export default function Navbar() {
               </a>
               {user ? (
                 <div className="py-2 border-t border-[#27272a] pt-3 mt-1 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#a1a1aa]">{user.name || 'User'}</span>
-                    <button onClick={startEditName} className="p-1 rounded-lg text-[#71717a] hover:text-[#f97316] transition-all"><Edit3 className="w-3.5 h-3.5" /></button>
-                  </div>
-                  {editingName && (
-                    <div className="space-y-1">
-                      <input value={newName} onChange={e => setNewName(e.target.value)} className="w-full px-2 py-1.5 rounded-lg bg-[#09090b] border border-[#27272a] text-white text-xs focus:outline-none focus:border-[#f97316]/50" placeholder="Your name" autoFocus />
-                      {needsOtp && (
-                        <input value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))} className="w-full px-2 py-1.5 rounded-lg bg-[#09090b] border border-[#27272a] text-white text-xs text-center tracking-widest focus:outline-none focus:border-[#f97316]/50" placeholder="Enter OTP code" maxLength={6} />
-                      )}
-                      <div className="flex gap-1">
-                        <button onClick={handleSaveName} disabled={nameLoading || (needsOtp && otpCode.length !== 6)} className="flex-1 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-all disabled:opacity-50">{nameLoading ? 'Saving...' : needsOtp ? 'Verify OTP' : 'Save'}</button>
-                        <button onClick={cancelEditName} className="px-3 py-1 rounded-lg border border-[#27272a] text-[#71717a] hover:text-white text-xs transition-all">Cancel</button>
-                      </div>
-                      {nameError && <p className="text-red-400 text-[10px]">{nameError}</p>}
-                    </div>
-                  )}
+                  <span className="block text-sm text-[#a1a1aa]">{user.name || 'User'}</span>
                   <button
                     onClick={() => { logout(); setMobileOpen(false) }}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-500/30 text-xs font-medium transition-all"
