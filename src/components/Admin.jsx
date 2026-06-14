@@ -71,6 +71,8 @@ export default function Admin() {
   const [heroImage, setHeroImage] = useState(null)
   const [heroFile, setHeroFile] = useState(null)
   const [uploadingHero, setUploadingHero] = useState(false)
+  const [heroDishName, setHeroDishName] = useState('Lechon Kawali')
+  const [heroDishPrice, setHeroDishPrice] = useState('140')
   const [activityFeed, setActivityFeed] = useState([])
   const [dragId, setDragId] = useState(null)
   const feedEndRef = useRef(null)
@@ -121,7 +123,7 @@ export default function Admin() {
   const fetchHero = async () => {
     try {
       const res = await fetch(api('/api/config'))
-      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null) }
+      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)) }
     } catch {}
   }
 
@@ -276,6 +278,17 @@ export default function Admin() {
       const res = await fetch(api('/api/config/hero'), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
       if (res.ok) { setHeroImage(null); addActivity('Hero image removed', 'info') }
+    } catch {}
+  }
+
+  const handleSaveHeroDish = async () => {
+    try {
+      const res = await fetch(api('/api/config/hero/dish'), {
+        method: 'PATCH', headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: heroDishName, price: Number(heroDishPrice) }),
+      })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) addActivity('Hero dish updated', 'info')
     } catch {}
   }
 
@@ -532,6 +545,11 @@ export default function Admin() {
                   <button onClick={handleUploadHero} disabled={!heroFile || uploadingHero} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{uploadingHero ? 'Uploading...' : 'Upload'}</button>
                 </div>
                 {uploadError && <p className="text-red-400 text-xs mb-3">{uploadError}</p>}
+                <div className="flex items-center gap-2 mb-3">
+                  <input type="text" value={heroDishName} onChange={e => setHeroDishName(e.target.value)} className="flex-1 px-3 py-1.5 rounded-lg bg-[#202024] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" placeholder="Dish name" />
+                  <input type="number" value={heroDishPrice} onChange={e => setHeroDishPrice(e.target.value)} className="w-24 px-3 py-1.5 rounded-lg bg-[#202024] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" placeholder="Price" />
+                  <button onClick={handleSaveHeroDish} className="px-4 py-1.5 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all">Save</button>
+                </div>
                 {heroImage ? (
                   <div className="rounded-xl overflow-hidden border border-[#27272a] bg-[#202024] max-w-md">
                     <img src={heroImage} alt="Hero" className="w-full aspect-video object-cover" />

@@ -9,10 +9,15 @@ const DEFAULT_HERO = null
 
 export default function Hero() {
   const { openCart } = useCart()
-  const [heroImg, setHeroImg] = useState(DEFAULT_HERO)
+  const [heroImg, setHeroImg] = useState(null)
+  const [heroDish, setHeroDish] = useState({ name: 'Lechon Kawali', price: 140 })
 
   useEffect(() => {
-    fetch(api('/api/config')).then(r => r.ok ? r.json() : {}).then(d => { if (d.heroImage) setHeroImg(imageUrl(d.heroImage)); else setHeroImg(null) }).catch(() => {})
+    fetch(api('/api/config')).then(r => r.ok ? r.json() : {}).then(d => {
+      if (d.heroImage) setHeroImg(imageUrl(d.heroImage))
+      if (d.heroDishName) setHeroDish(prev => ({ ...prev, name: d.heroDishName }))
+      if (d.heroDishPrice) setHeroDish(prev => ({ ...prev, price: d.heroDishPrice }))
+    }).catch(() => {})
   }, [])
 
   return (
@@ -90,7 +95,7 @@ export default function Hero() {
                 {heroImg ? (
                   <img
                     src={heroImg}
-                    alt="Lechon Kawali"
+                    alt={heroDish.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
                 ) : (
@@ -105,9 +110,9 @@ export default function Hero() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-[#a1a1aa]">Signature Dish</p>
-                      <h3 className="text-xl font-bold">Lechon Kawali</h3>
+                      <h3 className="text-xl font-bold">{heroDish.name}</h3>
                     </div>
-                    <span className="text-2xl font-bold text-[#f97316]">₱140</span>
+                    <span className="text-2xl font-bold text-[#f97316]">₱{heroDish.price}</span>
                   </div>
                 </div>
               </div>
