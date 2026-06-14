@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, ShoppingCart, Minus } from 'lucide-react'
+import { Plus, ShoppingCart, Minus, ChevronDown } from 'lucide-react'
 import { menuItems as localMenu, addons } from '../data/menu'
 import { useCart } from '../context/CartContext'
 import { api, imageUrl } from '../api'
@@ -20,13 +20,108 @@ const categoryImages = {
   solo: 'https://images.unsplash.com/photo-1625943553852-781c6dd46faa?w=400&q=80',
 }
 
+function MenuItemCard({ item, index, addons, onAdd, addingId }) {
+  const [extraOpen, setExtraOpen] = useState(false)
+  const [addonQtys, setAddonQtys] = useState({})
+
+  const totalAddonCount = Object.values(addonQtys).reduce((s, q) => s + q, 0)
+
+  const handleAddClick = () => {
+    const chosen = addons.filter(a => (addonQtys[a.id] || 0) > 0).map(a => ({ ...a, quantity: addonQtys[a.id] }))
+    onAdd(item, chosen)
+    setAddonQtys({})
+    setExtraOpen(false)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      className="group relative rounded-2xl border border-[#27272a] bg-[#18181b] hover:border-[#f97316]/30 transition-all hover:shadow-xl hover:shadow-black/30"
+    >
+      <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-[#202024]">
+        <img
+          src={imageUrl(item.image) || categoryImages[item.category] || categoryImages.ulam}
+          alt={item.name}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+      </div>
+      <div className="relative px-3 py-3 sm:px-4 sm:py-4 pr-4 sm:pr-5">
+        <h3 className="text-sm sm:text-base font-semibold text-white truncate">
+          {item.name}
+        </h3>
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-lg font-bold text-[#f97316]">
+            ₱{item.price}
+          </span>
+          <button
+            onClick={handleAddClick}
+            disabled={addingId === item.id}
+            className="p-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white transition-all active:scale-90 disabled:opacity-50"
+          >
+            {addingId === item.id ? (
+              <span className="block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+
+        <div className="mt-2">
+          <button
+            onClick={() => setExtraOpen(prev => !prev)}
+            className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
+              totalAddonCount > 0
+                ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]'
+                : 'border-[#27272a] text-[#71717a] hover:text-[#a1a1aa]'
+            }`}
+          >
+            {totalAddonCount > 0 ? `Extra (${totalAddonCount})` : '+ Extra'}
+            <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${extraOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          <div
+            className="overflow-hidden transition-all duration-300 ease-in-out"
+            style={{ maxHeight: extraOpen ? '200px' : '0', opacity: extraOpen ? 1 : 0 }}
+          >
+            <div className="mt-2 bg-[#202024] border border-[#27272a] rounded-xl p-2">
+              {addons.map(addon => {
+                const qty = addonQtys[addon.id] || 0
+                return (
+                  <div key={addon.id} className="flex items-center justify-between px-3 py-2 rounded-lg text-sm">
+                    <span className="text-[#a1a1aa]">{addon.name}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setAddonQtys(prev => ({ ...prev, [addon.id]: Math.max(0, qty - 1) }))}
+                        className="w-6 h-6 rounded-md border border-[#27272a] text-[#71717a] hover:text-white flex items-center justify-center transition-all"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="w-5 text-center text-white font-medium text-xs">{qty}</span>
+                      <button
+                        onClick={() => setAddonQtys(prev => ({ ...prev, [addon.id]: qty + 1 }))}
+                        className="w-6 h-6 rounded-md bg-[#f97316] hover:bg-[#ea580c] text-white flex items-center justify-center transition-all"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 export default function MenuSection() {
   const [activeCategory, setActiveCategory] = useState('all')
   const { addItem, openCart } = useCart()
   const [addingId, setAddingId] = useState(null)
-  const [addonQtys, setAddonQtys] = useState({})
   const [menuItems, setMenuItems] = useState(localMenu)
-  const [extraOpen, setExtraOpen] = useState(null)
 
   useEffect(() => {
     fetch(api('/api/menu'))
@@ -40,20 +135,11 @@ export default function MenuSection() {
     ? visible
     : visible.filter(m => m.category === activeCategory)
 
-  const handleAdd = (item) => {
-    const qtyMap = addonQtys[item.id] || {}
-    const chosen = addons.filter(a => (qtyMap[a.id] || 0) > 0).map(a => ({ ...a, quantity: qtyMap[a.id] }))
+  const handleAdd = useCallback((item, chosen) => {
     setAddingId(item.id)
     addItem(item, chosen)
-    setAddonQtys(prev => ({ ...prev, [item.id]: {} }))
-    setExtraOpen(null)
     setTimeout(() => setAddingId(null), 600)
-  }
-
-  const totalAddonCount = (itemId) => {
-    const qtyMap = addonQtys[itemId] || {}
-    return Object.values(qtyMap).reduce((s, q) => s + q, 0)
-  }
+  }, [addItem])
 
   return (
     <section id="menu" className="relative py-24 sm:py-32 scroll-mt-24">
@@ -103,89 +189,7 @@ export default function MenuSection() {
             className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
           >
             {filtered.map((item, i) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="group relative rounded-2xl border border-[#27272a] bg-[#18181b] hover:border-[#f97316]/30 transition-all hover:shadow-xl hover:shadow-black/30"
-              >
-                <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-[#202024]">
-                  <img
-                    src={imageUrl(item.image) || categoryImages[item.category] || categoryImages.ulam}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-                <div className="px-3 py-3 sm:px-4 sm:py-4 pr-4 sm:pr-5">
-                  <h3 className="text-sm sm:text-base font-semibold text-white truncate">
-                    {item.name}
-                  </h3>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-lg font-bold text-[#f97316]">
-                      ₱{item.price}
-                    </span>
-                    <button
-                      onClick={() => handleAdd(item)}
-                      disabled={addingId === item.id}
-                      className="p-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white transition-all active:scale-90 disabled:opacity-50"
-                    >
-                      {addingId === item.id ? (
-                        <span className="block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Plus className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-
-                  <div className="mt-2">
-                    <button
-                      onClick={() => setExtraOpen(extraOpen === item.id ? null : item.id)}
-                      className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all font-medium ${
-                        totalAddonCount(item.id) > 0
-                          ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]'
-                          : 'border-[#27272a] text-[#71717a] hover:text-[#a1a1aa]'
-                      }`}
-                    >
-                      {totalAddonCount(item.id) > 0
-                        ? `Extra (${totalAddonCount(item.id)})`
-                        : '+ Extra'}
-                    </button>
-                    {extraOpen === item.id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-2 bg-[#202024] border border-[#27272a] rounded-xl p-2"
-                      >
-                        {addons.map(addon => {
-                          const qty = (addonQtys[item.id] || {})[addon.id] || 0
-                          return (
-                            <div key={addon.id} className="flex items-center justify-between px-3 py-2 rounded-lg text-sm">
-                              <span className="text-[#a1a1aa]">{addon.name}</span>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => setAddonQtys(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), [addon.id]: Math.max(0, qty - 1) } }))}
-                                  className="w-6 h-6 rounded-md border border-[#27272a] text-[#71717a] hover:text-white flex items-center justify-center transition-all"
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <span className="w-5 text-center text-white font-medium text-xs">{qty}</span>
-                                <button
-                                  onClick={() => setAddonQtys(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || {}), [addon.id]: qty + 1 } }))}
-                                  className="w-6 h-6 rounded-md bg-[#f97316] hover:bg-[#ea580c] text-white flex items-center justify-center transition-all"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
+              <MenuItemCard key={item.id} item={item} index={i} addons={addons} onAdd={handleAdd} addingId={addingId} />
             ))}
           </motion.div>
         </AnimatePresence>
