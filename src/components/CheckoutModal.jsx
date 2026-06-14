@@ -218,7 +218,7 @@ export default function CheckoutModal() {
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Paste Google Maps link (optional)"
+                          placeholder="Paste Google Maps link (Required)"
                           value={mapsLink}
                           onChange={e => handleMapsLinkChange(e.target.value)}
                           className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors pr-10"
