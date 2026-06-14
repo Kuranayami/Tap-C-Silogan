@@ -29,7 +29,7 @@ export async function getReadyOrders() {
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .eq('kitchen_status', 'ready')
+      .eq('status', 'in_delivery')
       .is('rider_id', null)
       .order('created_at', { ascending: true })
 
