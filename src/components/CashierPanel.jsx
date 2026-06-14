@@ -221,6 +221,11 @@ export default function CashierPanel() {
                             <div className="flex items-start gap-1 mb-1.5">
                               <MapPin className="w-3 h-3 text-[#71717a] mt-0.5 shrink-0" />
                               <p className="text-[10px] text-[#71717a] leading-relaxed line-clamp-2">{order.address}</p>
+                              {order.maps_link && (
+                                <a href={order.maps_link} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="text-[10px] text-[#f97316] hover:underline shrink-0 ml-auto">
+                                  Maps
+                                </a>
+                              )}
                             </div>
                           )}
 
