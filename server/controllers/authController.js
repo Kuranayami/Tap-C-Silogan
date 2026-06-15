@@ -127,7 +127,7 @@ export async function verifyOtpHandler(req, res) {
     res.json({
       message: 'OTP verified successfully',
       token,
-      user: user ? { id: user.id, name: user.name, phone: user.phone ?? null, email: user.email, avatar_url: user.avatar_url ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null, address: user.address ?? null } : { id: identifier },
+      user: user ? { id: user.id, name: user.name, phone: user.phone ?? null, email: user.email, avatar_url: user.avatar_url ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null, address: user.address ?? null, company_name: user.company_name ?? null, tin: user.tin ?? null, billing_address: user.billing_address ?? null, credit_threshold: user.credit_threshold ?? null } : { id: identifier },
     })
   } catch (err) {
     console.error('verifyOtpHandler error:', err)
@@ -186,7 +186,7 @@ export async function googleAuth(req, res) {
       message: 'Google authentication successful',
       token,
       user: user
-        ? { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url ?? null, phone: user.phone ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null, address: user.address ?? null }
+        ? { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url ?? null, phone: user.phone ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null, address: user.address ?? null, company_name: user.company_name ?? null, tin: user.tin ?? null, billing_address: user.billing_address ?? null, credit_threshold: user.credit_threshold ?? null }
         : { google_id, name, email },
     })
   } catch (err) {
@@ -221,6 +221,7 @@ export async function getProfile(req, res) {
         avatar_url: data.avatar_url ?? null, auth_provider: data.auth_provider,
         created_at: data.created_at, name_edited: data.name_edited ?? null,
         age: data.age ?? null, gender: data.gender ?? null, maps_link: data.maps_link ?? null, address: data.address ?? null,
+        company_name: data.company_name ?? null, tin: data.tin ?? null, billing_address: data.billing_address ?? null, credit_threshold: data.credit_threshold ?? null,
       })
     }
 
@@ -233,7 +234,7 @@ export async function getProfile(req, res) {
 export async function updateProfile(req, res) {
   try {
     const userId = req.userId
-    const { name, phone, age, gender, maps_link, address } = req.body
+    const { name, phone, age, gender, maps_link, address, company_name, tin, billing_address, credit_threshold } = req.body
 
     if (hasSupabase) {
       const updates = {}
@@ -271,6 +272,10 @@ export async function updateProfile(req, res) {
       if (gender) updates.gender = gender
       if (maps_link !== undefined) updates.maps_link = maps_link
       if (address !== undefined) updates.address = address
+      if (company_name !== undefined) updates.company_name = company_name
+      if (tin !== undefined) updates.tin = tin
+      if (billing_address !== undefined) updates.billing_address = billing_address
+      if (credit_threshold !== undefined && credit_threshold !== '') updates.credit_threshold = parseFloat(credit_threshold)
 
       if (req.file) {
         const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
@@ -295,6 +300,10 @@ export async function updateProfile(req, res) {
         delete safeUpdates.gender
         delete safeUpdates.maps_link
         delete safeUpdates.address
+        delete safeUpdates.company_name
+        delete safeUpdates.tin
+        delete safeUpdates.billing_address
+        delete safeUpdates.credit_threshold
         let result = await supabase
           .from('users')
           .update(safeUpdates)
@@ -314,7 +323,7 @@ export async function updateProfile(req, res) {
         return res.json({
           id: result.data.id, name: result.data.name, phone: result.data.phone,
           email: result.data.email, avatar_url: result.data.avatar_url,
-          age: null, gender: null, maps_link: null, address: null,
+          age: null, gender: null, maps_link: null, address: null, company_name: null, tin: null, billing_address: null, credit_threshold: null,
           name_edited: updates.name_edited === true ? true : null,
         })
       }
@@ -324,6 +333,7 @@ export async function updateProfile(req, res) {
         id: data.id, name: data.name, phone: data.phone ?? null,
         email: data.email, avatar_url: data.avatar_url ?? null,
         age: data.age ?? null, gender: data.gender ?? null, maps_link: data.maps_link ?? null, address: data.address ?? null,
+        company_name: data.company_name ?? null, tin: data.tin ?? null, billing_address: data.billing_address ?? null, credit_threshold: data.credit_threshold ?? null,
         name_edited: data.name_edited ?? null,
       })
     }

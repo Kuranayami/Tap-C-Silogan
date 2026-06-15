@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { User, Phone, MapPin, Camera, Save, Loader2, ArrowLeft, Calendar1, Home } from 'lucide-react'
+import { User, Phone, MapPin, Camera, Save, Loader2, ArrowLeft, Calendar1, Home, Building2, FileText, DollarSign } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { api, imageUrl } from '../api'
 
@@ -12,6 +12,10 @@ export default function UserProfile({ onBack }) {
   const [gender, setGender] = useState(user?.gender || '')
   const [mapsLink, setMapsLink] = useState(user?.maps_link || '')
   const [address, setAddress] = useState(user?.address || '')
+  const [companyName, setCompanyName] = useState(user?.company_name || '')
+  const [tin, setTin] = useState(user?.tin || '')
+  const [billingAddress, setBillingAddress] = useState(user?.billing_address || '')
+  const [creditThreshold, setCreditThreshold] = useState(user?.credit_threshold ?? '')
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || null)
   const [saving, setSaving] = useState(false)
@@ -26,6 +30,7 @@ export default function UserProfile({ onBack }) {
         updateUser({
           name: d.name, phone: d.phone, avatar_url: d.avatar_url,
           age: d.age, gender: d.gender, maps_link: d.maps_link, address: d.address,
+          company_name: d.company_name, tin: d.tin, billing_address: d.billing_address, credit_threshold: d.credit_threshold,
         })
         setName(d.name || '')
         setPhone(d.phone || '')
@@ -33,6 +38,10 @@ export default function UserProfile({ onBack }) {
         setGender(d.gender || '')
         setMapsLink(d.maps_link || '')
         setAddress(d.address || '')
+        setCompanyName(d.company_name || '')
+        setTin(d.tin || '')
+        setBillingAddress(d.billing_address || '')
+        setCreditThreshold(d.credit_threshold ?? '')
         if (d.avatar_url) setAvatarPreview(imageUrl(d.avatar_url))
       })
       .catch(() => {})
@@ -62,6 +71,10 @@ export default function UserProfile({ onBack }) {
       if (gender) fd.append('gender', gender)
       fd.append('maps_link', mapsLink || '')
       fd.append('address', address || '')
+      fd.append('company_name', companyName || '')
+      fd.append('tin', tin || '')
+      fd.append('billing_address', billingAddress || '')
+      if (creditThreshold !== '' && creditThreshold !== undefined) fd.append('credit_threshold', String(creditThreshold))
       if (avatarFile) fd.append('avatar', avatarFile)
 
       const res = await fetch(api('/api/auth/profile'), {
@@ -88,6 +101,10 @@ export default function UserProfile({ onBack }) {
         gender: data.gender,
         maps_link: data.maps_link,
         address: data.address,
+        company_name: data.company_name,
+        tin: data.tin,
+        billing_address: data.billing_address,
+        credit_threshold: data.credit_threshold,
       })
       setAvatarFile(null)
       setSaved(true)
@@ -187,6 +204,52 @@ export default function UserProfile({ onBack }) {
               <input type="url" value={mapsLink} onChange={e => setMapsLink(e.target.value)}
                 placeholder="https://maps.app.goo.gl/..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
+            </div>
+          </div>
+
+          <div className="border-t border-[#FFEC9E] pt-6 mt-2">
+            <h2 className="text-lg font-semibold text-[#D48040] mb-4">Billing Information</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#D48040] mb-1.5">Company Name</label>
+                <div className="relative">
+                  <Building2 className="w-4 h-4 text-[#D48040]/60 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)}
+                    placeholder="Business name"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#D48040] mb-1.5">TIN</label>
+                <div className="relative">
+                  <FileText className="w-4 h-4 text-[#D48040]/60 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input type="text" value={tin} onChange={e => setTin(e.target.value)}
+                    placeholder="123-456-789"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#D48040] mb-1.5">Billing Address</label>
+                <div className="relative">
+                  <MapPin className="w-4 h-4 text-[#D48040]/60 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input type="text" value={billingAddress} onChange={e => setBillingAddress(e.target.value)}
+                    placeholder="Billing address"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#D48040] mb-1.5">Credit Alert Threshold (₱)</label>
+                <div className="relative">
+                  <DollarSign className="w-4 h-4 text-[#D48040]/60 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input type="number" min="0" step="0.01" value={creditThreshold} onChange={e => setCreditThreshold(e.target.value)}
+                    placeholder="500"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
+                </div>
+              </div>
             </div>
           </div>
 
