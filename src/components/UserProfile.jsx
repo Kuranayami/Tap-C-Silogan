@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { User, Phone, MapPin, Camera, Save, Loader2, ArrowLeft, Calendar1 } from 'lucide-react'
+import { User, Phone, MapPin, Camera, Save, Loader2, ArrowLeft, Calendar1, Home } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { api, imageUrl } from '../api'
 
@@ -11,6 +11,7 @@ export default function UserProfile({ onBack }) {
   const [age, setAge] = useState(user?.age || '')
   const [gender, setGender] = useState(user?.gender || '')
   const [mapsLink, setMapsLink] = useState(user?.maps_link || '')
+  const [address, setAddress] = useState(user?.address || '')
   const [avatarFile, setAvatarFile] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || null)
   const [saving, setSaving] = useState(false)
@@ -24,13 +25,14 @@ export default function UserProfile({ onBack }) {
       .then(d => {
         updateUser({
           name: d.name, phone: d.phone, avatar_url: d.avatar_url,
-          age: d.age, gender: d.gender, maps_link: d.maps_link,
+          age: d.age, gender: d.gender, maps_link: d.maps_link, address: d.address,
         })
         setName(d.name || '')
         setPhone(d.phone || '')
         setAge(d.age ?? '')
         setGender(d.gender || '')
         setMapsLink(d.maps_link || '')
+        setAddress(d.address || '')
         if (d.avatar_url) setAvatarPreview(imageUrl(d.avatar_url))
       })
       .catch(() => {})
@@ -59,6 +61,7 @@ export default function UserProfile({ onBack }) {
       if (age !== '' && age !== undefined) fd.append('age', String(age))
       if (gender) fd.append('gender', gender)
       fd.append('maps_link', mapsLink || '')
+      fd.append('address', address || '')
       if (avatarFile) fd.append('avatar', avatarFile)
 
       const res = await fetch(api('/api/auth/profile'), {
@@ -84,6 +87,7 @@ export default function UserProfile({ onBack }) {
         age: data.age,
         gender: data.gender,
         maps_link: data.maps_link,
+        address: data.address,
       })
       setAvatarFile(null)
       setSaved(true)
@@ -163,6 +167,16 @@ export default function UserProfile({ onBack }) {
                   <option value="female">Female</option>
                 </select>
               </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#D48040] mb-1.5">House/Street</label>
+            <div className="relative">
+              <Home className="w-4 h-4 text-[#D48040]/60 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input type="text" value={address} onChange={e => setAddress(e.target.value)}
+                placeholder="123 Main St, Barangay..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
             </div>
           </div>
 

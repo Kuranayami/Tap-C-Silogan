@@ -10,7 +10,7 @@ export default function CheckoutModal() {
   const { items, subtotal, total, clearCart, closeCart } = useCart()
   const { checkoutOpen, closeCheckout } = useCheckout()
   const { user, token } = useAuth()
-  const [form, setForm] = useState({ name: user?.name || '', contact: user?.phone || '', address: '' })
+  const [form, setForm] = useState({ name: user?.name || '', contact: user?.phone || '', address: user?.address || '' })
   const [mapsLink, setMapsLink] = useState(user?.maps_link || '')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
@@ -23,7 +23,7 @@ export default function CheckoutModal() {
         .then(r => r.ok && r.json())
         .then(d => {
           if (d) {
-            setForm({ name: d.name || user?.name || '', contact: d.phone || user?.phone || '', address: '' })
+            setForm({ name: d.name || user?.name || '', contact: d.phone || user?.phone || '', address: d.address || user?.address || '' })
             setMapsLink(d.maps_link || user?.maps_link || '')
           }
         })

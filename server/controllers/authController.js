@@ -97,7 +97,7 @@ export async function verifyOtpHandler(req, res) {
     res.json({
       message: 'OTP verified successfully',
       token,
-      user: user ? { id: user.id, name: user.name, phone: user.phone ?? null, email: user.email, avatar_url: user.avatar_url ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null } : { id: identifier },
+      user: user ? { id: user.id, name: user.name, phone: user.phone ?? null, email: user.email, avatar_url: user.avatar_url ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null, address: user.address ?? null } : { id: identifier },
     })
   } catch (err) {
     console.error('verifyOtpHandler error:', err)
@@ -156,7 +156,7 @@ export async function googleAuth(req, res) {
       message: 'Google authentication successful',
       token,
       user: user
-        ? { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url ?? null, phone: user.phone ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null }
+        ? { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url ?? null, phone: user.phone ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null, address: user.address ?? null }
         : { google_id, name, email },
     })
   } catch (err) {
@@ -190,7 +190,7 @@ export async function getProfile(req, res) {
         id: data.id, name: data.name, phone: data.phone ?? null, email: data.email,
         avatar_url: data.avatar_url ?? null, auth_provider: data.auth_provider,
         created_at: data.created_at, name_edited: data.name_edited ?? null,
-        age: data.age ?? null, gender: data.gender ?? null, maps_link: data.maps_link ?? null,
+        age: data.age ?? null, gender: data.gender ?? null, maps_link: data.maps_link ?? null, address: data.address ?? null,
       })
     }
 
@@ -203,7 +203,7 @@ export async function getProfile(req, res) {
 export async function updateProfile(req, res) {
   try {
     const userId = req.userId
-    const { name, phone, age, gender, maps_link } = req.body
+    const { name, phone, age, gender, maps_link, address } = req.body
 
     if (hasSupabase) {
       const updates = {}
@@ -240,6 +240,7 @@ export async function updateProfile(req, res) {
       if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
       if (gender) updates.gender = gender
       if (maps_link !== undefined) updates.maps_link = maps_link
+      if (address !== undefined) updates.address = address
 
       if (req.file) {
         const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
@@ -263,6 +264,7 @@ export async function updateProfile(req, res) {
         delete safeUpdates.age
         delete safeUpdates.gender
         delete safeUpdates.maps_link
+        delete safeUpdates.address
         let result = await supabase
           .from('users')
           .update(safeUpdates)
@@ -282,7 +284,7 @@ export async function updateProfile(req, res) {
         return res.json({
           id: result.data.id, name: result.data.name, phone: result.data.phone,
           email: result.data.email, avatar_url: result.data.avatar_url,
-          age: null, gender: null, maps_link: null,
+          age: null, gender: null, maps_link: null, address: null,
           name_edited: updates.name_edited === true ? true : null,
         })
       }
@@ -291,7 +293,7 @@ export async function updateProfile(req, res) {
       return res.json({
         id: data.id, name: data.name, phone: data.phone ?? null,
         email: data.email, avatar_url: data.avatar_url ?? null,
-        age: data.age ?? null, gender: data.gender ?? null, maps_link: data.maps_link ?? null,
+        age: data.age ?? null, gender: data.gender ?? null, maps_link: data.maps_link ?? null, address: data.address ?? null,
         name_edited: data.name_edited ?? null,
       })
     }
