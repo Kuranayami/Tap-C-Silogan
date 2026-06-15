@@ -216,6 +216,9 @@ export default function Admin() {
   const [zoneImage, setZoneImage] = useState(null)
   const [zoneFile, setZoneFile] = useState(null)
   const [uploadingZone, setUploadingZone] = useState(false)
+  const [zoneKmlFile, setZoneKmlFile] = useState(null)
+  const [uploadingKml, setUploadingKml] = useState(false)
+  const [zonePolygon, setZonePolygon] = useState(null)
 
   const addActivity = useCallback((msg, type = 'info') => {
     const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
@@ -260,7 +263,7 @@ export default function Admin() {
   const fetchHero = async () => {
     try {
       const res = await fetch(api('/api/config'))
-      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)); setDeliveryFeeInZoneLocal(d.deliveryFeeInZone ?? 40); setDeliveryFeeOutOfZoneLocal(d.deliveryFeeOutOfZone ?? 80); setDeliveryFeeInZoneInput(String(d.deliveryFeeInZone ?? 40)); setDeliveryFeeOutOfZoneInput(String(d.deliveryFeeOutOfZone ?? 80)); setZoneImage(d.zoneImage || null) }
+      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)); setDeliveryFeeInZoneLocal(d.deliveryFeeInZone ?? 40); setDeliveryFeeOutOfZoneLocal(d.deliveryFeeOutOfZone ?? 80); setDeliveryFeeInZoneInput(String(d.deliveryFeeInZone ?? 40)); setDeliveryFeeOutOfZoneInput(String(d.deliveryFeeOutOfZone ?? 80)); setZoneImage(d.zoneImage || null); setZonePolygon(d.zonePolygon || null) }
     } catch {}
   }
 
@@ -614,6 +617,29 @@ export default function Admin() {
       const res = await fetch(api('/api/config/zone'), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
       if (res.ok) setZoneImage(null)
+    } catch {}
+  }
+
+  const handleUploadKml = async () => {
+    if (!zoneKmlFile) return
+    setUploadingKml(true)
+    try {
+      const fd = new FormData(); fd.append('kml', zoneKmlFile)
+      const res = await fetch(api('/api/config/zone/kml'), { method: 'PUT', headers: adminHeaders(), body: fd })
+      if (res.status === 401) { logout(); return }
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { setUploadError(d.error || 'Upload failed'); return }
+      setZoneKmlFile(null); setZonePolygon(d.zonePolygon)
+      addActivity(`Zone KML uploaded (${d.zonePolygon.length} points)`, 'info')
+    } catch (err) { setUploadError(err.message) } finally { setUploadingKml(false) }
+  }
+
+  const handleClearKml = async () => {
+    if (!window.confirm('Remove the zone KML?')) return
+    try {
+      const res = await fetch(api('/api/config/zone/kml'), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { setZonePolygon(null); addActivity('Zone KML cleared', 'info') }
     } catch {}
   }
 
@@ -1272,7 +1298,7 @@ export default function Admin() {
         <AnimatePresence>
           {showZoneManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
-              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4 space-y-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Map className="w-4 h-4 text-emerald-400" />Delivery Zone Map</h3>
                   {zoneImage && (
@@ -1291,6 +1317,21 @@ export default function Admin() {
                 ) : (
                   <p className="text-sm text-[#71717a] text-center py-4">No zone map image set. Upload an image showing the delivery area.</p>
                 )}
+
+                <hr className="border-[#27272a]" />
+
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-white flex items-center gap-2"><Map className="w-4 h-4 text-[#f97316]" />KML Zone Polygon</h4>
+                  {zonePolygon && (
+                    <button onClick={handleClearKml} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-all"><Trash2 className="w-3 h-3" />Clear</button>
+                  )}
+                </div>
+                <p className="text-xs text-[#71717a]">Upload a KML exported from Google My Maps. The polygon will auto-detect if a user's location is in the delivery zone.</p>
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors"><Upload className="w-4 h-4 shrink-0" /><span className="truncate">{zoneKmlFile ? zoneKmlFile.name : 'Choose KML'}</span><input type="file" accept=".kml,application/vnd.google-earth.kml+xml,text/xml" onChange={e => { setZoneKmlFile(e.target.files[0]); setUploadError('') }} className="hidden" /></label>
+                  <button onClick={handleUploadKml} disabled={!zoneKmlFile || uploadingKml} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{uploadingKml ? 'Uploading...' : 'Upload'}</button>
+                  {zonePolygon && <span className="text-xs text-emerald-400">{zonePolygon.length} polygon points loaded</span>}
+                </div>
               </div>
             </motion.div>
           )}

@@ -35,6 +35,30 @@ export async function fetchZoneImage() {
   }
 }
 
+export async function fetchZonePolygon() {
+  try {
+    const res = await fetch(api('/api/config'))
+    if (!res.ok) return null
+    const cfg = await res.json()
+    return cfg.zonePolygon || null
+  } catch {
+    return null
+  }
+}
+
+export function pointInPolygon(point, polygon) {
+  const [lat, lng] = point
+  let inside = false
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [latI, lngI] = polygon[i]
+    const [latJ, lngJ] = polygon[j]
+    if ((lngI > lng) !== (lngJ > lng) && lat < ((latJ - latI) * (lng - lngI)) / (lngJ - lngI) + latI) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
 export function extractCoordinatesFromUrl(url) {
   if (!url) return null
   const atMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)

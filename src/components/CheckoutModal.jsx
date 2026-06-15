@@ -4,7 +4,7 @@ import { X, Check, Loader2, MapPin } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
-import { extractCoordinatesFromUrl, fetchZoneImage } from '../data/deliveryZone'
+import { extractCoordinatesFromUrl, fetchZoneImage, fetchZonePolygon, pointInPolygon } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
   const { items, subtotal, deliveryFeeInZone, deliveryFeeOutOfZone, clearCart, closeCart } = useCart()
@@ -17,6 +17,7 @@ export default function CheckoutModal() {
   const [error, setError] = useState('')
   const [resolving, setResolving] = useState(false)
   const [zoneImage, setZoneImage] = useState(null)
+  const [zonePolygon, setZonePolygon] = useState(null)
   const [inZone, setInZone] = useState(true)
 
   const deliveryFee = inZone ? deliveryFeeInZone : deliveryFeeOutOfZone
@@ -25,6 +26,7 @@ export default function CheckoutModal() {
   useEffect(() => {
     if (checkoutOpen) {
       fetchZoneImage().then(setZoneImage)
+      fetchZonePolygon().then(setZonePolygon)
     }
   }, [checkoutOpen])
 
@@ -62,6 +64,12 @@ export default function CheckoutModal() {
     setMapsLink(value)
     setError('')
     resolveLink(value)
+    if (zonePolygon) {
+      const coords = extractCoordinatesFromUrl(value)
+      if (coords) {
+        setInZone(pointInPolygon([coords.lat, coords.lng], zonePolygon))
+      }
+    }
   }
 
   const handleSubmit = async (e) => {

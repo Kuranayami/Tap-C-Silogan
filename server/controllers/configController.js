@@ -1,10 +1,20 @@
 import { getConfig, updateConfig, addRating, getRatings } from '../services/config.js'
 import { saveFile } from '../services/storage.js'
 
+function parseKmlCoordinates(kmlText) {
+  const coordsMatch = kmlText.match(/<coordinates>([\s\S]*?)<\/coordinates>/)
+  if (!coordsMatch) return null
+  const points = coordsMatch[1].trim().split(/\s+/).map(pair => {
+    const [lng, lat] = pair.split(',').map(Number)
+    return [lat, lng]
+  })
+  return points.length > 2 ? points : null
+}
+
 export async function getConfigHandler(req, res) {
   try {
     const cfg = await getConfig()
-    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [], deliveryFeeInZone: cfg.deliveryFeeInZone ?? 40, deliveryFeeOutOfZone: cfg.deliveryFeeOutOfZone ?? 80, zoneImage: cfg.zoneImage || null })
+    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [], deliveryFeeInZone: cfg.deliveryFeeInZone ?? 40, deliveryFeeOutOfZone: cfg.deliveryFeeOutOfZone ?? 80, zoneImage: cfg.zoneImage || null, zonePolygon: cfg.zonePolygon || null, zoneKml: cfg.zoneKml || null })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch config' })
   }
@@ -125,5 +135,28 @@ export async function deleteZoneImage(req, res) {
     res.json({ message: 'Zone image cleared' })
   } catch (err) {
     res.status(500).json({ error: 'Failed to clear zone image' })
+  }
+}
+
+export async function uploadZoneKml(req, res) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'KML file is required' })
+    const kmlText = req.file.buffer.toString('utf-8')
+    const polygon = parseKmlCoordinates(kmlText)
+    if (!polygon) return res.status(400).json({ error: 'Could not find valid polygon coordinates in KML' })
+    await updateConfig({ zoneKml: kmlText, zonePolygon: polygon })
+    res.json({ message: 'Zone KML uploaded', zonePolygon: polygon })
+  } catch (err) {
+    console.error('KML upload failed:', err.message)
+    res.status(500).json({ error: 'Failed to upload KML' })
+  }
+}
+
+export async function deleteZoneKml(req, res) {
+  try {
+    await updateConfig({ zoneKml: null, zonePolygon: null })
+    res.json({ message: 'Zone KML cleared' })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear zone KML' })
   }
 }
