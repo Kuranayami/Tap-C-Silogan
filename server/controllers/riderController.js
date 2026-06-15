@@ -203,7 +203,7 @@ export async function updateRiderProfile(req, res) {
       .select('id, name, phone, email, avatar_url, status, total_deliveries, rating, vehicle_type, license_plate, age, gender, maps_link')
       .maybeSingle()
 
-    if (error && error.code === '42703') {
+    if (error && (error.code === 'PGRST204' || error.code === '42703')) {
       const safeUpdates = { ...updates }
       delete safeUpdates.age
       delete safeUpdates.gender

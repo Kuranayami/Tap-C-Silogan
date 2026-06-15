@@ -216,7 +216,7 @@ export async function updateProfile(req, res) {
           .select('name_edited, email, phone')
           .eq('id', userId)
           .maybeSingle()
-        if (nameErr && nameErr.code === '42703') {
+        if (nameErr && (nameErr.code === 'PGRST204' || nameErr.code === '42703')) {
           nameEditedColumnExists = false
         } else if (current?.name_edited && !req.body.otp_verified) {
           const contact = current.email || (current.phone ? `63${current.phone.replace(/^0/, '')}` : null)
@@ -247,7 +247,7 @@ export async function updateProfile(req, res) {
         .select('*')
         .maybeSingle()
 
-      if (error && error.code === '42703') {
+      if (error && (error.code === 'PGRST204' || error.code === '42703')) {
         let safeUpdates = { ...updates }
         delete safeUpdates.age
         delete safeUpdates.gender
@@ -258,7 +258,7 @@ export async function updateProfile(req, res) {
           .eq('id', userId)
           .select('*')
           .single()
-        if (result.error && result.error.code === '42703') {
+        if (result.error && (result.error.code === 'PGRST204' || result.error.code === '42703')) {
           delete safeUpdates.name_edited
           result = await supabase
             .from('users')

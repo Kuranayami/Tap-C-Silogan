@@ -131,7 +131,7 @@ export async function updateCashierProfile(req, res) {
       .select('id, name, username, status, phone, avatar_url, age, gender, maps_link')
       .maybeSingle()
 
-    if (error && error.code === '42703') {
+    if (error && (error.code === 'PGRST204' || error.code === '42703')) {
       const safeUpdates = { ...updates }
       delete safeUpdates.age
       delete safeUpdates.gender
