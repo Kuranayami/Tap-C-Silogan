@@ -29,6 +29,11 @@ export async function requireRider(req, res, next) {
       return res.status(401).json({ error: 'Rider not found' })
     }
 
+    if (data.status === 'banned' || data.status === 'disabled') {
+      riderTokens.revoke(token)
+      return res.status(401).json({ error: 'Account is banned or disabled' })
+    }
+
     req.riderId = data.id
     req.riderName = data.name
     req.riderStatus = data.status

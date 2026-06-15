@@ -62,6 +62,7 @@ export async function loginRider(req, res) {
 
 export async function listReadyOrders(req, res) {
   try {
+    if (req.riderStatus !== 'online') return res.json([])
     const orders = await getReadyOrders()
     res.json(orders)
   } catch (err) {
@@ -74,8 +75,10 @@ export async function claimOrderHandler(req, res) {
     const { order_id } = req.body
     const riderId = req.riderId
     const riderName = req.riderName
+    const riderStatus = req.riderStatus
 
     if (!order_id) return res.status(400).json({ error: 'order_id is required' })
+    if (riderStatus !== 'online') return res.status(403).json({ error: 'You must be online to claim orders. Toggle your status to Online first.' })
 
     const order = await claimOrder(order_id, riderId, riderName)
     res.json({ message: 'Order claimed successfully', order })
