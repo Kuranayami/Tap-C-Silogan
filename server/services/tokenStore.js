@@ -43,3 +43,4 @@ class TokenStore {
 
 export const riderTokens = new TokenStore('../data/rider_tokens.json')
 export const cashierTokens = new TokenStore('../data/cashier_tokens.json')
+export const restaurantTokens = new TokenStore('../data/restaurant_tokens.json')

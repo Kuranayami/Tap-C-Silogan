@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
-  Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike,
+  Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike, ChefHat,
   Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
@@ -193,6 +193,13 @@ export default function Admin() {
   const [cashiersLoading, setCashiersLoading] = useState(false)
   const [newCashier, setNewCashier] = useState({ name: '', username: '', password: '' })
   const [addingCashier, setAddingCashier] = useState(false)
+  const [newRider, setNewRider] = useState({ name: '', phone: '', password: '', email: '', vehicle_type: 'motorcycle', license_plate: '' })
+  const [addingRider, setAddingRider] = useState(false)
+  const [showRestaurantsManager, setShowRestaurantsManager] = useState(false)
+  const [restaurants, setRestaurants] = useState([])
+  const [restaurantsLoading, setRestaurantsLoading] = useState(false)
+  const [newRestaurant, setNewRestaurant] = useState({ name: '', username: '', password: '' })
+  const [addingRestaurant, setAddingRestaurant] = useState(false)
   const [showTestimonialsManager, setShowTestimonialsManager] = useState(false)
   const [testimonials, setTestimonials] = useState([])
   const [testimonialsForm, setTestimonialsForm] = useState({ name: '', text: '', rating: 5 })
@@ -372,6 +379,52 @@ export default function Admin() {
     if (!confirm(`Delete testimonial from "${testimonials[idx].name}"?`)) return
     const updated = testimonials.filter((_, i) => i !== idx)
     setTestimonials(updated)
+  }
+
+  const handleAddRider = async (e) => {
+    e.preventDefault()
+    if (!newRider.name || !newRider.phone || !newRider.password) return
+    setAddingRider(true)
+    try {
+      const res = await fetch(api('/api/admin/riders'), {
+        method: 'POST', headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRider),
+      })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { setNewRider({ name: '', phone: '', password: '', email: '', vehicle_type: 'motorcycle', license_plate: '' }); fetchRiders(); addActivity('Rider created', 'info') }
+    } catch {} finally { setAddingRider(false) }
+  }
+
+  const fetchRestaurants = async () => {
+    setRestaurantsLoading(true)
+    try {
+      const res = await fetch(api('/api/admin/restaurants'), { headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) setRestaurants(await res.json().then(d => d.restaurants))
+    } catch {} finally { setRestaurantsLoading(false) }
+  }
+
+  const handleAddRestaurant = async (e) => {
+    e.preventDefault()
+    if (!newRestaurant.name || !newRestaurant.username || !newRestaurant.password) return
+    setAddingRestaurant(true)
+    try {
+      const res = await fetch(api('/api/admin/restaurants'), {
+        method: 'POST', headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRestaurant),
+      })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { setNewRestaurant({ name: '', username: '', password: '' }); fetchRestaurants(); addActivity('Restaurant account created', 'info') }
+    } catch {} finally { setAddingRestaurant(false) }
+  }
+
+  const handleDeleteRestaurant = async (id, name) => {
+    if (!confirm(`Delete restaurant "${name}"? This cannot be undone.`)) return
+    try {
+      const res = await fetch(api(`/api/admin/restaurants/${id}`), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { fetchRestaurants(); addActivity(`Restaurant "${name}" deleted`, 'info') }
+    } catch {}
   }
 
   const handleDeleteCashier = async (id, name) => {
@@ -595,6 +648,7 @@ export default function Admin() {
             <button onClick={() => { setShowUsersManager(!showUsersManager); if (!showUsersManager && users.length === 0) fetchUsers() }} className={`p-2 rounded-lg border transition-colors ${showUsersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Users"><Users className="w-4 h-4" /></button>
             <button onClick={() => { setShowRidersManager(!showRidersManager); if (!showRidersManager && riders.length === 0) fetchRiders() }} className={`p-2 rounded-lg border transition-colors ${showRidersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Riders"><Bike className="w-4 h-4" /></button>
             <button onClick={() => { setShowCashiersManager(!showCashiersManager); if (!showCashiersManager && cashiers.length === 0) fetchCashiers() }} className={`p-2 rounded-lg border transition-colors ${showCashiersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Cashiers"><User className="w-4 h-4" /></button>
+            <button onClick={() => { setShowRestaurantsManager(!showRestaurantsManager); if (!showRestaurantsManager && restaurants.length === 0) fetchRestaurants() }} className={`p-2 rounded-lg border transition-colors ${showRestaurantsManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Restaurants"><ChefHat className="w-4 h-4" /></button>
             <button onClick={() => { setShowTestimonialsManager(!showTestimonialsManager); if (!showTestimonialsManager && testimonials.length === 0) fetchTestimonials() }} className={`p-2 rounded-lg border transition-colors ${showTestimonialsManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Testimonials"><MessageSquare className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
@@ -831,6 +885,20 @@ export default function Admin() {
                     <RefreshCw className={`w-3.5 h-3.5 ${ridersLoading ? 'animate-spin' : ''}`} />
                   </button>
                 </div>
+
+                <form onSubmit={handleAddRider} className="grid sm:grid-cols-6 gap-2 mb-3 p-3 rounded-xl bg-[#202024]">
+                  <input type="text" placeholder="Full name" value={newRider.name} onChange={e => setNewRider(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <input type="tel" placeholder="Phone" value={newRider.phone} onChange={e => setNewRider(f => ({ ...f, phone: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <input type="email" placeholder="Email (optional)" value={newRider.email} onChange={e => setNewRider(f => ({ ...f, email: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <input type="password" placeholder="Password" value={newRider.password} onChange={e => setNewRider(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <select value={newRider.vehicle_type} onChange={e => setNewRider(f => ({ ...f, vehicle_type: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50">
+                    <option value="bicycle">Bicycle</option>
+                    <option value="motorcycle">Motorcycle</option>
+                    <option value="car">Car</option>
+                  </select>
+                  <button type="submit" disabled={addingRider || !newRider.name || !newRider.phone || !newRider.password} className="px-3 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{addingRider ? 'Adding...' : 'Add Rider'}</button>
+                </form>
+
                 {riders.length === 0 ? (
                   <p className="text-sm text-[#71717a] text-center py-4">{ridersLoading ? 'Loading...' : 'No riders found.'}</p>
                 ) : (
@@ -952,6 +1020,67 @@ export default function Admin() {
                             <td className="py-2 pr-2 text-[#71717a] text-xs">{c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}</td>
                             <td className="py-2 text-right">
                               <button onClick={() => handleDeleteCashier(c.id, c.name)} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Restaurants Manager ── */}
+        <AnimatePresence>
+          {showRestaurantsManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><ChefHat className="w-4 h-4 text-[#f97316]" />Manage Restaurants</h3>
+                  <button onClick={fetchRestaurants} disabled={restaurantsLoading} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50">
+                    <RefreshCw className={`w-3.5 h-3.5 ${restaurantsLoading ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddRestaurant} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#202024]">
+                  <input type="text" placeholder="Restaurant name" value={newRestaurant.name} onChange={e => setNewRestaurant(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <input type="text" placeholder="Username" value={newRestaurant.username} onChange={e => setNewRestaurant(f => ({ ...f, username: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <input type="password" placeholder="Password" value={newRestaurant.password} onChange={e => setNewRestaurant(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50" />
+                  <button type="submit" disabled={addingRestaurant || !newRestaurant.name || !newRestaurant.username || !newRestaurant.password} className="px-3 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{addingRestaurant ? 'Adding...' : 'Add Restaurant'}</button>
+                </form>
+
+                {restaurants.length === 0 ? (
+                  <p className="text-sm text-[#71717a] text-center py-4">{restaurantsLoading ? 'Loading...' : 'No restaurants yet.'}</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-[#71717a] text-xs border-b border-[#27272a]">
+                          <th className="text-left py-2 pr-2">Name</th>
+                          <th className="text-left py-2 pr-2">Username</th>
+                          <th className="text-left py-2 pr-2">Status</th>
+                          <th className="text-left py-2 pr-2">Created</th>
+                          <th className="text-right py-2">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {restaurants.map(r => (
+                          <tr key={r.id} className="border-b border-[#27272a] hover:bg-[#202024] transition-colors">
+                            <td className="py-2 pr-2 text-white font-medium truncate max-w-[120px]">{r.name}</td>
+                            <td className="py-2 pr-2 text-[#a1a1aa]">{r.username}</td>
+                            <td className="py-2 pr-2">
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
+                                <span className={`w-1 h-1 rounded-full ${r.status === 'active' ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                {r.status || 'active'}
+                              </span>
+                            </td>
+                            <td className="py-2 pr-2 text-[#71717a] text-xs">{r.created_at ? new Date(r.created_at).toLocaleDateString() : '—'}</td>
+                            <td className="py-2 text-right">
+                              <button onClick={() => handleDeleteRestaurant(r.id, r.name)} className="p-1 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </td>

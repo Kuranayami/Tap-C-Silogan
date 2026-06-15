@@ -1,4 +1,6 @@
+import { createHash } from 'crypto'
 import { supabase, hasSupabase } from '../services/supabase.js'
+import { saveFile } from '../services/storage.js'
 
 export async function getUsers(req, res) {
   try {
@@ -115,5 +117,105 @@ export async function deleteRider(req, res) {
   } catch (err) {
     console.error('deleteRider error:', err)
     res.status(500).json({ error: 'Failed to delete rider' })
+  }
+}
+
+// ── Restaurant Management ──
+
+export async function getRestaurants(req, res) {
+  try {
+    if (!hasSupabase) return res.json({ restaurants: [] })
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select('id, name, username, status, created_at')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    res.json({ restaurants: data || [] })
+  } catch (err) {
+    console.error('getRestaurants error:', err)
+    res.status(500).json({ error: 'Failed to fetch restaurants' })
+  }
+}
+
+export async function createRestaurant(req, res) {
+  try {
+    const { name, username, password } = req.body
+    if (!name || !username || !password) {
+      return res.status(400).json({ error: 'Name, username, and password are required' })
+    }
+    if (!hasSupabase) return res.status(500).json({ error: 'Database required' })
+    const hash = createHash('sha256').update(password).digest('hex')
+    const { data, error } = await supabase
+      .from('restaurants')
+      .insert({ name: name.trim(), username: username.trim().toLowerCase(), password_hash: hash })
+      .select('id, name, username, status, created_at')
+      .single()
+    if (error) {
+      if (error.code === '23505') return res.status(409).json({ error: 'Username already taken' })
+      return res.status(500).json({ error: 'Failed to create restaurant' })
+    }
+    res.status(201).json({ restaurant: data })
+  } catch (err) {
+    console.error('createRestaurant error:', err)
+    res.status(500).json({ error: 'Failed to create restaurant' })
+  }
+}
+
+export async function deleteRestaurant(req, res) {
+  try {
+    const { id } = req.params
+    if (!hasSupabase) return res.status(500).json({ error: 'No database' })
+    const { error } = await supabase.from('restaurants').delete().eq('id', id)
+    if (error) throw error
+    res.json({ message: 'Restaurant deleted' })
+  } catch (err) {
+    console.error('deleteRestaurant error:', err)
+    res.status(500).json({ error: 'Failed to delete restaurant' })
+  }
+}
+
+export async function createRider(req, res) {
+  try {
+    const { name, phone, password, email, vehicle_type, license_plate } = req.body
+    if (!name || !phone || !password) {
+      return res.status(400).json({ error: 'Name, phone, and password are required' })
+    }
+    if (!hasSupabase) {
+      return res.status(500).json({ error: 'Database required' })
+    }
+    const cleanPhone = (function(p){ let d=p.replace(/\D/g,''); if(d.startsWith('63'))d=d.slice(2); if(!d.startsWith('0'))d='0'+d; return d.slice(0,11); })(phone)
+    const hash = createHash('sha256').update(password).digest('hex')
+
+    let avatarUrl = null
+    if (req.file) {
+      const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const filename = 'rider-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
+      avatarUrl = await saveFile(filename, req.file.buffer, req.file.mimetype)
+    }
+
+    const insertData = {
+      name: name.trim(),
+      phone: cleanPhone,
+      password_hash: hash,
+      status: 'online',
+    }
+    if (email) insertData.email = email.trim().toLowerCase()
+    if (vehicle_type) insertData.vehicle_type = vehicle_type
+    if (license_plate) insertData.license_plate = license_plate.trim()
+    if (avatarUrl) insertData.avatar_url = avatarUrl
+
+    const { data, error } = await supabase
+      .from('riders')
+      .insert(insertData)
+      .select()
+      .single()
+    if (error) {
+      if (error.code === '23505') return res.status(409).json({ error: 'Phone number already registered' })
+      return res.status(500).json({ error: 'Failed to create rider: ' + error.message })
+    }
+    res.status(201).json({ rider: data, message: 'Rider created successfully' })
+  } catch (err) {
+    console.error('createRider error:', err)
+    res.status(500).json({ error: 'Failed to create rider' })
   }
 }

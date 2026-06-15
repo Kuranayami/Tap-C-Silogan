@@ -16,6 +16,7 @@ import authRoutes from './routes/auth.js'
 import riderRoutes from './routes/rider.js'
 import adminRoutes from './routes/admin.js'
 import cashierRoutes from './routes/cashier.js'
+import restaurantRoutes from './routes/restaurant.js'
 import { loginHandler, requireAdmin, revokeToken } from './middleware/auth.js'
 import { ensureMenuLoaded } from './services/supabase.js'
 import { ensureBucket } from './services/storage.js'
@@ -128,6 +129,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/rider', riderRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/cashier', cashierRoutes)
+app.use('/api/restaurant', restaurantRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err?.message || err, err?.stack || '')

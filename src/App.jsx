@@ -14,7 +14,7 @@ import CheckoutModal from './components/CheckoutModal'
 import Admin from './components/Admin'
 import CashierPanel from './components/CashierPanel'
 import RiderPanel from './components/RiderPanel'
-import RiderRegistration from './components/RiderRegistration'
+import RestaurantPanel from './components/RestaurantPanel'
 import LoginPage from './components/LoginPage'
 import OrderTracking from './components/OrderTracking'
 import UserProfile from './components/UserProfile'
@@ -53,7 +53,7 @@ function AppContent() {
     if (hash === '#/admin') return 'admin'
     if (hash === '#/cashier') return 'cashier'
     if (hash === '#/rider') return 'rider'
-    if (hash === '#/rider/register') return 'rider-register'
+    if (hash === '#/restaurant') return 'restaurant'
     if (hash === '#/login') return 'login'
     if (hash === '#/login?redirect=checkout') return 'login-redirect'
     if (hash === '#/track') return 'track'
@@ -72,8 +72,8 @@ function AppContent() {
         setPage('cashier')
       } else if (hash === '#/rider') {
         setPage('rider')
-      } else if (hash === '#/rider/register') {
-        setPage('rider-register')
+      } else if (hash === '#/restaurant') {
+        setPage('restaurant')
       } else if (hash === '#/login') {
         setPage('login')
       } else if (hash === '#/login?redirect=checkout') {
@@ -111,8 +111,8 @@ function AppContent() {
     return <RiderPanel />
   }
 
-  if (page === 'rider-register') {
-    return <RiderRegistration onComplete={() => { window.location.hash = '#/rider' }} onBack={() => { window.location.hash = '#/rider' }} />
+  if (page === 'restaurant') {
+    return <RestaurantPanel />
   }
 
   if (page === 'profile') {

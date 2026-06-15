@@ -2,7 +2,6 @@ import { Router } from 'express'
 import multer from 'multer'
 import {
   loginRider,
-  registerRider,
   listReadyOrders,
   claimOrderHandler,
   myActiveOrders,
@@ -20,7 +19,6 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 const router = Router()
 
 router.post('/login', loginRider)
-router.post('/register', upload.single('avatar'), registerRider)
 
 router.get('/ready-orders', requireRider, listReadyOrders)
 router.post('/claim', requireRider, claimOrderHandler)

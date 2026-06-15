@@ -166,6 +166,7 @@ export default function CashierProfile({ onBack }) {
                   <option value="">Select</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
+                  <option value="prefer_not_to_say">Prefer Not To Say</option>
                 </select>
               </div>
             </div>
