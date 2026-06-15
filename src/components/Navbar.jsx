@@ -67,7 +67,13 @@ export default function Navbar() {
             </a>
             {user ? (
               <div className="hidden md:flex items-center gap-2">
-                <a href="#/profile" className="text-xs text-[#4A3728] hover:text-[#D48040] transition-colors">{user.name || 'User'}</a>
+                <a
+                  href="#/profile"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FFEC9E] bg-[#FFFBDA] text-[#D48040]/80 hover:text-[#D48040] hover:border-[#FFBB70] text-xs font-medium transition-all"
+                  title="Profile"
+                >
+                  <User className="w-3.5 h-3.5" /> {user.name || 'Profile'}
+                </a>
                 <button
                   onClick={logout}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FFEC9E] bg-[#FFFBDA] text-[#D48040]/80 hover:text-[#D48040] hover:border-[#D48040] text-xs font-medium transition-all"
@@ -139,7 +145,9 @@ export default function Navbar() {
               </a>
               {user ? (
                 <div className="py-2 border-t border-[#FFEC9E] pt-3 mt-1 space-y-2">
-                  <a href="#/profile" onClick={() => setMobileOpen(false)} className="block text-sm text-[#4A3728] hover:text-[#D48040] transition-colors">{user.name || 'User'}</a>
+                  <a href="#/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 text-sm text-[#4A3728] hover:text-[#D48040] transition-colors">
+                    <User className="w-4 h-4" /> {user.name || 'Profile'}
+                  </a>
                   <button
                     onClick={() => { logout(); setMobileOpen(false) }}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#FFEC9E] text-[#D48040]/80 hover:text-[#D48040] text-xs font-medium transition-all"

@@ -128,11 +128,11 @@ function AppContent() {
   }
 
   if (page === 'login') {
-    return <LoginPage onLogin={() => { window.location.hash = '' }} />
+    return <LoginPage onLogin={(user) => { window.location.hash = user && !user.phone ? '#/profile' : '' }} />
   }
 
   if (page === 'login-redirect') {
-    return <LoginPage onLogin={() => { window.location.hash = '#/checkout' }} />
+    return <LoginPage onLogin={(user) => { window.location.hash = user && !user.phone ? '#/profile' : '#/checkout' }} />
   }
 
   if (page === 'track') {
