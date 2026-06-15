@@ -4,7 +4,7 @@ import { saveFile } from '../services/storage.js'
 export async function getConfigHandler(req, res) {
   try {
     const cfg = await getConfig()
-    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [], deliveryFee: cfg.deliveryFee ?? 40, zoneImage: cfg.zoneImage || null })
+    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [], deliveryFeeInZone: cfg.deliveryFeeInZone ?? 40, deliveryFeeOutOfZone: cfg.deliveryFeeOutOfZone ?? 80, zoneImage: cfg.zoneImage || null })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch config' })
   }
@@ -85,14 +85,21 @@ export async function getRatingsHandler(req, res) {
 
 export async function updateDeliveryFeeHandler(req, res) {
   try {
-    const { deliveryFee } = req.body
-    if (deliveryFee === undefined || deliveryFee < 0) {
-      return res.status(400).json({ error: 'A valid non-negative delivery fee is required' })
+    const { inZone, outOfZone } = req.body
+    const updates = {}
+    if (inZone !== undefined) {
+      if (inZone < 0) return res.status(400).json({ error: 'In-zone fee must be non-negative' })
+      updates.deliveryFeeInZone = Number(inZone)
     }
-    await updateConfig({ deliveryFee: Number(deliveryFee) })
-    res.json({ message: 'Delivery fee updated', deliveryFee: Number(deliveryFee) })
+    if (outOfZone !== undefined) {
+      if (outOfZone < 0) return res.status(400).json({ error: 'Out-of-zone fee must be non-negative' })
+      updates.deliveryFeeOutOfZone = Number(outOfZone)
+    }
+    if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'Provide inZone and/or outOfZone' })
+    await updateConfig(updates)
+    res.json({ message: 'Delivery fees updated', ...updates })
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update delivery fee' })
+    res.status(500).json({ error: 'Failed to update delivery fees' })
   }
 }
 

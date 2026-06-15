@@ -1,23 +1,26 @@
 import { api } from '../api'
 
-export async function fetchDeliveryFee() {
+export async function fetchDeliveryFees() {
   try {
     const res = await fetch(api('/api/config'))
-    if (!res.ok) return 40
+    if (!res.ok) return { inZone: 40, outOfZone: 80 }
     const cfg = await res.json()
-    return cfg.deliveryFee ?? 40
+    return { inZone: cfg.deliveryFeeInZone ?? 40, outOfZone: cfg.deliveryFeeOutOfZone ?? 80 }
   } catch {
-    return 40
+    return { inZone: 40, outOfZone: 80 }
   }
 }
 
-export async function updateDeliveryFee(deliveryFee, token) {
+export async function updateDeliveryFees({ inZone, outOfZone }, token) {
+  const body = {}
+  if (inZone !== undefined) body.inZone = inZone
+  if (outOfZone !== undefined) body.outOfZone = outOfZone
   const res = await fetch(api('/api/config/delivery-fee'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ deliveryFee }),
+    body: JSON.stringify(body),
   })
-  if (!res.ok) throw new Error((await res.json()).error || 'Failed to update delivery fee')
+  if (!res.ok) throw new Error((await res.json()).error || 'Failed to update delivery fees')
   return res.json()
 }
 

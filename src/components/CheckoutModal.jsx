@@ -7,7 +7,7 @@ import { api } from '../api'
 import { extractCoordinatesFromUrl, fetchZoneImage } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
-  const { items, subtotal, deliveryFee, total, clearCart, closeCart } = useCart()
+  const { items, subtotal, deliveryFeeInZone, deliveryFeeOutOfZone, clearCart, closeCart } = useCart()
   const { checkoutOpen, closeCheckout } = useCheckout()
   const { user, token } = useAuth()
   const [form, setForm] = useState({ name: user?.name || '', contact: user?.phone || '', address: user?.address || '' })
@@ -18,6 +18,9 @@ export default function CheckoutModal() {
   const [resolving, setResolving] = useState(false)
   const [zoneImage, setZoneImage] = useState(null)
   const [inZone, setInZone] = useState(true)
+
+  const deliveryFee = inZone ? deliveryFeeInZone : deliveryFeeOutOfZone
+  const showTotal = subtotal + deliveryFee
 
   useEffect(() => {
     if (checkoutOpen) {
@@ -38,8 +41,6 @@ export default function CheckoutModal() {
         .catch(() => {})
     }
   }, [checkoutOpen])
-
-  const showTotal = subtotal + deliveryFee
 
   const resolveLink = async (link) => {
     if (!link) return
@@ -231,7 +232,7 @@ export default function CheckoutModal() {
                       <span>₱{subtotal}</span>
                     </div>
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
-                      <span>Delivery</span>
+                      <span>Delivery {inZone ? '(In Zone)' : '(Out of Zone)'}</span>
                       <span>₱{deliveryFee}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-[#27272a]">

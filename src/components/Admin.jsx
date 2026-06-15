@@ -10,7 +10,7 @@ import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
 import { supabase } from '../lib/supabase'
-import { updateDeliveryFee } from '../data/deliveryZone'
+import { updateDeliveryFees } from '../data/deliveryZone'
 
 const COLUMNS = [
   { key: 'pending', label: 'Pending', icon: Clock, color: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400', text: 'text-amber-400' },
@@ -207,8 +207,10 @@ export default function Admin() {
   const [testimonialsForm, setTestimonialsForm] = useState({ name: '', text: '', rating: 5 })
   const [editingTestimonialIdx, setEditingTestimonialIdx] = useState(null)
   const [showDeliveryFeeManager, setShowDeliveryFeeManager] = useState(false)
-  const [deliveryFee, setDeliveryFeeLocal] = useState(40)
-  const [deliveryFeeInput, setDeliveryFeeInput] = useState('40')
+  const [deliveryFeeInZone, setDeliveryFeeInZoneLocal] = useState(40)
+  const [deliveryFeeOutOfZone, setDeliveryFeeOutOfZoneLocal] = useState(80)
+  const [deliveryFeeInZoneInput, setDeliveryFeeInZoneInput] = useState('40')
+  const [deliveryFeeOutOfZoneInput, setDeliveryFeeOutOfZoneInput] = useState('80')
   const [savingDeliveryFee, setSavingDeliveryFee] = useState(false)
   const [showZoneManager, setShowZoneManager] = useState(false)
   const [zoneImage, setZoneImage] = useState(null)
@@ -258,7 +260,7 @@ export default function Admin() {
   const fetchHero = async () => {
     try {
       const res = await fetch(api('/api/config'))
-      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)); setDeliveryFeeLocal(d.deliveryFee ?? 40); setDeliveryFeeInput(String(d.deliveryFee ?? 40)); setZoneImage(d.zoneImage || null) }
+      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)); setDeliveryFeeInZoneLocal(d.deliveryFeeInZone ?? 40); setDeliveryFeeOutOfZoneLocal(d.deliveryFeeOutOfZone ?? 80); setDeliveryFeeInZoneInput(String(d.deliveryFeeInZone ?? 40)); setDeliveryFeeOutOfZoneInput(String(d.deliveryFeeOutOfZone ?? 80)); setZoneImage(d.zoneImage || null) }
     } catch {}
   }
 
@@ -636,13 +638,15 @@ export default function Admin() {
   }
 
   const handleSaveDeliveryFee = async () => {
-    const fee = Number(deliveryFeeInput)
-    if (isNaN(fee) || fee < 0) { setUploadError('Enter a valid non-negative number'); return }
+    const inZone = Number(deliveryFeeInZoneInput)
+    const outOfZone = Number(deliveryFeeOutOfZoneInput)
+    if (isNaN(inZone) || inZone < 0 || isNaN(outOfZone) || outOfZone < 0) { setUploadError('Enter valid non-negative numbers'); return }
     setSavingDeliveryFee(true)
     try {
-      await updateDeliveryFee(fee, token)
-      setDeliveryFeeLocal(fee)
-      addActivity(`Delivery fee set to ₱${fee}`, 'info')
+      await updateDeliveryFees({ inZone, outOfZone }, token)
+      setDeliveryFeeInZoneLocal(inZone)
+      setDeliveryFeeOutOfZoneLocal(outOfZone)
+      addActivity(`In-zone: ₱${inZone}, Out-of-zone: ₱${outOfZone}`, 'info')
     } catch (err) {
       setUploadError(err.message)
     } finally {
@@ -1245,12 +1249,19 @@ export default function Admin() {
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
               <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><DollarSign className="w-4 h-4 text-emerald-400" />Delivery Fee</h3>
-                  <span className="text-xs text-[#71717a]">Current: ₱{deliveryFee}</span>
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><DollarSign className="w-4 h-4 text-emerald-400" />Delivery Fees</h3>
+                  <span className="text-xs text-[#71717a]">In: ₱{deliveryFeeInZone} · Out: ₱{deliveryFeeOutOfZone}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input type="number" min="0" value={deliveryFeeInput} onChange={e => setDeliveryFeeInput(e.target.value)} className="flex-1 px-3 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" placeholder="Delivery fee amount" />
-                  <button onClick={handleSaveDeliveryFee} disabled={savingDeliveryFee} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{savingDeliveryFee ? 'Saving...' : 'Update'}</button>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-[#71717a] mb-1 block">In Zone</label>
+                    <input type="number" min="0" value={deliveryFeeInZoneInput} onChange={e => setDeliveryFeeInZoneInput(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" placeholder="In zone fee" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-[#71717a] mb-1 block">Out of Zone</label>
+                    <input type="number" min="0" value={deliveryFeeOutOfZoneInput} onChange={e => setDeliveryFeeOutOfZoneInput(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" placeholder="Out of zone fee" />
+                  </div>
+                  <button onClick={handleSaveDeliveryFee} disabled={savingDeliveryFee} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50 self-end">{savingDeliveryFee ? 'Saving...' : 'Update'}</button>
                 </div>
               </div>
             </motion.div>

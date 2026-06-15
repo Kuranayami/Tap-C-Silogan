@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useState, useCallback, useEffect } from 'react'
-import { fetchDeliveryFee } from '../data/deliveryZone'
+import { fetchDeliveryFees } from '../data/deliveryZone'
 
 const CartContext = createContext(null)
 const CheckoutContext = createContext(null)
@@ -54,6 +54,8 @@ export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [] })
   const [cartOpen, setCartOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [deliveryFeeInZone, setDeliveryFeeInZone] = useState(40)
+  const [deliveryFeeOutOfZone, setDeliveryFeeOutOfZone] = useState(80)
 
   const addItem = useCallback((item, addons = []) => {
     dispatch({ type: 'ADD_ITEM', payload: { item, addons } })
@@ -74,11 +76,12 @@ export function CartProvider({ children }) {
   const items = state.items
   const itemCount = items.reduce((s, i) => s + i.quantity, 0)
   const subtotal = items.reduce((s, i) => s + calcItemTotal(i), 0)
-  const [deliveryFee, setDeliveryFee] = useState(0)
-  const total = subtotal + deliveryFee
 
   useEffect(() => {
-    fetchDeliveryFee().then(setDeliveryFee)
+    fetchDeliveryFees().then(fees => {
+      setDeliveryFeeInZone(fees.inZone)
+      setDeliveryFeeOutOfZone(fees.outOfZone)
+    })
   }, [])
 
   const openCart = useCallback(() => setCartOpen(true), [])
@@ -95,9 +98,10 @@ export function CartProvider({ children }) {
           items,
           itemCount,
           subtotal,
-          deliveryFee,
-          total,
-          setDeliveryFee,
+          deliveryFeeInZone,
+          deliveryFeeOutOfZone,
+          setDeliveryFeeInZone,
+          setDeliveryFeeOutOfZone,
           addItem,
         removeItem,
         updateQuantity,
@@ -124,6 +128,6 @@ export function useCart() {
 
 export function useCheckout() {
   const ctx = useContext(CheckoutContext)
-  if (!ctx) throw new Error('useCheckout must be used within CartProvider')
+  if (!ctx) throw new Error('useCheckout must be used within CheckoutProvider')
   return ctx
 }
