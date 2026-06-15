@@ -28,14 +28,14 @@ export default function Testimonials() {
           viewport={{ once: true, margin: '-100px' }}
           className="text-center mb-14"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-[#ED9455]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-[#D48040]">
             They{' '}
             <span className="text-[#FFBB70]">
               Love
             </span>{' '}
             Us
           </h2>
-          <p className="text-[#ED9455]/80 max-w-xl mx-auto">
+          <p className="text-[#D48040]/80 max-w-xl mx-auto">
             Here's what our customers have to say about their experience.
           </p>
         </motion.div>
@@ -48,7 +48,7 @@ export default function Testimonials() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="relative rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-6 hover:border-[#FFBB70] transition-all hover:shadow-xl hover:shadow-[#ED9455]/5"
+              className="relative rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-6 hover:border-[#FFBB70] transition-all hover:shadow-xl hover:shadow-[#D48040]/5"
               style={{ boxShadow: '0 10px 25px rgba(237, 148, 85, 0.04)' }}
             >
               <Quote className="w-8 h-8 text-[#FFBB70]/20 mb-4" />
@@ -64,10 +64,10 @@ export default function Testimonials() {
                   />
                 ))}
               </div>
-              <p className="text-sm text-[#ED9455]/90 leading-relaxed mb-4 italic">
+              <p className="text-sm text-[#D48040]/90 leading-relaxed mb-4 italic">
                 "{t.text}"
               </p>
-              <p className="text-sm font-semibold text-[#ED9455]">{t.name}</p>
+              <p className="text-sm font-semibold text-[#D48040]">{t.name}</p>
             </motion.div>
           ))}
         </div>

@@ -17,11 +17,11 @@ export default function Footer() {
             viewport={{ once: true }}
           >
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg font-bold text-[#ED9455]">
+              <span className="text-lg font-bold text-[#D48040]">
                 Tap C <span className="text-[#FFBB70]">Silogan</span>
               </span>
             </div>
-            <p className="text-sm text-[#ED9455]/80 leading-relaxed">
+            <p className="text-sm text-[#D48040]/80 leading-relaxed">
               Serving the best silog meals and fresh fruit shakes in Marikina.
               Late-night cravings, sorted.
             </p>
@@ -33,16 +33,16 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            <h3 className="font-semibold text-[#ED9455] mb-4">Operating Hours</h3>
+            <h3 className="font-semibold text-[#D48040] mb-4">Operating Hours</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2 text-[#ED9455]/80">
+              <div className="flex items-start gap-2 text-[#D48040]/80">
                 <Clock className="w-4 h-4 mt-0.5 text-[#FFBB70] shrink-0" />
                 <div>
                   <p>{storeInfo.hours.days}</p>
                   <p>{storeInfo.hours.open} – {storeInfo.hours.close}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-xs text-[#ED9455]">
+              <div className="flex items-center gap-2 text-xs text-[#D48040]">
                 <AlertTriangle className="w-3 h-3 text-[#FFBB70]" />
                 <span>
                   {isOpen ? 'Open now' : 'Closed — opens at 7:00 PM'}
@@ -57,20 +57,20 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            <h3 className="font-semibold text-[#ED9455] mb-4">Contact</h3>
+            <h3 className="font-semibold text-[#D48040] mb-4">Contact</h3>
             <div className="space-y-3 text-sm">
               <a
                 href={`tel:${storeInfo.phone.replace(/\s/g, '')}`}
-                className="flex items-center gap-2 text-[#ED9455]/80 hover:text-[#FFBB70] transition-colors"
+                className="flex items-center gap-2 text-[#D48040]/80 hover:text-[#FFBB70] transition-colors"
               >
                 <Phone className="w-4 h-4 text-[#FFBB70] shrink-0" />
                 <span>{storeInfo.phone}</span>
               </a>
-              <div className="flex items-start gap-2 text-[#ED9455]/80">
+              <div className="flex items-start gap-2 text-[#D48040]/80">
                 <MapPin className="w-4 h-4 mt-0.5 text-[#FFBB70] shrink-0" />
                 <div>
                   <p>{storeInfo.address}</p>
-                  <p className="text-[#ED9455]/50 text-xs mt-1">{storeInfo.addressFull}</p>
+                  <p className="text-[#D48040]/50 text-xs mt-1">{storeInfo.addressFull}</p>
                 </div>
               </div>
             </div>
@@ -82,20 +82,20 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
           >
-            <h3 className="font-semibold text-[#ED9455] mb-4">Find Us</h3>
+            <h3 className="font-semibold text-[#D48040] mb-4">Find Us</h3>
             <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-2 text-[#ED9455]/80">
+              <div className="flex items-start gap-2 text-[#D48040]/80">
                 <MapPin className="w-4 h-4 mt-0.5 text-[#FFBB70] shrink-0" />
                 <div>
                   <p>{storeInfo.address}</p>
-                  <p className="text-[#ED9455]/50 text-xs mt-1">{storeInfo.addressFull}</p>
+                  <p className="text-[#D48040]/50 text-xs mt-1">{storeInfo.addressFull}</p>
                 </div>
               </div>
               <a
                 href={storeInfo.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[#ED9455] hover:text-[#FFBB70] font-medium transition-colors"
+                className="inline-flex items-center gap-2 text-[#D48040] hover:text-[#FFBB70] font-medium transition-colors"
               >
                 <MapPin className="w-4 h-4 text-[#FFBB70]" />
                 <span>View in Google Maps</span>
@@ -106,7 +106,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-[#FFEC9E] py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#ED9455]/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#D48040]/60">
           <p>© {new Date().getFullYear()} Tap C Silogan. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <a href="#/cashier" className="hover:text-[#FFBB70] transition-colors">Cashier</a>

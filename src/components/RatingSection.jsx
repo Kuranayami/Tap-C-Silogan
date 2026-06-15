@@ -48,11 +48,11 @@ export default function RatingSection() {
     <section className="relative py-24 sm:py-32 bg-[#FFFBDA]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-100px' }} className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFEC9E] border border-[#FFBB70] text-[#ED9455] text-xs sm:text-sm font-medium mb-4">
-            <Star className="w-4 h-4 fill-[#ED9455] text-[#ED9455]" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFEC9E] border border-[#FFBB70] text-[#D48040] text-xs sm:text-sm font-medium mb-4">
+            <Star className="w-4 h-4 fill-[#D48040] text-[#D48040]" />
             Rate Us
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#ED9455]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#D48040]">
             What <span className="text-[#FFBB70]">You</span> Say Matters
           </h2>
         </motion.div>
@@ -61,7 +61,7 @@ export default function RatingSection() {
           {submitted ? (
             <div className="text-center py-6">
               <Star className="w-12 h-12 text-[#FFBB70] fill-[#FFBB70] mx-auto mb-3" />
-              <p className="text-[#ED9455] font-semibold text-lg">Thank you for your rating!</p>
+              <p className="text-[#D48040] font-semibold text-lg">Thank you for your rating!</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -76,19 +76,19 @@ export default function RatingSection() {
               </div>
               {user ? (
                 <>
-                  <div className="px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] text-sm opacity-80">
+                  <div className="px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#D48040] text-sm opacity-80">
                     {user.name}
                   </div>
                 </>
               ) : (
-                <a href="#/login" className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] text-sm hover:border-[#FFBB70] transition-colors font-medium">
+                <a href="#/login" className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#D48040] text-sm hover:border-[#FFBB70] transition-colors font-medium">
                   Sign in to leave a rating
                 </a>
               )}
               <textarea placeholder="Comment (optional)" value={comment} onChange={e => setComment(e.target.value)} rows={3}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] text-sm placeholder-[#ED9455]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#D48040] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
               <button type="submit" disabled={!user || !rating || submitting}
-                className="w-full px-6 py-3 rounded-xl bg-[#ED9455] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold transition-all disabled:opacity-40 active:scale-[0.98]">
+                className="w-full px-6 py-3 rounded-xl bg-[#D48040] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold transition-all disabled:opacity-40 active:scale-[0.98]">
                 {submitting ? 'Submitting...' : 'Submit Rating'}
               </button>
             </form>
@@ -102,7 +102,7 @@ export default function RatingSection() {
                 <Star key={n} className={`w-5 h-5 ${n <= Math.round(average) ? 'fill-[#FFBB70] text-[#FFBB70]' : 'text-[#FFEC9E]'}`} />
               ))}
             </div>
-            <p className="text-2xl font-bold text-[#ED9455]">{average} <span className="text-sm text-[#ED9455]/60 font-normal">({count} review{count !== 1 ? 's' : ''})</span></p>
+            <p className="text-2xl font-bold text-[#D48040]">{average} <span className="text-sm text-[#D48040]/60 font-normal">({count} review{count !== 1 ? 's' : ''})</span></p>
           </motion.div>
         )}
 
@@ -114,9 +114,9 @@ export default function RatingSection() {
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-[#FFBB70]/20 flex items-center justify-center">
-                    <span className="text-xs font-bold text-[#ED9455]">{item.name[0]}</span>
+                    <span className="text-xs font-bold text-[#D48040]">{item.name[0]}</span>
                   </div>
-                  <span className="text-sm font-medium text-[#ED9455]">{item.name}</span>
+                  <span className="text-sm font-medium text-[#D48040]">{item.name}</span>
                 </div>
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map(n => (
@@ -124,7 +124,7 @@ export default function RatingSection() {
                   ))}
                 </div>
               </div>
-              {item.comment && <p className="text-sm text-[#ED9455]/80 leading-relaxed">{item.comment}</p>}
+              {item.comment && <p className="text-sm text-[#D48040]/80 leading-relaxed">{item.comment}</p>}
             </motion.div>
           ))}
         </div>

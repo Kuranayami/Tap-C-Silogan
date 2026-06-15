@@ -18,19 +18,19 @@ export default function CTA() {
 
 
           <div className="relative">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-[#ED9455]">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-[#D48040]">
               Don't Wait –{' '}
               <span className="text-[#FFBB70]">
                 Order Now!
               </span>
             </h2>
-            <p className="text-[#ED9455]/80 text-lg max-w-lg mx-auto mb-8 leading-relaxed">
+            <p className="text-[#D48040]/80 text-lg max-w-lg mx-auto mb-8 leading-relaxed">
               Late-night cravings won't satisfy themselves. Get your favorite
               silog meals and shakes delivered to your doorstep.
             </p>
             <button
               onClick={openCart}
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#ED9455] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold text-lg transition-all active:scale-95"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#D48040] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold text-lg transition-all active:scale-95"
               style={{ boxShadow: '0 8px 20px rgba(237, 148, 85, 0.2)' }}
             >
               Place Your Order

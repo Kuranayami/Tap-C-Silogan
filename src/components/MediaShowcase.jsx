@@ -24,11 +24,11 @@ export default function MediaShowcase() {
           viewport={{ once: true, margin: '-100px' }}
           className="text-center mb-14"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFEC9E] border border-[#FFBB70] text-[#ED9455] text-xs sm:text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFEC9E] border border-[#FFBB70] text-[#D48040] text-xs sm:text-sm font-medium mb-4">
             <Eye className="w-4 h-4" />
             A Feast for Your Eyes
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#ED9455]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#D48040]">
             Behind the{' '}
             <span className="text-[#FFBB70]">
               Flavors
@@ -37,7 +37,7 @@ export default function MediaShowcase() {
         </motion.div>
 
         {!loading && images.length === 0 && (
-          <div className="text-center py-20 text-[#ED9455]/60">
+          <div className="text-center py-20 text-[#D48040]/60">
             <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-30" />
             <p className="text-sm">No images yet.</p>
           </div>
