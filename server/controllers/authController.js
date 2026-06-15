@@ -225,7 +225,18 @@ export async function updateProfile(req, res) {
         if (nameEditedColumnExists) updates.name_edited = true
       }
 
-      if (phone) updates.phone = phone
+      if (phone) {
+        const { data: phoneUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('phone', phone)
+          .neq('id', userId)
+          .maybeSingle()
+        if (phoneUser) {
+          return res.status(409).json({ error: 'Phone number already in use by another account' })
+        }
+        updates.phone = phone
+      }
       if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
       if (gender) updates.gender = gender
       if (maps_link !== undefined) updates.maps_link = maps_link
@@ -288,6 +299,9 @@ export async function updateProfile(req, res) {
     res.json({ id: userId, ...req.body })
   } catch (err) {
     console.error('updateProfile error:', err?.message || err, err?.stack || '', 'code:', err?.code, 'details:', err?.details)
+    if (err?.code === '23505') {
+      return res.status(409).json({ error: 'Phone number already in use by another account' })
+    }
     res.status(500).json({ error: 'Failed to update profile' })
   }
 }
