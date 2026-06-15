@@ -18,6 +18,26 @@ export default function UserProfile({ onBack }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    fetch(api('/api/auth/profile'), { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok && r.json())
+      .then(d => {
+        if (d) {
+          updateUser({
+            name: d.name, phone: d.phone, avatar_url: d.avatar_url,
+            age: d.age, gender: d.gender, maps_link: d.maps_link,
+          })
+          setName(d.name || '')
+          setPhone(d.phone || '')
+          setAge(d.age ?? '')
+          setGender(d.gender || '')
+          setMapsLink(d.maps_link || '')
+          if (d.avatar_url) setAvatarPreview(imageUrl(d.avatar_url))
+        }
+      })
+      .catch(() => {})
+  }, [token])
+
+  useEffect(() => {
     if (user?.avatar_url) setAvatarPreview(imageUrl(user.avatar_url))
   }, [user?.avatar_url])
 
