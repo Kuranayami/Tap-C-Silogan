@@ -17,6 +17,9 @@ import RiderPanel from './components/RiderPanel'
 import RiderRegistration from './components/RiderRegistration'
 import LoginPage from './components/LoginPage'
 import OrderTracking from './components/OrderTracking'
+import UserProfile from './components/UserProfile'
+import RiderProfile from './components/RiderProfile'
+import CashierProfile from './components/CashierProfile'
 
 function MainLayout() {
   const { openCheckout } = useCheckout()
@@ -54,6 +57,9 @@ function AppContent() {
     if (hash === '#/login') return 'login'
     if (hash === '#/login?redirect=checkout') return 'login-redirect'
     if (hash === '#/track') return 'track'
+    if (hash === '#/profile') return 'profile'
+    if (hash === '#/rider/profile') return 'rider-profile'
+    if (hash === '#/cashier/profile') return 'cashier-profile'
     return 'main'
   })
 
@@ -74,6 +80,12 @@ function AppContent() {
         setPage('login-redirect')
       } else if (hash === '#/track') {
         setPage('track')
+      } else if (hash === '#/profile') {
+        setPage('profile')
+      } else if (hash === '#/rider/profile') {
+        setPage('rider-profile')
+      } else if (hash === '#/cashier/profile') {
+        setPage('cashier-profile')
       } else {
         setPage('main')
         const id = hash.slice(1)
@@ -101,6 +113,18 @@ function AppContent() {
 
   if (page === 'rider-register') {
     return <RiderRegistration onComplete={() => { window.location.hash = '#/rider' }} onBack={() => { window.location.hash = '#/rider' }} />
+  }
+
+  if (page === 'profile') {
+    return <UserProfile onBack={() => { window.location.hash = '' }} />
+  }
+
+  if (page === 'rider-profile') {
+    return <RiderProfile onBack={() => { window.location.hash = '#/rider' }} />
+  }
+
+  if (page === 'cashier-profile') {
+    return <CashierProfile onBack={() => { window.location.hash = '#/cashier' }} />
   }
 
   if (page === 'login') {

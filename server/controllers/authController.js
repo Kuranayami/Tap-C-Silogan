@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto'
 import { sendOtp, verifyOtp } from '../services/otp.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { storeToken as storeUserToken } from '../middleware/userAuth.js'
+import { saveFile } from '../services/storage.js'
 
 function sanitizePhone(raw) {
   let d = raw.replace(/\D/g, '')
@@ -96,7 +97,7 @@ export async function verifyOtpHandler(req, res) {
     res.json({
       message: 'OTP verified successfully',
       token,
-      user: user ? { id: user.id, name: user.name, phone: user.phone, email: user.email } : { id: identifier },
+      user: user ? { id: user.id, name: user.name, phone: user.phone, email: user.email, avatar_url: user.avatar_url, age: user.age, gender: user.gender, maps_link: user.maps_link } : { id: identifier },
     })
   } catch (err) {
     console.error('verifyOtpHandler error:', err)
@@ -155,7 +156,7 @@ export async function googleAuth(req, res) {
       message: 'Google authentication successful',
       token,
       user: user
-        ? { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url }
+        ? { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url, phone: user.phone, age: user.age, gender: user.gender, maps_link: user.maps_link }
         : { google_id, name, email },
     })
   } catch (err) {
@@ -180,7 +181,7 @@ export async function getProfile(req, res) {
     if (hasSupabase) {
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, phone, email, avatar_url, auth_provider, created_at, name_edited')
+        .select('id, name, phone, email, avatar_url, auth_provider, created_at, name_edited, age, gender, maps_link')
         .eq('id', userId)
         .single()
 
@@ -197,38 +198,52 @@ export async function getProfile(req, res) {
 export async function updateProfile(req, res) {
   try {
     const userId = req.userId
-    const { name, otp_verified } = req.body
-
-    if (!name || !name.trim()) {
-      return res.status(400).json({ error: 'Name is required' })
-    }
-
-    const safeName = name.trim().slice(0, 100)
+    const { name, phone, age, gender, maps_link } = req.body
 
     if (hasSupabase) {
-      const { data: current } = await supabase
-        .from('users')
-        .select('name_edited, email, phone')
-        .eq('id', userId)
-        .single()
+      const updates = {}
 
-      if (current?.name_edited && !otp_verified) {
-        const contact = current.email || (current.phone ? `63${current.phone.replace(/^0/, '')}` : null)
-        return res.json({ needs_otp: true, email: current.email, phone: contact })
+      if (name && name.trim()) {
+        updates.name = name.trim().slice(0, 100)
+        const { data: current } = await supabase
+          .from('users')
+          .select('name_edited, email, phone')
+          .eq('id', userId)
+          .single()
+        if (current?.name_edited && !req.body.otp_verified) {
+          const contact = current.email || (current.phone ? `63${current.phone.replace(/^0/, '')}` : null)
+          return res.json({ needs_otp: true, email: current.email, phone: contact })
+        }
+        updates.name_edited = true
+      }
+
+      if (phone) updates.phone = phone
+      if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
+      if (gender) updates.gender = gender
+      if (maps_link !== undefined) updates.maps_link = maps_link
+
+      if (req.file) {
+        const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+        const filename = 'user-avatar-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
+        updates.avatar_url = await saveFile(filename, req.file.buffer, req.file.mimetype)
+      }
+
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: 'No fields to update' })
       }
 
       const { data, error } = await supabase
         .from('users')
-        .update({ name: safeName, name_edited: true })
+        .update(updates)
         .eq('id', userId)
-        .select('id, name, phone, email, name_edited')
+        .select('id, name, phone, email, avatar_url, age, gender, maps_link, name_edited')
         .single()
 
       if (error) throw error
       return res.json(data)
     }
 
-    res.json({ id: userId, name: safeName, name_edited: true })
+    res.json({ id: userId, ...req.body })
   } catch (err) {
     console.error('updateProfile error:', err)
     res.status(500).json({ error: 'Failed to update profile' })

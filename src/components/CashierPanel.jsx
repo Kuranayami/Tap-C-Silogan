@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Package, Bike, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, Timer, ListChecks, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Clock, Package, Bike, User, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, Timer, ListChecks, TrendingUp, AlertTriangle } from 'lucide-react'
 import { api } from '../api'
 import CashierLogin from './CashierLogin'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
@@ -142,6 +142,9 @@ export default function CashierPanel() {
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
+            <a href="#/cashier/profile" className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors" title="Profile">
+              <User className="w-4 h-4" />
+            </a>
             <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout">
               <LogOut className="w-4 h-4" />
             </button>

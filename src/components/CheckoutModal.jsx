@@ -11,7 +11,7 @@ export default function CheckoutModal() {
   const { checkoutOpen, closeCheckout } = useCheckout()
   const { user, token } = useAuth()
   const [form, setForm] = useState({ name: user?.name || '', contact: user?.phone || '', address: '' })
-  const [mapsLink, setMapsLink] = useState('')
+  const [mapsLink, setMapsLink] = useState(user?.maps_link || '')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')

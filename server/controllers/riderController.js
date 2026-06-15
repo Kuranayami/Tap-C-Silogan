@@ -167,6 +167,50 @@ export async function cancelDeliveryHandler(req, res) {
   }
 }
 
+export async function updateRiderProfile(req, res) {
+  try {
+    const riderId = req.riderId
+    const { name, phone, email, age, gender, maps_link, vehicle_type, license_plate } = req.body
+
+    if (!hasSupabase) {
+      return res.status(500).json({ error: 'Database required' })
+    }
+
+    const updates = {}
+    if (name && name.trim()) updates.name = name.trim().slice(0, 100)
+    if (phone) updates.phone = phone
+    if (email !== undefined) updates.email = email?.trim().toLowerCase()
+    if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
+    if (gender) updates.gender = gender
+    if (maps_link !== undefined) updates.maps_link = maps_link
+    if (vehicle_type) updates.vehicle_type = vehicle_type
+    if (license_plate !== undefined) updates.license_plate = license_plate?.trim()
+
+    if (req.file) {
+      const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const filename = 'rider-avatar-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
+      updates.avatar_url = await saveFile(filename, req.file.buffer, req.file.mimetype)
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No fields to update' })
+    }
+
+    const { data, error } = await supabase
+      .from('riders')
+      .update(updates)
+      .eq('id', riderId)
+      .select('id, name, phone, email, avatar_url, status, total_deliveries, rating, vehicle_type, license_plate, age, gender, maps_link')
+      .single()
+
+    if (error) throw error
+    res.json(data)
+  } catch (err) {
+    console.error('updateRiderProfile error:', err)
+    res.status(500).json({ error: 'Failed to update profile' })
+  }
+}
+
 export async function registerRider(req, res) {
   try {
     const { name, phone, password, email, vehicle_type, license_plate } = req.body

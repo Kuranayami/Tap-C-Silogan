@@ -1,6 +1,7 @@
 import { createHash } from 'crypto'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { cashierTokens } from '../services/tokenStore.js'
+import { saveFile } from '../services/storage.js'
 
 export async function loginCashier(req, res) {
   try {
@@ -72,6 +73,64 @@ export async function getCashiers(req, res) {
   } catch (err) {
     console.error('getCashiers error:', err)
     res.status(500).json({ error: 'Failed to fetch cashiers' })
+  }
+}
+
+export async function getCashierProfile(req, res) {
+  try {
+    const cashierId = req.cashierId
+    if (!hasSupabase) return res.status(500).json({ error: 'Database required' })
+
+    const { data, error } = await supabase
+      .from('cashiers')
+      .select('id, name, username, status, phone, avatar_url, age, gender, maps_link, created_at')
+      .eq('id', cashierId)
+      .single()
+
+    if (error) return res.status(404).json({ error: 'Cashier not found' })
+    res.json(data)
+  } catch (err) {
+    console.error('getCashierProfile error:', err)
+    res.status(500).json({ error: 'Failed to fetch profile' })
+  }
+}
+
+export async function updateCashierProfile(req, res) {
+  try {
+    const cashierId = req.cashierId
+    const { name, phone, age, gender, maps_link } = req.body
+
+    if (!hasSupabase) return res.status(500).json({ error: 'Database required' })
+
+    const updates = {}
+    if (name && name.trim()) updates.name = name.trim().slice(0, 100)
+    if (phone) updates.phone = phone
+    if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
+    if (gender) updates.gender = gender
+    if (maps_link !== undefined) updates.maps_link = maps_link
+
+    if (req.file) {
+      const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const filename = 'cashier-avatar-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
+      updates.avatar_url = await saveFile(filename, req.file.buffer, req.file.mimetype)
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No fields to update' })
+    }
+
+    const { data, error } = await supabase
+      .from('cashiers')
+      .update(updates)
+      .eq('id', cashierId)
+      .select('id, name, username, status, phone, avatar_url, age, gender, maps_link')
+      .single()
+
+    if (error) throw error
+    res.json(data)
+  } catch (err) {
+    console.error('updateCashierProfile error:', err)
+    res.status(500).json({ error: 'Failed to update profile' })
   }
 }
 

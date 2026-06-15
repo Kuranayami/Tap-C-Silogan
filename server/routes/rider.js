@@ -10,6 +10,7 @@ import {
   cancelDeliveryHandler,
   setStatus,
   getRiderProfileHandler,
+  updateRiderProfile,
   riderStatsHandler,
   updateKitchen,
 } from '../controllers/riderController.js'
@@ -28,6 +29,7 @@ router.post('/deliver', requireRider, completeDelivery)
 router.post('/cancel', requireRider, cancelDeliveryHandler)
 router.post('/status', requireRider, setStatus)
 router.get('/profile', requireRider, getRiderProfileHandler)
+router.patch('/profile', requireRider, upload.single('avatar'), updateRiderProfile)
 router.get('/stats', riderStatsHandler)
 router.post('/kitchen', requireRider, updateKitchen)
 
