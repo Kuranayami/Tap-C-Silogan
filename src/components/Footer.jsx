@@ -111,6 +111,7 @@ export default function Footer() {
           <div className="flex items-center gap-4">
             <a href="#/cashier" className="hover:text-[#FFBB70] transition-colors">Cashier</a>
             <a href="#/admin" className="hover:text-[#FFBB70] transition-colors">Admin</a>
+            <a href="#/restaurant" className="hover:text-[#FFBB70] transition-colors">Restaurant</a>
           </div>
         </div>
       </div>
