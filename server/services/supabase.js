@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { config } from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, resolve, join } from 'path'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 config({ path: resolve(__dirname, '../../.env') })
@@ -34,6 +34,48 @@ if (!hasSupabase) {
 }
 
 export const supabase = hasSupabase ? createClient(supabaseUrl, supabaseKey) : null
+
+// ── Auto-run migrations ──────────────────────────────
+const MIGRATIONS_DIR = join(__dirname, '../data/migrations')
+const MIGRATIONS_RAN_FILE = join(dataDir, '.migrations_ran')
+
+function getRanMigrations() {
+  try { return JSON.parse(readFileSync(MIGRATIONS_RAN_FILE, 'utf-8')) }
+  catch { return [] }
+}
+
+function markRan(name) {
+  const ran = getRanMigrations()
+  if (!ran.includes(name)) { ran.push(name); writeFileSync(MIGRATIONS_RAN_FILE, JSON.stringify(ran), 'utf-8') }
+}
+
+async function runPendingMigrations() {
+  if (!hasSupabase || !existsSync(MIGRATIONS_DIR)) return
+  const ran = getRanMigrations()
+  const files = readdirSync(MIGRATIONS_DIR).filter(f => f.endsWith('.sql')).sort()
+  for (const file of files) {
+    if (ran.includes(file)) continue
+    const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8')
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/sql`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}` },
+        body: JSON.stringify({ query: sql }),
+      })
+      if (res.ok) {
+        markRan(file)
+        console.log(`Migration ${file} applied`)
+      } else {
+        const text = await res.text().catch(() => '')
+        console.warn(`Migration ${file} failed (${res.status}): ${text.slice(0, 200)}`)
+      }
+    } catch (e) {
+      console.warn(`Migration ${file} error:`, e.message)
+    }
+  }
+}
+
+runPendingMigrations()
 
 // ── Orders ──────────────────────────────────────────
 let inMemoryOrders = readJSON(ORDERS_FILE, [])

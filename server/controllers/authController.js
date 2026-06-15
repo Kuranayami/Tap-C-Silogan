@@ -298,32 +298,33 @@ export async function updateProfile(req, res) {
         .maybeSingle()
 
       if (error && (error.code === 'PGRST204' || error.code === '42703')) {
-        let safeUpdates = { ...updates }
-        delete safeUpdates.age
-        delete safeUpdates.gender
-        delete safeUpdates.maps_link
-        delete safeUpdates.address
+        const { data: userCols } = await supabase
+          .from('information_schema.columns')
+          .select('column_name')
+          .eq('table_schema', 'public')
+          .eq('table_name', 'users')
+        const colNames = new Set((userCols || []).map(c => c.column_name))
+        const safeUpdates = {}
+        for (const key of Object.keys(updates)) {
+          if (colNames.has(key)) safeUpdates[key] = updates[key]
+        }
+        if (Object.keys(safeUpdates).length === 0) {
+          return res.status(400).json({ error: 'No fields to update' })
+        }
         let result = await supabase
           .from('users')
           .update(safeUpdates)
           .eq('id', userId)
           .select('*')
           .single()
-        if (result.error && (result.error.code === 'PGRST204' || result.error.code === '42703')) {
-          delete safeUpdates.name_edited
-          result = await supabase
-            .from('users')
-            .update(safeUpdates)
-            .eq('id', userId)
-            .select('*')
-            .single()
-        }
         if (result.error) throw result.error
         return res.json({
           id: result.data.id, name: result.data.name, phone: result.data.phone,
           email: result.data.email, avatar_url: result.data.avatar_url,
-          age: req.body.age ?? null, gender: req.body.gender ?? null,
-          maps_link: req.body.maps_link || null, address: req.body.address || null,
+          age: colNames.has('age') ? (result.data.age ?? null) : (req.body.age ?? null),
+          gender: colNames.has('gender') ? (result.data.gender ?? null) : (req.body.gender ?? null),
+          maps_link: colNames.has('maps_link') ? (result.data.maps_link ?? null) : (req.body.maps_link || null),
+          address: colNames.has('address') ? (result.data.address ?? null) : (req.body.address || null),
           name_edited: updates.name_edited === true ? true : null,
         })
       }

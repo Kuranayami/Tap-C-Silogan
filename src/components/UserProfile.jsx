@@ -20,9 +20,11 @@ export default function UserProfile({ onBack }) {
 
   useEffect(() => {
     if (!token) return
+    let cancelled = false
     fetch(api('/api/auth/profile'), { headers: { Authorization: `Bearer ${token}` } })
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
       .then(d => {
+        if (cancelled) return
         updateUser({
           name: d.name, phone: d.phone, avatar_url: d.avatar_url,
           age: d.age, gender: d.gender, maps_link: d.maps_link, address: d.address,
@@ -36,6 +38,7 @@ export default function UserProfile({ onBack }) {
         if (d.avatar_url) setAvatarPreview(imageUrl(d.avatar_url))
       })
       .catch(() => {})
+    return () => { cancelled = true }
   }, [token])
 
   useEffect(() => {
