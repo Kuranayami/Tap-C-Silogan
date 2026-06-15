@@ -76,6 +76,7 @@ export function CartProvider({ children }) {
   const items = state.items
   const itemCount = items.reduce((s, i) => s + i.quantity, 0)
   const subtotal = items.reduce((s, i) => s + calcItemTotal(i), 0)
+  const total = subtotal + deliveryFeeInZone
 
   useEffect(() => {
     fetchDeliveryFees().then(fees => {
@@ -98,6 +99,7 @@ export function CartProvider({ children }) {
           items,
           itemCount,
           subtotal,
+          total,
           deliveryFeeInZone,
           deliveryFeeOutOfZone,
           setDeliveryFeeInZone,
