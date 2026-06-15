@@ -232,10 +232,7 @@ export async function updateProfile(req, res) {
           .eq('phone', phone)
           .neq('id', userId)
           .maybeSingle()
-        if (phoneUser) {
-          return res.status(409).json({ error: 'Phone number already in use by another account' })
-        }
-        updates.phone = phone
+        if (!phoneUser) updates.phone = phone
       }
       if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
       if (gender) updates.gender = gender
@@ -299,9 +296,6 @@ export async function updateProfile(req, res) {
     res.json({ id: userId, ...req.body })
   } catch (err) {
     console.error('updateProfile error:', err?.message || err, err?.stack || '', 'code:', err?.code, 'details:', err?.details)
-    if (err?.code === '23505') {
-      return res.status(409).json({ error: 'Phone number already in use by another account' })
-    }
     res.status(500).json({ error: 'Failed to update profile' })
   }
 }
