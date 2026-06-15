@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Phone, ArrowLeft, Loader2 } from 'lucide-react'
+import { Mail, ArrowLeft, Loader2 } from 'lucide-react'
 import OtpVerification from './OtpVerification'
 import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
 
 export default function LoginPage({ onLogin, onBack }) {
   const [mode, setMode] = useState(null)
-  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [identifier, setIdentifier] = useState('')
-  const [channel, setChannel] = useState('sms')
+  const [channel, setChannel] = useState('email')
   const [devCode, setDevCode] = useState('')
   const googleBtnRef = useRef(null)
   const { login } = useAuth()
@@ -59,16 +58,14 @@ export default function LoginPage({ onLogin, onBack }) {
     }
   }, [])
 
-  const handleSendOtp = async (type) => {
+  const handleSendOtp = async () => {
     setError('')
     setLoading(true)
     try {
-      const body = type === 'phone'
-        ? { phone: `63${phone.replace(/\D/g, '').replace(/^0?63?/, '')}`, channel: 'sms' }
-        : { email, channel: 'email' }
+      const body = { email, channel: 'email' }
 
-      setIdentifier(body.phone || body.email)
-      setChannel(type === 'phone' ? 'sms' : 'email')
+      setIdentifier(body.email)
+      setChannel('email')
 
       const res = await fetch(api('/api/auth/otp/send'), {
         method: 'POST',
@@ -93,8 +90,7 @@ export default function LoginPage({ onLogin, onBack }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        phone: identifier.includes('@') ? undefined : identifier,
-        email: identifier.includes('@') ? identifier : undefined,
+        email: identifier,
         otp_code: code,
         purpose: 'login',
       }),
@@ -128,41 +124,9 @@ export default function LoginPage({ onLogin, onBack }) {
                 channel={channel}
                 devCode={devCode}
                 onVerify={handleVerifyOtp}
-                onResend={() => handleSendOtp(channel === 'sms' ? 'phone' : 'email')}
+                onResend={handleSendOtp}
                 onBack={() => setMode(null)}
               />
-            ) : mode === 'phone' ? (
-              <motion.div key="phone" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                <div className="flex items-center gap-3 mb-6">
-                  <button onClick={() => setMode(null)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors">
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
-                  <h2 className="text-lg font-semibold text-white">Phone Login</h2>
-                </div>
-                <div>
-                  <label className="text-xs text-[#71717a] mb-1.5 block">Phone Number</label>
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#27272a] focus-within:border-[#f97316]/50 transition-colors">
-                    <span className="text-[#71717a] text-sm shrink-0">+63</span>
-                    <input
-                      type="tel"
-                      placeholder="9123456789"
-                      value={phone}
-                      onChange={e => { setPhone(e.target.value.replace(/\D/g, '')); clearError() }}
-                      maxLength={10}
-                      className="flex-1 bg-transparent text-white text-sm placeholder-[#71717a] focus:outline-none"
-                    />
-                  </div>
-                </div>
-                {error && <p className="text-red-400 text-xs">{error}</p>}
-                <button
-                  onClick={() => handleSendOtp('phone')}
-                  disabled={loading || phone.length < 9}
-                  className="w-full py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Send OTP via SMS
-                </button>
-              </motion.div>
             ) : mode === 'email' ? (
               <motion.div key="email" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
                 <div className="flex items-center gap-3 mb-6">
@@ -183,7 +147,7 @@ export default function LoginPage({ onLogin, onBack }) {
                 </div>
                 {error && <p className="text-red-400 text-xs">{error}</p>}
                 <button
-                  onClick={() => handleSendOtp('email')}
+                  onClick={handleSendOtp}
                   disabled={loading || !email.includes('@')}
                   className="w-full py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
@@ -209,13 +173,6 @@ export default function LoginPage({ onLogin, onBack }) {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setMode('phone')}
-                  className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#27272a] hover:bg-[#202024] text-white text-sm font-medium transition-all"
-                >
-                  <Phone className="w-4 h-4 text-[#f97316]" />
-                  Continue with Phone
-                </button>
                 <button
                   onClick={() => setMode('email')}
                   className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#27272a] hover:bg-[#202024] text-white text-sm font-medium transition-all"
