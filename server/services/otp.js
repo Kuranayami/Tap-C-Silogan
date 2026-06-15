@@ -85,7 +85,7 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
       .catch(err => console.error('[EMAIL] Unhandled error:', err))
   }
 
-  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!process.env.SENDGRID_API_KEY, smsConfigured: !!process.env.SEMAPHORE_API_KEY }
+  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!process.env.SENDGRID_API_KEY, smsConfigured: !!process.env.SEMAPHORE_API_KEY, dev_code: otpCode }
 }
 
 export async function verifyOtp(identifier, otpCode, purpose = 'login') {

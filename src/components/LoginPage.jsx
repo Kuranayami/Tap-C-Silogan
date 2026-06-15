@@ -13,6 +13,7 @@ export default function LoginPage({ onLogin, onBack }) {
   const [error, setError] = useState('')
   const [identifier, setIdentifier] = useState('')
   const [channel, setChannel] = useState('sms')
+  const [devCode, setDevCode] = useState('')
   const googleBtnRef = useRef(null)
   const { login } = useAuth()
 
@@ -78,6 +79,7 @@ export default function LoginPage({ onLogin, onBack }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP')
 
+      setDevCode(data.dev_code || '')
       setMode('otp')
     } catch (err) {
       setError(err.message)
@@ -121,9 +123,10 @@ export default function LoginPage({ onLogin, onBack }) {
           <AnimatePresence mode="wait">
             {mode === 'otp' ? (
               <OtpVerification
-                key="otp"
+                key={devCode || 'otp'}
                 identifier={identifier}
                 channel={channel}
+                devCode={devCode}
                 onVerify={handleVerifyOtp}
                 onResend={() => handleSendOtp(channel === 'sms' ? 'phone' : 'email')}
                 onBack={() => setMode(null)}

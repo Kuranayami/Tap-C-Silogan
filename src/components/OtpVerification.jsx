@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 const DIGIT_COUNT = 6
 const COUNTDOWN_SEC = 60
 
-export default function OtpVerification({ identifier, channel, onVerify, onResend, onBack }) {
+export default function OtpVerification({ identifier, channel, devCode, onVerify, onResend, onBack }) {
   const [digits, setDigits] = useState(Array(DIGIT_COUNT).fill(''))
   const [countdown, setCountdown] = useState(COUNTDOWN_SEC)
   const [error, setError] = useState('')
@@ -90,6 +90,13 @@ export default function OtpVerification({ identifier, channel, onVerify, onResen
         <p className="text-sm font-semibold text-white mt-1">{identifier}</p>
         <p className="text-[10px] text-[#71717a] mt-0.5">via {channel === 'sms' ? 'SMS' : 'Email'}</p>
       </div>
+
+      {devCode && (
+        <div className="bg-[#1a1a2e] border border-[#f97316]/30 rounded-xl p-3 text-center">
+          <p className="text-[10px] text-[#a1a1aa] mb-1">Your verification code</p>
+          <p className="text-2xl font-bold text-[#f97316] tracking-[8px]">{devCode}</p>
+        </div>
+      )}
 
       <div className="flex items-center justify-center gap-2">
         {digits.map((digit, i) => (
