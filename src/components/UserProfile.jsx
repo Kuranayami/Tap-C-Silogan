@@ -89,6 +89,9 @@ export default function UserProfile({ onBack }) {
         maps_link: data.maps_link,
         address: data.address,
       })
+      setPhone(data.phone || '')
+      setMapsLink(data.maps_link || '')
+      setAddress(data.address || '')
       setAvatarFile(null)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)

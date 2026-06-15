@@ -322,7 +322,8 @@ export async function updateProfile(req, res) {
         return res.json({
           id: result.data.id, name: result.data.name, phone: result.data.phone,
           email: result.data.email, avatar_url: result.data.avatar_url,
-          age: null, gender: null, maps_link: null, address: null,
+          age: req.body.age ?? null, gender: req.body.gender ?? null,
+          maps_link: req.body.maps_link || null, address: req.body.address || null,
           name_edited: updates.name_edited === true ? true : null,
         })
       }
