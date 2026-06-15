@@ -4,7 +4,7 @@ import { saveFile } from '../services/storage.js'
 export async function getConfigHandler(req, res) {
   try {
     const cfg = await getConfig()
-    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [] })
+    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [], deliveryFee: cfg.deliveryFee ?? 40 })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch config' })
   }
@@ -80,5 +80,18 @@ export async function getRatingsHandler(req, res) {
     res.json(await getRatings())
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch ratings' })
+  }
+}
+
+export async function updateDeliveryFeeHandler(req, res) {
+  try {
+    const { deliveryFee } = req.body
+    if (deliveryFee === undefined || deliveryFee < 0) {
+      return res.status(400).json({ error: 'A valid non-negative delivery fee is required' })
+    }
+    await updateConfig({ deliveryFee: Number(deliveryFee) })
+    res.json({ message: 'Delivery fee updated', deliveryFee: Number(deliveryFee) })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update delivery fee' })
   }
 }

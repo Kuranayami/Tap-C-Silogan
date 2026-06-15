@@ -1,4 +1,25 @@
-export const DELIVERY_FEE = 40
+import { api } from '../api'
+
+export async function fetchDeliveryFee() {
+  try {
+    const res = await fetch(api('/api/config'))
+    if (!res.ok) return 40
+    const cfg = await res.json()
+    return cfg.deliveryFee ?? 40
+  } catch {
+    return 40
+  }
+}
+
+export async function updateDeliveryFee(deliveryFee, token) {
+  const res = await fetch(api('/api/config/delivery-fee'), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ deliveryFee }),
+  })
+  if (!res.ok) throw new Error((await res.json()).error || 'Failed to update delivery fee')
+  return res.json()
+}
 
 export function extractCoordinatesFromUrl(url) {
   if (!url) return null

@@ -1,4 +1,5 @@
-import { createContext, useContext, useReducer, useState, useCallback } from 'react'
+import { createContext, useContext, useReducer, useState, useCallback, useEffect } from 'react'
+import { fetchDeliveryFee } from '../data/deliveryZone'
 
 const CartContext = createContext(null)
 const CheckoutContext = createContext(null)
@@ -73,8 +74,12 @@ export function CartProvider({ children }) {
   const items = state.items
   const itemCount = items.reduce((s, i) => s + i.quantity, 0)
   const subtotal = items.reduce((s, i) => s + calcItemTotal(i), 0)
-  const deliveryFee = 0
+  const [deliveryFee, setDeliveryFee] = useState(0)
   const total = subtotal + deliveryFee
+
+  useEffect(() => {
+    fetchDeliveryFee().then(setDeliveryFee)
+  }, [])
 
   const openCart = useCallback(() => setCartOpen(true), [])
   const closeCart = useCallback(() => setCartOpen(false), [])
@@ -85,14 +90,15 @@ export function CartProvider({ children }) {
   const closeCheckout = useCallback(() => setCheckoutOpen(false), [])
 
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        itemCount,
-        subtotal,
-        deliveryFee,
-        total,
-        addItem,
+      <CartContext.Provider
+        value={{
+          items,
+          itemCount,
+          subtotal,
+          deliveryFee,
+          total,
+          setDeliveryFee,
+          addItem,
         removeItem,
         updateQuantity,
         clearCart,

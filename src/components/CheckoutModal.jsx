@@ -4,10 +4,10 @@ import { X, Check, Loader2, MapPin } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
-import { DELIVERY_FEE, extractCoordinatesFromUrl } from '../data/deliveryZone'
+import { extractCoordinatesFromUrl } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
-  const { items, subtotal, total, clearCart, closeCart } = useCart()
+  const { items, subtotal, deliveryFee, total, clearCart, closeCart } = useCart()
   const { checkoutOpen, closeCheckout } = useCheckout()
   const { user, token } = useAuth()
   const [form, setForm] = useState({ name: user?.name || '', contact: user?.phone || '', address: user?.address || '' })
@@ -31,7 +31,7 @@ export default function CheckoutModal() {
     }
   }, [checkoutOpen])
 
-  const showTotal = subtotal + DELIVERY_FEE
+  const showTotal = subtotal + deliveryFee
 
   const resolveLink = async (link) => {
     if (!link) return
@@ -82,7 +82,7 @@ export default function CheckoutModal() {
             addons: i.addons || [],
           })),
           subtotal,
-          delivery_fee: DELIVERY_FEE,
+          delivery_fee: deliveryFee,
           total: showTotal,
         }),
       })
@@ -196,7 +196,7 @@ export default function CheckoutModal() {
                     </div>
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
                       <span>Delivery</span>
-                      <span>₱{DELIVERY_FEE}</span>
+                      <span>₱{deliveryFee}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-[#27272a]">
                       <span>Total</span>

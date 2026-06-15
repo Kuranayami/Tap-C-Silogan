@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Package, Bike, User, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, Timer, ListChecks, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Clock, Package, Bike, User, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, Timer, ListChecks, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react'
 import { api } from '../api'
 import CashierLogin from './CashierLogin'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
+import { updateDeliveryFee, fetchDeliveryFee } from '../data/deliveryZone'
 
 const COLUMNS = [
   { key: 'pending', label: 'Pending', icon: Clock, color: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400', text: 'text-amber-400' },
@@ -39,6 +40,10 @@ export default function CashierPanel() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [deliveryFee, setDeliveryFeeLocal] = useState(40)
+  const [deliveryFeeInput, setDeliveryFeeInput] = useState('40')
+  const [savingDeliveryFee, setSavingDeliveryFee] = useState(false)
+  const [showDeliveryFeeInput, setShowDeliveryFeeInput] = useState(false)
 
   const logout = useCallback(() => {
     localStorage.removeItem('cashier_token')
@@ -62,9 +67,17 @@ export default function CashierPanel() {
     }
   }, [logout])
 
+  const fetchFee = useCallback(async () => {
+    try {
+      const fee = await fetchDeliveryFee()
+      setDeliveryFeeLocal(fee)
+      setDeliveryFeeInput(String(fee))
+    } catch {}
+  }, [])
+
   useEffect(() => {
-    if (loggedIn) fetchOrders()
-  }, [loggedIn, fetchOrders])
+    if (loggedIn) { fetchOrders(); fetchFee() }
+  }, [loggedIn, fetchOrders, fetchFee])
 
   useEffect(() => {
     if (!loggedIn) return
@@ -116,6 +129,22 @@ export default function CashierPanel() {
     } catch {}
   }
 
+  const handleSaveDeliveryFee = async () => {
+    const fee = Number(deliveryFeeInput)
+    if (isNaN(fee) || fee < 0) return
+    setSavingDeliveryFee(true)
+    try {
+      const token = localStorage.getItem('cashier_token')
+      await updateDeliveryFee(fee, token)
+      setDeliveryFeeLocal(fee)
+      setShowDeliveryFeeInput(false)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSavingDeliveryFee(false)
+    }
+  }
+
   const columnOrders = (key) => orders.filter(o => (o.status || 'pending') === key)
   const activeTotal = orders.filter(o => !['done', 'canceled'].includes(o.status || 'pending')).length
   const pendingCount = columnOrders('pending').length
@@ -141,6 +170,9 @@ export default function CashierPanel() {
           <div className="flex items-center gap-1.5">
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            <button onClick={() => setShowDeliveryFeeInput(!showDeliveryFeeInput)} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-emerald-400 transition-colors" title="Delivery Fee: ₱{deliveryFee}">
+              <DollarSign className="w-4 h-4" />
             </button>
             <a href="#/cashier/profile" className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors" title="Profile">
               <User className="w-4 h-4" />
@@ -170,6 +202,24 @@ export default function CashierPanel() {
             <p className="text-lg font-bold text-white">{activeTotal}</p>
           </div>
         </div>
+
+        {/* ── Delivery Fee Manager ── */}
+        <AnimatePresence>
+          {showDeliveryFeeInput && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><DollarSign className="w-4 h-4 text-emerald-400" />Delivery Fee</h3>
+                  <span className="text-xs text-[#71717a]">Current: ₱{deliveryFee}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="number" min="0" value={deliveryFeeInput} onChange={e => setDeliveryFeeInput(e.target.value)} className="flex-1 px-3 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" placeholder="Delivery fee amount" />
+                  <button onClick={handleSaveDeliveryFee} disabled={savingDeliveryFee} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{savingDeliveryFee ? 'Saving...' : 'Update'}</button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {error && (
           <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">

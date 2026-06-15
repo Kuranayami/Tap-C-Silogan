@@ -4,12 +4,13 @@ import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike, ChefHat,
-  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks,
+  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
 import { supabase } from '../lib/supabase'
+import { updateDeliveryFee } from '../data/deliveryZone'
 
 const COLUMNS = [
   { key: 'pending', label: 'Pending', icon: Clock, color: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400', text: 'text-amber-400' },
@@ -205,6 +206,10 @@ export default function Admin() {
   const [testimonials, setTestimonials] = useState([])
   const [testimonialsForm, setTestimonialsForm] = useState({ name: '', text: '', rating: 5 })
   const [editingTestimonialIdx, setEditingTestimonialIdx] = useState(null)
+  const [showDeliveryFeeManager, setShowDeliveryFeeManager] = useState(false)
+  const [deliveryFee, setDeliveryFeeLocal] = useState(40)
+  const [deliveryFeeInput, setDeliveryFeeInput] = useState('40')
+  const [savingDeliveryFee, setSavingDeliveryFee] = useState(false)
 
   const addActivity = useCallback((msg, type = 'info') => {
     const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
@@ -249,7 +254,7 @@ export default function Admin() {
   const fetchHero = async () => {
     try {
       const res = await fetch(api('/api/config'))
-      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)) }
+      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)); setDeliveryFeeLocal(d.deliveryFee ?? 40); setDeliveryFeeInput(String(d.deliveryFee ?? 40)) }
     } catch {}
   }
 
@@ -604,6 +609,21 @@ export default function Admin() {
     } catch {}
   }
 
+  const handleSaveDeliveryFee = async () => {
+    const fee = Number(deliveryFeeInput)
+    if (isNaN(fee) || fee < 0) { setUploadError('Enter a valid non-negative number'); return }
+    setSavingDeliveryFee(true)
+    try {
+      await updateDeliveryFee(fee, token)
+      setDeliveryFeeLocal(fee)
+      addActivity(`Delivery fee set to ₱${fee}`, 'info')
+    } catch (err) {
+      setUploadError(err.message)
+    } finally {
+      setSavingDeliveryFee(false)
+    }
+  }
+
   const handleAddItem = async (e) => {
     e.preventDefault()
     if (!newItem.name || !newItem.price || !newItem.category) return
@@ -678,6 +698,7 @@ export default function Admin() {
             <button onClick={() => { setShowCashiersManager(!showCashiersManager); if (!showCashiersManager && cashiers.length === 0) fetchCashiers() }} className={`p-2 rounded-lg border transition-colors ${showCashiersManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Cashiers"><User className="w-4 h-4" /></button>
             <button onClick={() => { setShowRestaurantsManager(!showRestaurantsManager); if (!showRestaurantsManager && restaurants.length === 0) fetchRestaurants() }} className={`p-2 rounded-lg border transition-colors ${showRestaurantsManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Restaurants"><ChefHat className="w-4 h-4" /></button>
             <button onClick={() => { setShowTestimonialsManager(!showTestimonialsManager); if (!showTestimonialsManager && testimonials.length === 0) fetchTestimonials() }} className={`p-2 rounded-lg border transition-colors ${showTestimonialsManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Testimonials"><MessageSquare className="w-4 h-4" /></button>
+            <button onClick={() => setShowDeliveryFeeManager(!showDeliveryFeeManager)} className={`p-2 rounded-lg border transition-colors ${showDeliveryFeeManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Delivery Fee"><DollarSign className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
           </div>
@@ -1186,6 +1207,24 @@ export default function Admin() {
                     ))}
                   </div>
                 )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Delivery Fee Manager ── */}
+        <AnimatePresence>
+          {showDeliveryFeeManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><DollarSign className="w-4 h-4 text-emerald-400" />Delivery Fee</h3>
+                  <span className="text-xs text-[#71717a]">Current: ₱{deliveryFee}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="number" min="0" value={deliveryFeeInput} onChange={e => setDeliveryFeeInput(e.target.value)} className="flex-1 px-3 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" placeholder="Delivery fee amount" />
+                  <button onClick={handleSaveDeliveryFee} disabled={savingDeliveryFee} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{savingDeliveryFee ? 'Saving...' : 'Update'}</button>
+                </div>
               </div>
             </motion.div>
           )}
