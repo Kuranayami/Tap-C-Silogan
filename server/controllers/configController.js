@@ -4,7 +4,7 @@ import { saveFile } from '../services/storage.js'
 export async function getConfigHandler(req, res) {
   try {
     const cfg = await getConfig()
-    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [], deliveryFee: cfg.deliveryFee ?? 40 })
+    res.json({ heroImage: cfg.heroImage, heroDishName: cfg.heroDishName || 'Lechon Kawali', heroDishPrice: cfg.heroDishPrice || 140, testimonials: cfg.testimonials || [], deliveryFee: cfg.deliveryFee ?? 40, zoneImage: cfg.zoneImage || null })
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch config' })
   }
@@ -93,5 +93,30 @@ export async function updateDeliveryFeeHandler(req, res) {
     res.json({ message: 'Delivery fee updated', deliveryFee: Number(deliveryFee) })
   } catch (err) {
     res.status(500).json({ error: 'Failed to update delivery fee' })
+  }
+}
+
+export async function uploadZoneImage(req, res) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Image file is required' })
+    const ALLOWED = { 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
+    const ext = ALLOWED[req.file.mimetype]
+    if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
+    const filename = 'zone-' + Date.now() + ext
+    const url = await saveFile(filename, req.file.buffer, req.file.mimetype)
+    await updateConfig({ zoneImage: url })
+    res.json({ zoneImage: url })
+  } catch (err) {
+    console.error('Zone image upload failed:', err.message)
+    res.status(500).json({ error: 'Failed to save image' })
+  }
+}
+
+export async function deleteZoneImage(req, res) {
+  try {
+    await updateConfig({ zoneImage: null })
+    res.json({ message: 'Zone image cleared' })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear zone image' })
   }
 }

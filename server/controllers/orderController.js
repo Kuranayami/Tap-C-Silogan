@@ -49,7 +49,7 @@ function calculateTotal(items) {
 
 export async function placeOrder(req, res) {
   try {
-    const { customer_name, customer_contact, address, items, maps_link, delivery_fee } = req.body
+    const { customer_name, customer_contact, address, items, maps_link, delivery_fee, in_zone } = req.body
     const userId = req.userId
 
     if (!customer_name || !customer_contact || !address) {
@@ -93,6 +93,7 @@ export async function placeOrder(req, res) {
       customer_contact: safeContact,
       address: safeAddress,
       maps_link: maps_link || null,
+      in_zone: in_zone ?? true,
       delivery_fee: delivery_fee || 0,
       items,
       subtotal,

@@ -4,7 +4,7 @@ import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike, ChefHat,
-  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign,
+  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign, Map,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
@@ -210,6 +210,10 @@ export default function Admin() {
   const [deliveryFee, setDeliveryFeeLocal] = useState(40)
   const [deliveryFeeInput, setDeliveryFeeInput] = useState('40')
   const [savingDeliveryFee, setSavingDeliveryFee] = useState(false)
+  const [showZoneManager, setShowZoneManager] = useState(false)
+  const [zoneImage, setZoneImage] = useState(null)
+  const [zoneFile, setZoneFile] = useState(null)
+  const [uploadingZone, setUploadingZone] = useState(false)
 
   const addActivity = useCallback((msg, type = 'info') => {
     const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
@@ -254,7 +258,7 @@ export default function Admin() {
   const fetchHero = async () => {
     try {
       const res = await fetch(api('/api/config'))
-      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)); setDeliveryFeeLocal(d.deliveryFee ?? 40); setDeliveryFeeInput(String(d.deliveryFee ?? 40)) }
+      if (res.ok) { const d = await res.json(); setHeroImage(d.heroImage || null); setHeroDishName(d.heroDishName || 'Lechon Kawali'); setHeroDishPrice(String(d.heroDishPrice || 140)); setDeliveryFeeLocal(d.deliveryFee ?? 40); setDeliveryFeeInput(String(d.deliveryFee ?? 40)); setZoneImage(d.zoneImage || null) }
     } catch {}
   }
 
@@ -589,6 +593,28 @@ export default function Admin() {
     } catch (err) { setUploadError(err.message) } finally { setUploadingHero(false) }
   }
 
+  const handleUploadZone = async () => {
+    if (!zoneFile) return
+    setUploadingZone(true)
+    try {
+      const fd = new FormData(); fd.append('image', zoneFile)
+      const res = await fetch(api('/api/config/zone'), { method: 'PUT', headers: adminHeaders(), body: fd })
+      if (res.status === 401) { logout(); return }
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { setUploadError(d.error || 'Upload failed'); return }
+      setZoneFile(null); setZoneImage(imageUrl(d.zoneImage))
+    } catch (err) { setUploadError(err.message) } finally { setUploadingZone(false) }
+  }
+
+  const handleClearZone = async () => {
+    if (!window.confirm('Remove the zone image?')) return
+    try {
+      const res = await fetch(api('/api/config/zone'), { method: 'DELETE', headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) setZoneImage(null)
+    } catch {}
+  }
+
   const handleClearHero = async () => {
     if (!window.confirm('Remove the hero image?')) return
     try {
@@ -699,6 +725,7 @@ export default function Admin() {
             <button onClick={() => { setShowRestaurantsManager(!showRestaurantsManager); if (!showRestaurantsManager && restaurants.length === 0) fetchRestaurants() }} className={`p-2 rounded-lg border transition-colors ${showRestaurantsManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Restaurants"><ChefHat className="w-4 h-4" /></button>
             <button onClick={() => { setShowTestimonialsManager(!showTestimonialsManager); if (!showTestimonialsManager && testimonials.length === 0) fetchTestimonials() }} className={`p-2 rounded-lg border transition-colors ${showTestimonialsManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Manage Testimonials"><MessageSquare className="w-4 h-4" /></button>
             <button onClick={() => setShowDeliveryFeeManager(!showDeliveryFeeManager)} className={`p-2 rounded-lg border transition-colors ${showDeliveryFeeManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Delivery Fee"><DollarSign className="w-4 h-4" /></button>
+            <button onClick={() => setShowZoneManager(!showZoneManager)} className={`p-2 rounded-lg border transition-colors ${showZoneManager ? 'bg-[#f97316]/20 border-[#f97316]/40 text-[#f97316]' : 'border-[#27272a] text-[#a1a1aa] hover:text-white'}`} title="Delivery Zone Map"><Map className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
           </div>
@@ -1225,6 +1252,34 @@ export default function Admin() {
                   <input type="number" min="0" value={deliveryFeeInput} onChange={e => setDeliveryFeeInput(e.target.value)} className="flex-1 px-3 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-white text-sm focus:outline-none focus:border-[#f97316]/50" placeholder="Delivery fee amount" />
                   <button onClick={handleSaveDeliveryFee} disabled={savingDeliveryFee} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{savingDeliveryFee ? 'Saving...' : 'Update'}</button>
                 </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Zone Image Manager ── */}
+        <AnimatePresence>
+          {showZoneManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Map className="w-4 h-4 text-emerald-400" />Delivery Zone Map</h3>
+                  {zoneImage && (
+                    <button onClick={handleClearZone} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-all"><Trash2 className="w-3 h-3" />Remove</button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3 mb-3">
+                  <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#202024] border border-[#27272a] text-[#a1a1aa] text-sm cursor-pointer hover:border-[#f97316]/50 transition-colors"><Upload className="w-4 h-4 shrink-0" /><span className="truncate">{zoneFile ? zoneFile.name : 'Choose image'}</span><input type="file" accept="image/*" onChange={e => { setZoneFile(e.target.files[0]); setUploadError('') }} className="hidden" /></label>
+                  <button onClick={handleUploadZone} disabled={!zoneFile || uploadingZone} className="px-4 py-2 rounded-lg bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50">{uploadingZone ? 'Uploading...' : 'Upload'}</button>
+                </div>
+                {uploadError && <p className="text-red-400 text-xs mb-3">{uploadError}</p>}
+                {zoneImage ? (
+                  <div className="rounded-xl overflow-hidden border border-[#27272a] bg-[#202024] max-w-md">
+                    <img src={zoneImage} alt="Delivery Zone" className="w-full aspect-video object-cover" />
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#71717a] text-center py-4">No zone map image set. Upload an image showing the delivery area.</p>
+                )}
               </div>
             </motion.div>
           )}

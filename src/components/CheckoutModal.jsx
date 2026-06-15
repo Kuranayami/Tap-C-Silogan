@@ -4,7 +4,7 @@ import { X, Check, Loader2, MapPin } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
-import { extractCoordinatesFromUrl } from '../data/deliveryZone'
+import { extractCoordinatesFromUrl, fetchZoneImage } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
   const { items, subtotal, deliveryFee, total, clearCart, closeCart } = useCart()
@@ -16,6 +16,14 @@ export default function CheckoutModal() {
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
   const [resolving, setResolving] = useState(false)
+  const [zoneImage, setZoneImage] = useState(null)
+  const [inZone, setInZone] = useState(true)
+
+  useEffect(() => {
+    if (checkoutOpen) {
+      fetchZoneImage().then(setZoneImage)
+    }
+  }, [checkoutOpen])
 
   useEffect(() => {
     if (checkoutOpen && token) {
@@ -74,6 +82,7 @@ export default function CheckoutModal() {
           customer_contact: form.contact,
           address: form.address,
           maps_link: mapsLink || null,
+          in_zone: inZone,
           items: items.map(i => ({
             id: i.id,
             name: i.name,
@@ -168,6 +177,33 @@ export default function CheckoutModal() {
             ) : (
               <>
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+                  {zoneImage && (
+                    <div className="rounded-xl overflow-hidden border border-[#27272a] bg-[#202024]">
+                      <img src={zoneImage} alt="Delivery Zone" className="w-full aspect-video object-cover" />
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
+                    <MapPin className="w-5 h-5 text-[#f97316] shrink-0" />
+                    <span className="text-sm text-[#a1a1aa]">Are you within our delivery zone?</span>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <button
+                        type="button"
+                        onClick={() => setInZone(true)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${inZone ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-[#202024] text-[#71717a] border border-[#27272a] hover:text-white'}`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInZone(false)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${!inZone ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-[#202024] text-[#71717a] border border-[#27272a] hover:text-white'}`}
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+
                   {items.map(item => (
                     <div
                       key={item.key}

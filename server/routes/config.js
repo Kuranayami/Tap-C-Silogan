@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import multer from 'multer'
-import { getConfigHandler, updateHeroImage, deleteHeroImage, updateHeroDish, updateTestimonials, submitRating, getRatingsHandler, updateDeliveryFeeHandler } from '../controllers/configController.js'
+import { getConfigHandler, updateHeroImage, deleteHeroImage, updateHeroDish, updateTestimonials, submitRating, getRatingsHandler, updateDeliveryFeeHandler, uploadZoneImage, deleteZoneImage } from '../controllers/configController.js'
 import { requireAdmin } from '../middleware/auth.js'
 import { requireCashier } from '../middleware/cashierAuth.js'
 
@@ -22,5 +22,7 @@ router.patch('/testimonials', requireAdmin, updateTestimonials)
 router.post('/ratings', submitRating)
 router.get('/ratings', getRatingsHandler)
 router.patch('/delivery-fee', authAdminOrCashier, updateDeliveryFeeHandler)
+router.put('/zone', requireAdmin, upload.single('image'), uploadZoneImage)
+router.delete('/zone', requireAdmin, deleteZoneImage)
 
 export default router

@@ -21,6 +21,17 @@ export async function updateDeliveryFee(deliveryFee, token) {
   return res.json()
 }
 
+export async function fetchZoneImage() {
+  try {
+    const res = await fetch(api('/api/config'))
+    if (!res.ok) return null
+    const cfg = await res.json()
+    return cfg.zoneImage || null
+  } catch {
+    return null
+  }
+}
+
 export function extractCoordinatesFromUrl(url) {
   if (!url) return null
   const atMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
