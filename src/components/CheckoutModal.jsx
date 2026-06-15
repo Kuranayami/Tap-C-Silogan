@@ -192,40 +192,12 @@ export default function CheckoutModal() {
                     </div>
                   )}
 
-                  {zonePolygon && extractCoordinatesFromUrl(mapsLink) ? (
+                  {zonePolygon && extractCoordinatesFromUrl(mapsLink) && (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
                       <MapPin className={`w-5 h-5 shrink-0 ${inZone ? 'text-emerald-400' : 'text-red-400'}`} />
                       <span className={`text-sm font-medium ${inZone ? 'text-emerald-400' : 'text-red-400'}`}>
                         {inZone ? 'You are within our delivery zone' : 'You are outside our delivery zone'}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setInZone(!inZone)}
-                        className="text-xs text-[#a1a1aa] hover:text-[#f97316] ml-auto underline underline-offset-2"
-                      >
-                        Not correct?
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
-                      <MapPin className="w-5 h-5 text-[#f97316] shrink-0" />
-                      <span className="text-sm text-[#a1a1aa]">Are you within our delivery zone?</span>
-                      <div className="flex items-center gap-2 ml-auto">
-                        <button
-                          type="button"
-                          onClick={() => setInZone(true)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${inZone ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-[#202024] text-[#71717a] border border-[#27272a] hover:text-white'}`}
-                        >
-                          Yes
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setInZone(false)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${!inZone ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-[#202024] text-[#71717a] border border-[#27272a] hover:text-white'}`}
-                        >
-                          No
-                        </button>
-                      </div>
                     </div>
                   )}
 
