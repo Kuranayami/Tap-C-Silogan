@@ -4,11 +4,26 @@ import { saveFile } from '../services/storage.js'
 function parseKmlCoordinates(kmlText) {
   const coordsRe = /<(?:[^:]*:)?coordinates[^>]*>([\s\S]*?)<\s*\/(?:[^:]*:)?coordinates\s*>/i
   const coordsMatch = kmlText.match(coordsRe)
-  if (!coordsMatch) return null
-  const points = coordsMatch[1].trim().split(/\s+/).filter(Boolean).map(pair => {
+  if (!coordsMatch) {
+    console.log('KML parse: no <coordinates> tag found. Trying fallback...')
+    const fallback = kmlText.match(/(-?\d+\.\d+),(-?\d+\.\d+)(?:,0)?/)
+    if (fallback) {
+      console.log('KML fallback: found coordinate pair via regex')
+      const allPairs = [...kmlText.matchAll(/(-?\d+\.\d+),(-?\d+\.\d+)(?:,0)?/g)].map(m => [parseFloat(m[2]), parseFloat(m[1])])
+      if (allPairs.length > 2) return allPairs
+    }
+    console.log('KML parse fallback also failed. First 2000 chars:', kmlText.slice(0, 2000))
+    return null
+  }
+  const raw = coordsMatch[1].trim()
+  const tokens = raw.split(/\s+/).filter(Boolean)
+  console.log('KML parse: raw length:', raw.length, 'tokens:', tokens.length, 'first:', tokens[0])
+  const points = tokens.map(pair => {
     const parts = pair.split(',').map(Number)
-    return [parts[1], parts[0]] // [lat, lng]
-  })
+    if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null
+    return [parts[1], parts[0]]
+  }).filter(Boolean)
+  console.log('KML parse: valid points:', points.length)
   return points.length > 2 ? points : null
 }
 
