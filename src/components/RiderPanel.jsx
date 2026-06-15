@@ -135,7 +135,7 @@ export default function RiderPanel() {
         body: JSON.stringify({ order_id: orderId }),
       })
       if (!res.ok) throw new Error('Failed to mark delivered')
-      showNotification(`✅ Order #${orderId.slice(-4)} delivered!`)
+      showNotification(`✅ Order #${String(orderId).slice(-4)} delivered!`)
       fetchActiveOrders()
       fetchReadyOrders()
     } catch (err) {
