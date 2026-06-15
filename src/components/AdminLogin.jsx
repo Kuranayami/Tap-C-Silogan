@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { ChefHat, Lock, User, ArrowLeft } from 'lucide-react'
+import { ChefHat, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { api } from '../api'
 
 export default function AdminLogin({ onLogin }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -65,12 +66,15 @@ export default function AdminLogin({ onLogin }) {
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
             />
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717a] hover:text-[#a1a1aa] transition-colors">
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
           {error && <p className="text-red-400 text-xs text-center">{error}</p>}
           <button

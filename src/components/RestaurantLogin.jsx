@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { ChefHat, Loader2 } from 'lucide-react'
+import { ChefHat, Loader2, Eye, EyeOff } from 'lucide-react'
 import { api } from '../api'
 
 export default function RestaurantLogin({ onLogin }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -54,11 +55,16 @@ export default function RestaurantLogin({ onLogin }) {
             </div>
             <div>
               <label className="text-xs text-[#71717a] mb-1.5 block">Password</label>
-              <input
-                type="password" placeholder="••••••••" value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-[#09090b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717a] hover:text-[#a1a1aa] transition-colors">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
             {error && <p className="text-red-400 text-xs">{error}</p>}
             <button type="submit" disabled={loading || !username || !password}
