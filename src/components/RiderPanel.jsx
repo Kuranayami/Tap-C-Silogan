@@ -30,7 +30,10 @@ export default function RiderPanel() {
   const [activeOrders, setActiveOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [claimingId, setClaimingId] = useState(null)
-  const [status, setStatus] = useState('online')
+  const [status, setStatus] = useState(() => {
+    try { const p = localStorage.getItem('rider_profile'); return p ? (JSON.parse(p).status || 'online') : 'online' }
+    catch { return 'online' }
+  })
   const [notification, setNotification] = useState(null)
   const [activeTab, setActiveTab] = useState('pool') // 'pool' | 'active'
   const [error, setError] = useState('')
@@ -62,6 +65,12 @@ export default function RiderPanel() {
     try {
       const res = await fetch(api('/api/rider/profile'), { headers: riderHeaders() })
       if (res.status === 401) { logout(); return }
+      if (res.ok) {
+        const profile = await res.json()
+        setStatus(profile.status || 'online')
+        const existing = JSON.parse(localStorage.getItem('rider_profile') || '{}')
+        localStorage.setItem('rider_profile', JSON.stringify({ ...existing, status: profile.status }))
+      }
     } catch {}
     await Promise.all([fetchReadyOrders(), fetchActiveOrders()])
     setLoading(false)
@@ -153,7 +162,11 @@ export default function RiderPanel() {
         headers: { ...riderHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: next }),
       })
-      if (res.ok) setStatus(next)
+      if (res.ok) {
+        setStatus(next)
+        const existing = JSON.parse(localStorage.getItem('rider_profile') || '{}')
+        localStorage.setItem('rider_profile', JSON.stringify({ ...existing, status: next }))
+      }
     } catch {}
   }
 
