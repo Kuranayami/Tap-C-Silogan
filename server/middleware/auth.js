@@ -10,6 +10,10 @@ config({ path: resolve(__dirname, '../../.env') })
 const ADMIN_USER = process.env.ADMIN_USER || 'admin'
 const ADMIN_PASS = process.env.ADMIN_PASS || 'admin123'
 
+if (!process.env.ADMIN_PASS || process.env.ADMIN_PASS === 'admin123') {
+  console.warn('[SECURITY] Using default admin password. Set ADMIN_PASS in .env')
+}
+
 const TOKENS_FILE = join(__dirname, '../data/admin_tokens.json')
 let tokens = new Set()
 

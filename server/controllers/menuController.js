@@ -39,10 +39,10 @@ export async function createMenuItem(req, res) {
 
     let image = null
     if (req.file) {
-      const ext = MIME_TO_EXT[req.file.mimetype] || '.bin'
       if (!ALLOWED_TYPES.includes(req.file.mimetype)) {
         return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
       }
+      const ext = MIME_TO_EXT[req.file.mimetype]
       const filename = Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
       image = await saveFile(filename, req.file.buffer, req.file.mimetype)
     }
@@ -83,7 +83,10 @@ export async function editMenuItem(req, res) {
       data.active = req.body.active === 'true' || req.body.active === true
     }
     if (req.file) {
-      const ext = MIME_TO_EXT[req.file.mimetype] || '.bin'
+      if (!ALLOWED_TYPES.includes(req.file.mimetype)) {
+        return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
+      }
+      const ext = MIME_TO_EXT[req.file.mimetype]
       const filename = Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
       data.image = await saveFile(filename, req.file.buffer, req.file.mimetype)
     }

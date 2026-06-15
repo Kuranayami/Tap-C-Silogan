@@ -1,4 +1,4 @@
-import { createHash } from 'crypto'
+import bcrypt from 'bcrypt'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { saveFile } from '../services/storage.js'
 
@@ -144,7 +144,7 @@ export async function createRestaurant(req, res) {
       return res.status(400).json({ error: 'Name, username, and password are required' })
     }
     if (!hasSupabase) return res.status(500).json({ error: 'Database required' })
-    const hash = createHash('sha256').update(password).digest('hex')
+    const hash = await bcrypt.hash(password, 10)
     const { data, error } = await supabase
       .from('restaurants')
       .insert({ name: name.trim(), username: username.trim().toLowerCase(), password_hash: hash })
@@ -184,11 +184,13 @@ export async function createRider(req, res) {
       return res.status(500).json({ error: 'Database required' })
     }
     const cleanPhone = (function(p){ let d=p.replace(/\D/g,''); if(d.startsWith('63'))d=d.slice(2); if(!d.startsWith('0'))d='0'+d; return d.slice(0,11); })(phone)
-    const hash = createHash('sha256').update(password).digest('hex')
+    const hash = await bcrypt.hash(password, 10)
 
     let avatarUrl = null
     if (req.file) {
-      const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
+      const ext = ALLOWED[req.file.mimetype]
+      if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
       const filename = 'rider-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
       avatarUrl = await saveFile(filename, req.file.buffer, req.file.mimetype)
     }
@@ -211,7 +213,7 @@ export async function createRider(req, res) {
       .single()
     if (error) {
       if (error.code === '23505') return res.status(409).json({ error: 'Phone number already registered' })
-      return res.status(500).json({ error: 'Failed to create rider: ' + error.message })
+      return res.status(500).json({ error: 'Failed to create rider' })
     }
     res.status(201).json({ rider: data, message: 'Rider created successfully' })
   } catch (err) {

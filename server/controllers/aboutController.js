@@ -26,7 +26,7 @@ export async function uploadImage(req, res) {
     if (!ALLOWED_TYPES.includes(req.file.mimetype)) {
       return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
     }
-    const ext = MIME_TO_EXT[req.file.mimetype] || '.bin'
+    const ext = MIME_TO_EXT[req.file.mimetype]
     const filename = Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
     const image = await saveFile(filename, req.file.buffer, req.file.mimetype)
     const item = await addImage({ image })

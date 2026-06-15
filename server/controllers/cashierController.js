@@ -1,4 +1,4 @@
-import { createHash } from 'crypto'
+import bcrypt from 'bcrypt'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { cashierTokens } from '../services/tokenStore.js'
 import { saveFile } from '../services/storage.js'
@@ -13,15 +13,13 @@ export async function loginCashier(req, res) {
     if (!hasSupabase) {
       return res.status(500).json({ error: 'Database required' })
     }
-    const hash = createHash('sha256').update(password).digest('hex')
     const { data, error } = await supabase
       .from('cashiers')
-      .select('id, name, status')
+      .select('id, name, status, password_hash')
       .eq('username', username)
-      .eq('password_hash', hash)
       .single()
 
-    if (error || !data) {
+    if (error || !data || !(await bcrypt.compare(password, data.password_hash))) {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
     if (data.status === 'banned' || data.status === 'disabled') {
@@ -44,7 +42,7 @@ export async function registerCashier(req, res) {
     if (!hasSupabase) {
       return res.status(500).json({ error: 'Database required' })
     }
-    const hash = createHash('sha256').update(password).digest('hex')
+    const hash = await bcrypt.hash(password, 10)
     const { data, error } = await supabase
       .from('cashiers')
       .insert({ name: name.trim(), username: username.trim().toLowerCase(), password_hash: hash })
@@ -113,10 +111,18 @@ export async function updateCashierProfile(req, res) {
     if (phone) updates.phone = phone
     if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
     if (gender) updates.gender = gender
-    if (maps_link !== undefined) updates.maps_link = maps_link
+    if (maps_link !== undefined) {
+      if (maps_link && !maps_link.startsWith('http://') && !maps_link.startsWith('https://')) {
+        updates.maps_link = 'https://' + maps_link
+      } else {
+        updates.maps_link = maps_link
+      }
+    }
 
     if (req.file) {
-      const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
+      const ext = ALLOWED[req.file.mimetype]
+      if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
       const filename = 'cashier-avatar-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
       updates.avatar_url = await saveFile(filename, req.file.buffer, req.file.mimetype)
     }

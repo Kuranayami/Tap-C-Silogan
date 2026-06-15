@@ -131,7 +131,7 @@ export async function verifyOtpHandler(req, res) {
     })
   } catch (err) {
     console.error('verifyOtpHandler error:', err)
-    res.status(401).json({ error: err.message || 'OTP verification failed' })
+    res.status(401).json({ error: 'OTP verification failed' })
   }
 }
 
@@ -146,10 +146,12 @@ export async function googleAuth(req, res) {
     let user = null
 
     if (hasSupabase) {
+      const safeGoogleId = google_id.replace(/[^a-zA-Z0-9._\-]/g, '')
+      const safeEmail = (email || '').toLowerCase().trim().replace(/[^a-zA-Z0-9.@_\-]/g, '')
       const { data: existing } = await supabase
         .from('users')
         .select('*')
-        .or(`google_id.eq.${google_id},email.eq.${email?.toLowerCase().trim()}`)
+        .or(`google_id.eq.${safeGoogleId},email.eq.${safeEmail}`)
         .maybeSingle()
 
       if (existing) {
@@ -197,9 +199,7 @@ export async function googleAuth(req, res) {
 
 export async function testEmail(req, res) {
   res.json({
-    sendgridKey: process.env.SENDGRID_API_KEY ? 'SET (' + process.env.SENDGRID_API_KEY.length + ' chars)' : 'NOT SET',
-    emailFrom: process.env.EMAIL_FROM || 'NOT SET',
-    nodeVersion: process.version,
+    sendgridKey: process.env.SENDGRID_API_KEY ? 'SET' : 'NOT SET',
   })
 }
 
@@ -269,11 +269,19 @@ export async function updateProfile(req, res) {
       }
       if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
       if (gender) updates.gender = gender
-      if (maps_link !== undefined) updates.maps_link = maps_link
+      if (maps_link !== undefined) {
+        if (maps_link && !maps_link.startsWith('http://') && !maps_link.startsWith('https://')) {
+          updates.maps_link = 'https://' + maps_link
+        } else {
+          updates.maps_link = maps_link
+        }
+      }
       if (address !== undefined) updates.address = address
 
       if (req.file) {
-        const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
+      const ext = ALLOWED[req.file.mimetype]
+      if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
         const filename = 'user-avatar-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
         updates.avatar_url = await saveFile(filename, req.file.buffer, req.file.mimetype)
       }
@@ -328,7 +336,7 @@ export async function updateProfile(req, res) {
       })
     }
 
-    res.json({ id: userId, ...req.body })
+    res.json({ id: userId, name: req.body.name || '', phone: req.body.phone || '', email: req.body.email || '' })
   } catch (err) {
     console.error('updateProfile error:', err?.message || err, err?.stack || '', 'code:', err?.code, 'details:', err?.details)
     if (err?.code === '23505') {

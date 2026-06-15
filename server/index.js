@@ -71,11 +71,15 @@ app.use(cors({
   },
 }))
 
-// Body parser — async iteration
+// Body parser — async iteration with size limit
 app.use(async (req, res, next) => {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'DELETE') return next()
   const ct = req.headers['content-type'] || ''
   if (!ct.includes('json') && !ct.includes('urlencoded') && !ct.includes('text')) return next()
+  const contentLength = parseInt(req.headers['content-length'], 10)
+  if (contentLength > 1048576) {
+    return res.status(413).json({ error: 'Request body too large (max 1MB)' })
+  }
   try {
     const chunks = []
     for await (const chunk of req) chunks.push(chunk)
@@ -137,7 +141,7 @@ app.use((err, req, res, next) => {
     return res.status(400).json({ error: 'File too large (max 5MB)' })
   }
   if (err.message && err.message.includes('Only JPEG')) {
-    return res.status(400).json({ error: err.message })
+    return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
   }
   res.status(500).json({ error: 'Internal server error' })
 })

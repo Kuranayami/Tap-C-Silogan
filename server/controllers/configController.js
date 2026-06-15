@@ -13,14 +13,16 @@ export async function getConfigHandler(req, res) {
 export async function updateHeroImage(req, res) {
   try {
     if (!req.file) return res.status(400).json({ error: 'Image file is required' })
-    const ext = ({ 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+    const ALLOWED = { 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
+    const ext = ALLOWED[req.file.mimetype]
+    if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
     const filename = 'hero-' + Date.now() + ext
     const url = await saveFile(filename, req.file.buffer, req.file.mimetype)
     await updateConfig({ heroImage: url })
     res.json({ heroImage: url })
   } catch (err) {
     console.error('Hero image upload failed:', err.message)
-    res.status(500).json({ error: err.message || 'Failed to save image' })
+    res.status(500).json({ error: 'Failed to save image' })
   }
 }
 

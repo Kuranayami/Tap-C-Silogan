@@ -1,4 +1,4 @@
-import { createHash } from 'crypto'
+import bcrypt from 'bcrypt'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { restaurantTokens } from '../services/tokenStore.js'
 import { updateOrderStatus } from '../services/supabase.js'
@@ -12,15 +12,13 @@ export async function loginRestaurant(req, res) {
     if (!hasSupabase) {
       return res.status(500).json({ error: 'Database required' })
     }
-    const hash = createHash('sha256').update(password).digest('hex')
     const { data, error } = await supabase
       .from('restaurants')
-      .select('id, name, status')
+      .select('id, name, status, password_hash')
       .eq('username', username)
-      .eq('password_hash', hash)
       .single()
 
-    if (error || !data) {
+    if (error || !data || !(await bcrypt.compare(password, data.password_hash))) {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
     if (data.status === 'banned' || data.status === 'disabled') {

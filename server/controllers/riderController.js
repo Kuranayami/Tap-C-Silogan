@@ -1,4 +1,4 @@
-import { createHash } from 'crypto'
+import bcrypt from 'bcrypt'
 import {
   getReadyOrders,
   claimOrder,
@@ -33,12 +33,7 @@ export async function loginRider(req, res) {
       .eq('phone', lookupPhone)
       .single()
 
-    if (error || !data) {
-      return res.status(401).json({ error: 'Invalid credentials' })
-    }
-
-    const hash = createHash('sha256').update(password).digest('hex')
-    if (data.password_hash !== hash) {
+    if (error || !data || !(await bcrypt.compare(password, data.password_hash))) {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
@@ -185,12 +180,20 @@ export async function updateRiderProfile(req, res) {
     if (email !== undefined) updates.email = email?.trim().toLowerCase()
     if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
     if (gender) updates.gender = gender
-    if (maps_link !== undefined) updates.maps_link = maps_link
+    if (maps_link !== undefined) {
+      if (maps_link && !maps_link.startsWith('http://') && !maps_link.startsWith('https://')) {
+        updates.maps_link = 'https://' + maps_link
+      } else {
+        updates.maps_link = maps_link
+      }
+    }
     if (vehicle_type) updates.vehicle_type = vehicle_type
     if (license_plate !== undefined) updates.license_plate = license_plate?.trim()
 
     if (req.file) {
-      const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
+      const ext = ALLOWED[req.file.mimetype]
+      if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
       const filename = 'rider-avatar-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
       updates.avatar_url = await saveFile(filename, req.file.buffer, req.file.mimetype)
     }
@@ -239,11 +242,13 @@ export async function registerRider(req, res) {
       return res.status(500).json({ error: 'Registration requires database' })
     }
     const cleanPhone = (function(p){ let d=p.replace(/\D/g,''); if(d.startsWith('63'))d=d.slice(2); if(!d.startsWith('0'))d='0'+d; return d.slice(0,11); })(phone)
-    const hash = createHash('sha256').update(password).digest('hex')
+    const hash = await bcrypt.hash(password, 10)
 
     let avatarUrl = null
     if (req.file) {
-      const ext = ({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' })[req.file.mimetype] || '.bin'
+      const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
+      const ext = ALLOWED[req.file.mimetype]
+      if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
       const filename = 'rider-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
       avatarUrl = await saveFile(filename, req.file.buffer, req.file.mimetype)
     }
