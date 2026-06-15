@@ -287,7 +287,7 @@ export async function updateProfile(req, res) {
 
     res.json({ id: userId, ...req.body })
   } catch (err) {
-    console.error('updateProfile error:', err)
+    console.error('updateProfile error:', err?.message || err, err?.stack || '', 'code:', err?.code, 'details:', err?.details)
     res.status(500).json({ error: 'Failed to update profile' })
   }
 }
