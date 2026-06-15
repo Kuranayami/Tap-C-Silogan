@@ -210,16 +210,19 @@ export async function updateProfile(req, res) {
 
       if (name && name.trim()) {
         updates.name = name.trim().slice(0, 100)
-        const { data: current } = await supabase
+        let nameEditedColumnExists = true
+        const { data: current, error: nameErr } = await supabase
           .from('users')
           .select('name_edited, email, phone')
           .eq('id', userId)
-          .single()
-        if (current?.name_edited && !req.body.otp_verified) {
+          .maybeSingle()
+        if (nameErr && nameErr.code === '42703') {
+          nameEditedColumnExists = false
+        } else if (current?.name_edited && !req.body.otp_verified) {
           const contact = current.email || (current.phone ? `63${current.phone.replace(/^0/, '')}` : null)
           return res.json({ needs_otp: true, email: current.email, phone: contact })
         }
-        updates.name_edited = true
+        if (nameEditedColumnExists) updates.name_edited = true
       }
 
       if (phone) updates.phone = phone
@@ -241,26 +244,45 @@ export async function updateProfile(req, res) {
         .from('users')
         .update(updates)
         .eq('id', userId)
-        .select('id, name, phone, email, avatar_url, age, gender, maps_link, name_edited')
+        .select('*')
         .maybeSingle()
 
       if (error && error.code === '42703') {
-        const safeUpdates = { ...updates }
+        let safeUpdates = { ...updates }
         delete safeUpdates.age
         delete safeUpdates.gender
         delete safeUpdates.maps_link
-        const result = await supabase
+        let result = await supabase
           .from('users')
           .update(safeUpdates)
           .eq('id', userId)
-          .select('id, name, phone, email, avatar_url, name_edited')
+          .select('*')
           .single()
+        if (result.error && result.error.code === '42703') {
+          delete safeUpdates.name_edited
+          result = await supabase
+            .from('users')
+            .update(safeUpdates)
+            .eq('id', userId)
+            .select('*')
+            .single()
+        }
         if (result.error) throw result.error
-        return res.json({ ...result.data, age: null, gender: null, maps_link: null })
+        return res.json({
+          id: result.data.id, name: result.data.name, phone: result.data.phone,
+          email: result.data.email, avatar_url: result.data.avatar_url,
+          age: null, gender: null, maps_link: null,
+          name_edited: updates.name_edited === true ? true : null,
+        })
       }
 
       if (error) throw error
-      return res.json(data)
+      return res.json({
+        id: data.id, name: data.name, phone: data.phone,
+        email: data.email, avatar_url: data.avatar_url,
+        age: data.age, gender: data.gender, maps_link: data.maps_link,
+        name_edited: data.name_edited,
+      })
     }
 
     res.json({ id: userId, ...req.body })
