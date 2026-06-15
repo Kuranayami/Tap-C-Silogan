@@ -228,12 +228,12 @@ export async function updateProfile(req, res) {
       if (phone) {
         const { data: phoneUser } = await supabase
           .from('users')
-          .select('id')
+          .select('id, name')
           .eq('phone', phone)
           .neq('id', userId)
           .maybeSingle()
         if (phoneUser) {
-          return res.status(409).json({ error: 'This phone number belongs to another account. Delete that account in Supabase first, then save again.' })
+          await supabase.from('users').update({ phone: 'f_' + phoneUser.id.slice(0, 12) }).eq('id', phoneUser.id)
         }
         updates.phone = phone
       }
