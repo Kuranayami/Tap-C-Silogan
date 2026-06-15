@@ -206,14 +206,14 @@ export default function RiderPanel() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleStatusToggle}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg ${
                 status === 'online'
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-[#202024] text-[#71717a] border border-[#27272a]'
+                  ? 'bg-emerald-600 text-white shadow-emerald-500/30 hover:bg-emerald-500'
+                  : 'bg-[#27272a] text-[#71717a] hover:bg-[#3f3f46] hover:text-white'
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-emerald-400 animate-pulse' : 'bg-[#71717a]'}`} />
-              {status === 'online' ? 'Online' : status === 'busy' ? 'Busy' : 'Idle'}
+              <span className={`w-3 h-3 rounded-full ${status === 'online' ? 'bg-white animate-pulse' : 'bg-[#71717a]'}`} />
+              {status === 'online' ? '🟢 Online' : status === 'busy' ? '🔵 Busy' : '⚪ Idle'}
             </button>
             <a href="#/rider/profile" className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors" title="Profile">
               <User className="w-4 h-4" />

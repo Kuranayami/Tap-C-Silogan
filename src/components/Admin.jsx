@@ -9,6 +9,7 @@ import {
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
+import { supabase } from '../lib/supabase'
 
 const COLUMNS = [
   { key: 'pending', label: 'Pending', icon: Clock, color: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400', text: 'text-amber-400' },
@@ -450,6 +451,33 @@ export default function Admin() {
       setOrders(prev => prev.filter(o => o.id !== payload.old.id))
     }
   }, [addActivity]))
+
+  useEffect(() => {
+    if (!loggedIn || !supabase) return
+    const channel = supabase
+      .channel('riders-realtime')
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'riders' },
+        (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            setRiders(prev => prev.map(r => r.id === payload.new.id ? { ...r, ...payload.new } : r))
+          } else if (payload.eventType === 'INSERT') {
+            setRiders(prev => [payload.new, ...prev])
+          } else if (payload.eventType === 'DELETE') {
+            setRiders(prev => prev.filter(r => r.id !== payload.old.id))
+          }
+          const fetchRiderStats = async () => {
+            try {
+              const res = await fetch(api('/api/rider/stats'), { headers: adminHeaders() })
+              if (res.ok) setRiderStats(await res.json())
+            } catch {}
+          }
+          fetchRiderStats()
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [loggedIn])
 
   useEffect(() => {
     if (!loggedIn) return
