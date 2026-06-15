@@ -192,14 +192,12 @@ export default function CheckoutModal() {
                     </div>
                   )}
 
-                  {zonePolygon && extractCoordinatesFromUrl(mapsLink) && (
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
-                      <MapPin className={`w-5 h-5 shrink-0 ${inZone ? 'text-emerald-400' : 'text-red-400'}`} />
-                      <span className={`text-sm font-medium ${inZone ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {inZone ? 'You are within our delivery zone' : 'You are outside our delivery zone'}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
+                    <MapPin className={`w-5 h-5 shrink-0 ${inZone ? 'text-emerald-400' : 'text-red-400'}`} />
+                    <span className={`text-sm font-medium ${inZone ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {inZone ? 'You are within our delivery zone' : 'You are outside our delivery zone'}
+                    </span>
+                  </div>
 
                   {items.map(item => (
                     <div
