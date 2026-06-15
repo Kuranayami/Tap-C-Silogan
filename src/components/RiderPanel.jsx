@@ -162,12 +162,18 @@ export default function RiderPanel() {
         headers: { ...riderHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: next }),
       })
+      const data = res.ok ? null : await res.json().catch(() => null)
       if (res.ok) {
         setStatus(next)
         const existing = JSON.parse(localStorage.getItem('rider_profile') || '{}')
         localStorage.setItem('rider_profile', JSON.stringify({ ...existing, status: next }))
+        showNotification(`Status changed to ${next}`, 'success')
+      } else {
+        showNotification(data?.error || 'Failed to change status', 'error')
       }
-    } catch {}
+    } catch {
+      showNotification('Network error changing status', 'error')
+    }
   }
 
   if (!loggedIn) return <RiderLogin onLogin={(r) => { setRider(r); setLoggedIn(true); setStatus(r.status || 'online') }} />

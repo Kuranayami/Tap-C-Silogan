@@ -100,7 +100,7 @@ export async function updateRiderStatus(riderId, status) {
   if (hasSupabase) {
     const { data, error } = await supabase
       .from('riders')
-      .update({ status, last_ping_at: new Date().toISOString() })
+      .update({ status })
       .eq('id', riderId)
       .select()
       .single()
