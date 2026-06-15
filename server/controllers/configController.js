@@ -2,11 +2,12 @@ import { getConfig, updateConfig, addRating, getRatings } from '../services/conf
 import { saveFile } from '../services/storage.js'
 
 function parseKmlCoordinates(kmlText) {
-  const coordsMatch = kmlText.match(/<coordinates>([\s\S]*?)<\/coordinates>/)
+  const coordsRe = /<(?:[^:]*:)?coordinates[^>]*>([\s\S]*?)<\s*\/(?:[^:]*:)?coordinates\s*>/i
+  const coordsMatch = kmlText.match(coordsRe)
   if (!coordsMatch) return null
-  const points = coordsMatch[1].trim().split(/\s+/).map(pair => {
-    const [lng, lat] = pair.split(',').map(Number)
-    return [lat, lng]
+  const points = coordsMatch[1].trim().split(/\s+/).filter(Boolean).map(pair => {
+    const parts = pair.split(',').map(Number)
+    return [parts[1], parts[0]] // [lat, lng]
   })
   return points.length > 2 ? points : null
 }
@@ -142,6 +143,8 @@ export async function uploadZoneKml(req, res) {
   try {
     if (!req.file) return res.status(400).json({ error: 'KML file is required' })
     const kmlText = req.file.buffer.toString('utf-8')
+    console.log('KML file received, size:', req.file.size, 'bytes, mimetype:', req.file.mimetype)
+    console.log('KML preview:', kmlText.slice(0, 500))
     const polygon = parseKmlCoordinates(kmlText)
     if (!polygon) return res.status(400).json({ error: 'Could not find valid polygon coordinates in KML' })
     await updateConfig({ zoneKml: kmlText, zonePolygon: polygon })

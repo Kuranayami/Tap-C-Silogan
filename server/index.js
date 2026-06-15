@@ -136,12 +136,15 @@ app.use('/api/cashier', cashierRoutes)
 app.use('/api/restaurant', restaurantRoutes)
 
 app.use((err, req, res, next) => {
-  console.error('Global error handler:', err?.message || err, err?.stack || '')
+  console.error('Global error handler:', err?.message || err, err?.stack || '', 'path:', req.path, 'method:', req.method)
   if (err.code === 'LIMIT_FILE_SIZE') {
     return res.status(400).json({ error: 'File too large (max 5MB)' })
   }
   if (err.message && err.message.includes('Only JPEG')) {
     return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
+  }
+  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    return res.status(400).json({ error: 'Unexpected file field' })
   }
   res.status(500).json({ error: 'Internal server error' })
 })
