@@ -15,7 +15,7 @@ export default function CheckoutModal() {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
-  const [resolving, setResolving] = useState(false)
+
   const [zoneImage, setZoneImage] = useState(null)
   const [zonePolygon, setZonePolygon] = useState(null)
   const [inZone, setInZone] = useState(true)
@@ -44,33 +44,14 @@ export default function CheckoutModal() {
     }
   }, [checkoutOpen])
 
-  const resolveLink = async (link) => {
-    if (!link) return
-    if (extractCoordinatesFromUrl(link)) return
-    if (!link.includes('google') && !link.includes('goo.gl') && !link.includes('maps.app')) return
-    setResolving(true)
-    try {
-      await fetch(api('/api/location/resolve'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: link }),
-      })
-    } catch {} finally {
-      setResolving(false)
-    }
-  }
-
-  const handleMapsLinkChange = (value) => {
-    setMapsLink(value)
-    setError('')
-    resolveLink(value)
-    if (zonePolygon) {
-      const coords = extractCoordinatesFromUrl(value)
+  useEffect(() => {
+    if (zonePolygon && mapsLink) {
+      const coords = extractCoordinatesFromUrl(mapsLink)
       if (coords) {
         setInZone(pointInPolygon([coords.lat, coords.lng], zonePolygon))
       }
     }
-  }
+  }, [mapsLink, zonePolygon])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -259,23 +240,7 @@ export default function CheckoutModal() {
                         className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
                       />
                     </div>
-                    <div>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Paste Google Maps link (Required)"
-                          value={mapsLink}
-                          onChange={e => handleMapsLinkChange(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors pr-10"
-                        />
-                        {resolving && (
-                          <Loader2 className="w-4 h-4 animate-spin text-[#f97316] absolute right-3 top-1/2 -translate-y-1/2" />
-                        )}
-                      </div>
-                      <p className="text-[#71717a] text-xs mt-1.5">
-                        Helps the rider find your exact location. Open Google Maps, drop a pin, and paste the link.
-                      </p>
-                    </div>
+
                     {error && (
                       <p className="text-red-400 text-xs">{error}</p>
                     )}
