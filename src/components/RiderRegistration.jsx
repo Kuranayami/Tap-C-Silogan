@@ -54,9 +54,7 @@ export default function RiderRegistration({ onComplete, onBack }) {
   const otpRefs = useRef([])
   const fileInputRef = useRef(null)
 
-  const nameRegex = /^.{2,100}$/
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const phoneRegex = /.+/
 
   // ── OTP countdown ──
   useEffect(() => {
@@ -89,7 +87,7 @@ export default function RiderRegistration({ onComplete, onBack }) {
       }
     }
     return errs
-  }, [form, vehicle, licensePlate, nameRegex, emailRegex, phoneRegex])
+  }, [form, vehicle, licensePlate, emailRegex])
 
   const handleBlur = (field) => {
     setTouched(prev => ({ ...prev, [field]: true }))

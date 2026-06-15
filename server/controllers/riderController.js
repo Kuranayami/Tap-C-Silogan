@@ -12,6 +12,7 @@ import {
 } from '../services/rider.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { saveFile } from '../services/storage.js'
+import { riderTokens } from '../services/tokenStore.js'
 
 export async function loginRider(req, res) {
   try {
@@ -41,8 +42,9 @@ export async function loginRider(req, res) {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
+    const token = riderTokens.generate(data.id)
     res.json({
-      token: String(data.id),
+      token,
       rider: {
         id: data.id,
         name: data.name,
@@ -78,7 +80,8 @@ export async function claimOrderHandler(req, res) {
     const order = await claimOrder(order_id, riderId, riderName)
     res.json({ message: 'Order claimed successfully', order })
   } catch (err) {
-    res.status(409).json({ error: err.message || 'Failed to claim order' })
+    console.error('claimOrder error:', err)
+    res.status(409).json({ error: 'Failed to claim order' })
   }
 }
 
@@ -99,7 +102,8 @@ export async function completeDelivery(req, res) {
     const order = await markDelivered(order_id, req.riderId)
     res.json({ message: 'Delivery completed', order })
   } catch (err) {
-    res.status(500).json({ error: err.message || 'Failed to complete delivery' })
+    console.error('completeDelivery error:', err)
+    res.status(500).json({ error: 'Failed to complete delivery' })
   }
 }
 
@@ -111,7 +115,8 @@ export async function setStatus(req, res) {
     const rider = await updateRiderStatus(req.riderId, status)
     res.json({ message: `Status set to ${status}`, rider })
   } catch (err) {
-    res.status(500).json({ error: err.message || 'Failed to update status' })
+    console.error('setStatus error:', err)
+    res.status(500).json({ error: 'Failed to update status' })
   }
 }
 
@@ -144,7 +149,8 @@ export async function updateKitchen(req, res) {
     const order = await updateKitchenStatus(order_id, kitchen_status, packing_progress)
     res.json({ message: 'Kitchen status updated', order })
   } catch (err) {
-    res.status(500).json({ error: err.message || 'Failed to update kitchen status' })
+    console.error('updateKitchen error:', err)
+    res.status(500).json({ error: 'Failed to update kitchen status' })
   }
 }
 
@@ -156,7 +162,8 @@ export async function cancelDeliveryHandler(req, res) {
     const order = await cancelDelivery(order_id, req.riderId)
     res.json({ message: 'Delivery canceled', order })
   } catch (err) {
-    res.status(500).json({ error: err.message || 'Failed to cancel delivery' })
+    console.error('cancelDelivery error:', err)
+    res.status(500).json({ error: 'Failed to cancel delivery' })
   }
 }
 
@@ -199,8 +206,9 @@ export async function registerRider(req, res) {
       if (error.code === '23505') return res.status(409).json({ error: 'Phone number already registered' })
       return res.status(500).json({ error: 'Registration failed: ' + error.message })
     }
+    const regToken = riderTokens.generate(data.id)
     res.status(201).json({
-      token: String(data.id),
+      token: regToken,
       rider: {
         id: data.id, name: data.name, phone: data.phone, email: data.email,
         status: data.status, total_deliveries: 0, rating: 0,

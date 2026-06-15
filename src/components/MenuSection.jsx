@@ -14,8 +14,6 @@ const categories = [
   { key: 'extra', label: 'Extra' },
 ]
 
-const categoryImages = {}
-
 function MenuItemCard({ item, index, onAdd, addingId }) {
   const { items, addItem, removeItem, updateQuantity } = useCart()
 
@@ -40,7 +38,7 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
     >
       <div className="aspect-[4/3] overflow-hidden bg-[#FFEC9E]/30 border-b border-[#FFEC9E] group-hover:border-[#FFBB70] transition-colors">
         <img
-          src={imageUrl(item.image) || categoryImages[item.category] || categoryImages.ulam}
+          src={imageUrl(item.image) || 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400&q=60'}
           alt={item.name}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />

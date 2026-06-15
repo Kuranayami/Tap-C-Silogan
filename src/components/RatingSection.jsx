@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Star, MessageCircle } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
 
@@ -79,7 +79,6 @@ export default function RatingSection() {
                   <div className="px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] text-sm opacity-80">
                     {user.name}
                   </div>
-                  <input type="hidden" name="name" value={user.name} />
                 </>
               ) : (
                 <a href="#/login" className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#ED9455] text-sm hover:border-[#FFBB70] transition-colors font-medium">

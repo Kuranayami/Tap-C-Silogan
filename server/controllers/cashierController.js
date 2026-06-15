@@ -1,5 +1,6 @@
 import { createHash } from 'crypto'
 import { supabase, hasSupabase } from '../services/supabase.js'
+import { cashierTokens } from '../services/tokenStore.js'
 
 export async function loginCashier(req, res) {
   try {
@@ -24,7 +25,8 @@ export async function loginCashier(req, res) {
     if (data.status === 'banned' || data.status === 'disabled') {
       return res.status(403).json({ error: 'Account is disabled' })
     }
-    res.json({ token: String(data.id), cashier: { id: data.id, name: data.name, status: data.status } })
+    const token = cashierTokens.generate(data.id)
+    res.json({ token, cashier: { id: data.id, name: data.name, status: data.status } })
   } catch (err) {
     console.error('loginCashier error:', err)
     res.status(500).json({ error: 'Login failed' })

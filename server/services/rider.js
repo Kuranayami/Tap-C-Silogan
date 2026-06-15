@@ -61,9 +61,15 @@ export async function claimOrder(orderId, riderId, riderName) {
       throw new Error('Failed to claim order: ' + error.message)
     }
 
+    const { data: riderData } = await supabase
+      .from('riders')
+      .select('total_deliveries')
+      .eq('id', riderId)
+      .single()
+    const newCount = (riderData?.total_deliveries || 0) + 1
     await supabase
       .from('riders')
-      .update({ status: 'busy', total_deliveries: supabase.rpc('increment') || undefined })
+      .update({ status: 'busy', total_deliveries: newCount })
       .eq('id', riderId)
 
     return data

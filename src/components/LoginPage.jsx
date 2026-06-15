@@ -54,6 +54,7 @@ export default function LoginPage({ onLogin, onBack }) {
     }
     if (!initGoogle()) {
       const interval = setInterval(() => { if (initGoogle()) clearInterval(interval) }, 200)
+      return () => clearInterval(interval)
     }
   }, [])
 

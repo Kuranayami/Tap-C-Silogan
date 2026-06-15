@@ -37,7 +37,7 @@ export async function updateHeroDish(req, res) {
   try {
     const { name, price } = req.body
     const updates = {}
-    if (name !== undefined) updates.heroDishName = String(name).trim()
+    if (name !== undefined) updates.heroDishName = String(name).trim().replace(/<[^>]*>/g, '')
     if (price !== undefined) updates.heroDishPrice = Number(price)
     await updateConfig(updates)
     res.json({ message: 'Hero dish updated', ...updates })
@@ -50,7 +50,12 @@ export async function updateTestimonials(req, res) {
   try {
     const { testimonials } = req.body
     if (!Array.isArray(testimonials)) return res.status(400).json({ error: 'testimonials array required' })
-    await updateConfig({ testimonials })
+    const sanitized = testimonials.map(t => ({
+      ...t,
+      name: String(t.name || '').replace(/<[^>]*>/g, ''),
+      text: String(t.text || '').replace(/<[^>]*>/g, ''),
+    }))
+    await updateConfig({ testimonials: sanitized })
     res.json({ testimonials })
   } catch (err) {
     res.status(500).json({ error: 'Failed to update testimonials' })

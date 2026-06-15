@@ -86,7 +86,7 @@ function OrderCard({ order }) {
           <summary className="cursor-pointer hover:text-[#a1a1aa]">View items</summary>
           <ul className="mt-1.5 space-y-1 pl-2">
             {order.items.map((item, i) => (
-              <li key={i} className="flex justify-between">
+              <li key={item.id || item.menu_id || i} className="flex justify-between">
                 <span>{item.quantity}x {item.name}</span>
                 <span>₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price, 0)) * item.quantity}</span>
               </li>

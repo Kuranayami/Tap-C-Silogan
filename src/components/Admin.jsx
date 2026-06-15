@@ -397,19 +397,22 @@ export default function Admin() {
         if (res.ok) setRiderStats(await res.json())
       } catch {}
     }
-    const fetchActiveUsers = () => {
+    const fetchActiveUsers = (currentOrders) => {
       const today = new Date().toDateString()
-      const unique = new Set(orders.filter(o => {
+      const unique = new Set(currentOrders.filter(o => {
         const d = o.created_at ? new Date(o.created_at).toDateString() : ''
         return d === today
       }).map(o => o.customer_name?.toLowerCase().trim()).filter(Boolean))
       setActiveUsers(unique.size)
     }
     fetchRiderStats()
-    fetchActiveUsers()
+    fetchActiveUsers(orders)
     const interval = setInterval(() => {
       fetchRiderStats()
-      fetchActiveUsers()
+      setOrders(currentOrders => {
+        fetchActiveUsers(currentOrders)
+        return currentOrders
+      })
     }, 30000)
     return () => clearInterval(interval)
   }, [loggedIn, orders])
@@ -417,10 +420,10 @@ export default function Admin() {
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />
 
   const changeStatus = async (id, newStatus) => {
-    const prev = orders.find(o => o.id === id)
+    const prevOrder = orders.find(o => o.id === id)
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o))
-    if (prev && prev.status !== newStatus) {
-      addActivity(`${prev.customer_name} → ${statusLabel[newStatus]}`, newStatus === 'pending' ? 'warning' : newStatus === 'in_delivery' ? 'success' : 'info')
+    if (prevOrder && prevOrder.status !== newStatus) {
+      addActivity(`${prevOrder.customer_name} → ${statusLabel[newStatus]}`, newStatus === 'pending' ? 'warning' : newStatus === 'in_delivery' ? 'success' : 'info')
     }
     try {
       const res = await fetch(api(`/api/orders/${id}`), {
@@ -429,11 +432,11 @@ export default function Admin() {
         body: JSON.stringify({ status: newStatus }),
       })
       if (res.status === 401) { logout(); return }
-      if (!res.ok) { setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prev?.status } : o)); return }
+      if (!res.ok) { setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prevOrder?.status } : o)); return }
       const updated = await res.json()
       setOrders(prev => prev.map(o => o.id === id ? { ...o, status: updated.status } : o))
     } catch {
-      setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prev?.status } : o))
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prevOrder?.status } : o))
     }
   }
 
@@ -654,7 +657,7 @@ export default function Admin() {
                           <div className="w-8 h-8 rounded-lg bg-[#18181b] overflow-hidden shrink-0"><img src={imageUrl(item.image) || 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=80&q=60'} alt="" className="w-full h-full object-cover" /></div>
                           <div className="flex-1 min-w-0"><p className="text-sm font-medium text-white truncate">{item.name}</p><p className="text-xs text-[#71717a]">₱{item.price} · {item.category}</p></div>
                           {(() => { const disabled = item.active === false; return (<button onClick={async () => { try { await fetch(api(`/api/menu/${item.id}`), { method: 'PATCH', headers: { ...adminHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ active: disabled }) }); fetchMenu() } catch {} }} className={['p-1.5 rounded-lg border transition-all', disabled ? 'bg-red-600/20 border-red-600/40 text-red-400' : 'border-[#27272a] text-[#a1a1aa] hover:text-green-400'].join(' ')} title={disabled ? 'Disabled' : 'Enabled'}><span className={['block w-3 h-3 rounded-full border-2 flex items-center justify-center', disabled ? 'border-red-400' : 'border-[#27272a]'].join(' ')}><span className={['block w-1.5 h-1.5 rounded-full', disabled ? 'bg-red-400' : 'bg-transparent'].join(' ')} /></span></button>)})()}
-                          <button onClick={() => startEdit(item)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all" title="Edit"><Upload className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => startEdit(item)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-all" title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>
                           <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                         </div>
                       )}

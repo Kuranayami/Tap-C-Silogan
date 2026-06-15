@@ -85,7 +85,7 @@ export async function placeOrder(req, res) {
     }
 
     const subtotal = calculateTotal(items)
-    const total = subtotal
+    const total = subtotal + (delivery_fee || 0)
 
     const { data, error } = await createOrder({
       user_id: userId,

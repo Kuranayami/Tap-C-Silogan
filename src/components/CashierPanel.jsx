@@ -84,7 +84,7 @@ export default function CashierPanel() {
   }, [loggedIn]))
 
   const changeStatus = async (id, newStatus) => {
-    const prev = orders.find(o => o.id === id)
+    const prevOrder = orders.find(o => o.id === id)
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o))
     try {
       const res = await fetch(api(`/api/cashier/orders/${id}`), {
@@ -94,13 +94,13 @@ export default function CashierPanel() {
       })
       if (res.status === 401) { logout(); return }
       if (!res.ok) {
-        if (prev) setOrders(prev => prev.map(o => o.id === id ? prev : o))
+        if (prevOrder) setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prevOrder.status } : o))
         return
       }
       const updated = await res.json()
       setOrders(prev => prev.map(o => o.id === id ? { ...o, status: updated.status } : o))
     } catch {
-      if (prev) setOrders(prev => prev.map(o => o.id === id ? prev : o))
+      if (prevOrder) setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prevOrder.status } : o))
     }
   }
 

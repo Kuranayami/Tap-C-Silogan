@@ -43,6 +43,7 @@ export default function RiderPanel() {
   const fetchReadyOrders = useCallback(async () => {
     try {
       const res = await fetch(api('/api/rider/ready-orders'), { headers: riderHeaders() })
+      if (res.status === 401) { logout(); return }
       if (res.ok) setReadyOrders(await res.json())
     } catch {}
   }, [])
@@ -50,6 +51,7 @@ export default function RiderPanel() {
   const fetchActiveOrders = useCallback(async () => {
     try {
       const res = await fetch(api('/api/rider/my-orders'), { headers: riderHeaders() })
+      if (res.status === 401) { logout(); return }
       if (res.ok) setActiveOrders(await res.json())
     } catch {}
   }, [])

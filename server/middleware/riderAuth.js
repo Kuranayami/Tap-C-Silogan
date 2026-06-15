@@ -1,3 +1,4 @@
+import { riderTokens } from '../services/tokenStore.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
 
 export async function requireRider(req, res, next) {
@@ -12,14 +13,20 @@ export async function requireRider(req, res, next) {
 
   try {
     const token = header.slice(7)
+    const riderId = riderTokens.lookup(token)
+    if (!riderId) {
+      return res.status(401).json({ error: 'Invalid or expired token' })
+    }
+
     const { data, error } = await supabase
       .from('riders')
       .select('id, name, status')
-      .eq('id', token)
+      .eq('id', riderId)
       .single()
 
     if (error || !data) {
-      return res.status(401).json({ error: 'Invalid token' })
+      riderTokens.revoke(token)
+      return res.status(401).json({ error: 'Rider not found' })
     }
 
     req.riderId = data.id

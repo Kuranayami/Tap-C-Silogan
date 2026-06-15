@@ -44,6 +44,9 @@ export function requireAdmin(req, res, next) {
 
 export function revokeToken(req, res) {
   const header = req.headers.authorization
+  if (!header || !header.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
   const token = header.slice(7)
   tokens.delete(token)
   saveTokens()

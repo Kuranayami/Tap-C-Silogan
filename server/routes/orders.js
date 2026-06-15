@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { placeOrder, getOrders, updateOrder, removeOrder, trackOrder, cancelOrder, getMyOrders } from '../controllers/orderController.js'
+import { cancelDeliveryHandler } from '../controllers/riderController.js'
 import { requireAdmin } from '../middleware/auth.js'
 import { requireRider } from '../middleware/riderAuth.js'
 import { requireUser } from '../middleware/userAuth.js'
@@ -12,6 +13,9 @@ router.patch('/:id', requireAdmin, updateOrder)
 router.delete('/:id', requireAdmin, removeOrder)
 router.get('/track/:contact', trackOrder)
 router.patch('/:id/cancel', requireAdmin, cancelOrder)
-router.post('/:id/cancel', requireRider, cancelOrder)
+router.post('/:id/cancel', requireRider, (req, res) => {
+  req.body = { order_id: req.params.id }
+  cancelDeliveryHandler(req, res)
+})
 
 export default router

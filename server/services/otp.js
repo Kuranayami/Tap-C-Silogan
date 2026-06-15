@@ -74,6 +74,7 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
     </div>`
     sendEmailViaSendGrid(identifier, 'Your TAP-C Silogan verification code', html)
       .then(sent => console.log(sent ? `[EMAIL] Sent OTP to ${identifier}` : `[EMAIL] Failed to send to ${identifier}`))
+      .catch(err => console.error('[EMAIL] Unhandled error:', err))
   }
 
   return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!process.env.SENDGRID_API_KEY }
@@ -97,6 +98,8 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
     }
 
     if (!rows || rows.length === 0) {
+      const inMem = verifyOtpInMemory(identifier + ':' + purpose, otpCode)
+      if (inMem?.verified) return inMem
       throw new Error('No valid OTP found. Request a new one.')
     }
 

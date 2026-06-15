@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, Menu, X, ChefHat, User, Bike, Package, LogOut } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
-import { api } from '../api'
 
 const links = [
   { label: 'Home', id: 'home' },
@@ -14,7 +13,7 @@ const links = [
 
 export default function Navbar() {
   const { itemCount, openCart } = useCart()
-  const { user, token, logout } = useAuth()
+  const { user, logout } = useAuth()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
