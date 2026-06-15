@@ -18,21 +18,20 @@ export default function UserProfile({ onBack }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (!token) return
     fetch(api('/api/auth/profile'), { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.ok && r.json())
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
       .then(d => {
-        if (d) {
-          updateUser({
-            name: d.name, phone: d.phone, avatar_url: d.avatar_url,
-            age: d.age, gender: d.gender, maps_link: d.maps_link,
-          })
-          setName(d.name || '')
-          setPhone(d.phone || '')
-          setAge(d.age ?? '')
-          setGender(d.gender || '')
-          setMapsLink(d.maps_link || '')
-          if (d.avatar_url) setAvatarPreview(imageUrl(d.avatar_url))
-        }
+        updateUser({
+          name: d.name, phone: d.phone, avatar_url: d.avatar_url,
+          age: d.age, gender: d.gender, maps_link: d.maps_link,
+        })
+        setName(d.name || '')
+        setPhone(d.phone || '')
+        setAge(d.age ?? '')
+        setGender(d.gender || '')
+        setMapsLink(d.maps_link || '')
+        if (d.avatar_url) setAvatarPreview(imageUrl(d.avatar_url))
       })
       .catch(() => {})
   }, [token])

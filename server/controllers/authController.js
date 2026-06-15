@@ -97,7 +97,7 @@ export async function verifyOtpHandler(req, res) {
     res.json({
       message: 'OTP verified successfully',
       token,
-      user: user ? { id: user.id, name: user.name, phone: user.phone, email: user.email, avatar_url: user.avatar_url, age: user.age, gender: user.gender, maps_link: user.maps_link } : { id: identifier },
+      user: user ? { id: user.id, name: user.name, phone: user.phone ?? null, email: user.email, avatar_url: user.avatar_url ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null } : { id: identifier },
     })
   } catch (err) {
     console.error('verifyOtpHandler error:', err)
@@ -156,7 +156,7 @@ export async function googleAuth(req, res) {
       message: 'Google authentication successful',
       token,
       user: user
-        ? { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url, phone: user.phone, age: user.age, gender: user.gender, maps_link: user.maps_link }
+        ? { id: user.id, name: user.name, email: user.email, avatar_url: user.avatar_url ?? null, phone: user.phone ?? null, age: user.age ?? null, gender: user.gender ?? null, maps_link: user.maps_link ?? null }
         : { google_id, name, email },
     })
   } catch (err) {
@@ -187,10 +187,10 @@ export async function getProfile(req, res) {
 
       if (error) return res.status(404).json({ error: 'User not found' })
       return res.json({
-        id: data.id, name: data.name, phone: data.phone, email: data.email,
-        avatar_url: data.avatar_url, auth_provider: data.auth_provider,
-        created_at: data.created_at, name_edited: data.name_edited,
-        age: data.age, gender: data.gender, maps_link: data.maps_link,
+        id: data.id, name: data.name, phone: data.phone ?? null, email: data.email,
+        avatar_url: data.avatar_url ?? null, auth_provider: data.auth_provider,
+        created_at: data.created_at, name_edited: data.name_edited ?? null,
+        age: data.age ?? null, gender: data.gender ?? null, maps_link: data.maps_link ?? null,
       })
     }
 
@@ -289,10 +289,10 @@ export async function updateProfile(req, res) {
 
       if (error) throw error
       return res.json({
-        id: data.id, name: data.name, phone: data.phone,
-        email: data.email, avatar_url: data.avatar_url,
-        age: data.age, gender: data.gender, maps_link: data.maps_link,
-        name_edited: data.name_edited,
+        id: data.id, name: data.name, phone: data.phone ?? null,
+        email: data.email, avatar_url: data.avatar_url ?? null,
+        age: data.age ?? null, gender: data.gender ?? null, maps_link: data.maps_link ?? null,
+        name_edited: data.name_edited ?? null,
       })
     }
 
