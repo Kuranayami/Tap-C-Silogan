@@ -1,5 +1,6 @@
 import { randomInt } from 'crypto'
 import { supabase, hasSupabase } from './supabase.js'
+import { sendSms } from './sms.js'
 
 const OTP_LENGTH = 6
 const OTP_TTL_MIN = 5
@@ -65,6 +66,13 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
 
   console.log(`[OTP:${channel.toUpperCase()}] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
 
+  if (channel === 'sms' && !identifier.includes('@')) {
+    const msg = `Your TAP-C Silogan verification code is ${otpCode}. Valid for ${OTP_TTL_MIN} minutes.`
+    sendSms(identifier, msg)
+      .then(sent => console.log(sent ? `[SMS] Sent OTP to ${identifier}` : `[SMS] Failed to send to ${identifier}`))
+      .catch(err => console.error('[SMS] Unhandled error:', err))
+  }
+
   if (channel === 'email' && identifier.includes('@')) {
     const html = `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#1a1a2e;border-radius:12px;text-align:center">
       <h2 style="color:#f97316;margin:0 0 16px">TAP-C Silogan</h2>
@@ -77,7 +85,7 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
       .catch(err => console.error('[EMAIL] Unhandled error:', err))
   }
 
-  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!process.env.SENDGRID_API_KEY }
+  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!process.env.SENDGRID_API_KEY, smsConfigured: !!process.env.SEMAPHORE_API_KEY }
 }
 
 export async function verifyOtp(identifier, otpCode, purpose = 'login') {
