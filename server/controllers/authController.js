@@ -232,7 +232,10 @@ export async function updateProfile(req, res) {
           .eq('phone', phone)
           .neq('id', userId)
           .maybeSingle()
-        if (!phoneUser) updates.phone = phone
+        if (phoneUser) {
+          await supabase.from('users').update({ phone: null }).eq('id', phoneUser.id)
+        }
+        updates.phone = phone
       }
       if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
       if (gender) updates.gender = gender
