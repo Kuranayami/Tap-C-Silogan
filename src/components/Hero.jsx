@@ -50,7 +50,7 @@ export default function Hero() {
               <span className="text-[#FFBB70]"> Perfection</span>.
             </h1>
 
-            <p className="text-lg sm:text-xl text-[#D48040] max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl text-[#4A3728] max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
               Late-night cravings? We've got you covered. Tap C Silogan serves
               the best silog meals and fresh fruit shakes in Marikina.
             </p>
@@ -65,13 +65,13 @@ export default function Hero() {
               </button>
               <a
                 href="#menu"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#D48040] hover:text-[#FFBB70] hover:border-[#FFBB70] font-medium transition-all shadow-sm"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] hover:text-[#FFBB70] hover:border-[#FFBB70] font-medium transition-all shadow-sm"
               >
                 View Menu
               </a>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm text-[#D48040]/70 justify-center lg:justify-start">
+            <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm text-[#4A3728] justify-center lg:justify-start">
               <span className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-[#FFBB70]" />
                 {storeInfo.hours.days}, {storeInfo.hours.open} – {storeInfo.hours.close}
@@ -103,7 +103,7 @@ export default function Hero() {
                   <div className="w-full h-full flex items-center justify-center bg-[#FFEC9E]/30">
                     <div className="text-center">
                       <ChefHat className="w-16 h-16 text-[#FFBB70]/50 mx-auto mb-2" />
-                      <p className="text-sm text-[#D48040]/60">No hero image set</p>
+                      <p className="text-sm text-[#4A3728]/60">No hero image set</p>
                     </div>
                   </div>
                 )}

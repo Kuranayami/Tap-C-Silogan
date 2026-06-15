@@ -35,7 +35,7 @@ export default function Testimonials() {
             </span>{' '}
             Us
           </h2>
-          <p className="text-[#D48040] max-w-xl mx-auto">
+          <p className="text-[#4A3728] max-w-xl mx-auto">
             Here's what our customers have to say about their experience.
           </p>
         </motion.div>
@@ -64,10 +64,10 @@ export default function Testimonials() {
                   />
                 ))}
               </div>
-              <p className="text-sm text-[#D48040]/90 leading-relaxed mb-4 italic">
+              <p className="text-sm text-[#4A3728] leading-relaxed mb-4 italic">
                 "{t.text}"
               </p>
-              <p className="text-sm font-semibold text-[#D48040]">{t.name}</p>
+              <p className="text-sm font-semibold text-[#4A3728]">{t.name}</p>
             </motion.div>
           ))}
         </div>

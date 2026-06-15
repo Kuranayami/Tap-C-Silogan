@@ -24,7 +24,7 @@ export default function CTA() {
                 Order Now!
               </span>
             </h2>
-            <p className="text-[#D48040] text-lg max-w-lg mx-auto mb-8 leading-relaxed">
+            <p className="text-[#4A3728] text-lg max-w-lg mx-auto mb-8 leading-relaxed">
               Late-night cravings won't satisfy themselves. Get your favorite
               silog meals and shakes delivered to your doorstep.
             </p>

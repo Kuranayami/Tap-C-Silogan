@@ -44,22 +44,22 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
         />
       </div>
       <div className="relative px-3 py-3 sm:px-4 sm:py-4 pr-4 sm:pr-5">
-        <h3 className="text-sm sm:text-base font-semibold text-[#D48040] truncate">
+        <h3 className="text-sm sm:text-base font-semibold text-[#4A3728] truncate">
           {item.name}
         </h3>
         <div className="flex items-center justify-between mt-2">
           {item.category === 'extra' ? (
             <div className="flex items-center gap-2 w-full justify-between">
-              <span className="text-lg font-bold text-[#D48040]">₱{item.price}</span>
+              <span className="text-lg font-bold text-[#4A3728]">₱{item.price}</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleExtraDecrement}
                   disabled={cartQty === 0}
-                  className="w-7 h-7 rounded-md border border-[#FFEC9E] text-[#D48040]/60 hover:text-[#D48040] hover:border-[#FFBB70] flex items-center justify-center transition-all disabled:opacity-30"
+                  className="w-7 h-7 rounded-md border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] hover:border-[#FFBB70] flex items-center justify-center transition-all disabled:opacity-30"
                 >
                   <Minus className="w-3.5 h-3.5" />
                 </button>
-                <span className="w-6 text-center text-[#D48040] font-bold text-sm">{cartQty}</span>
+                <span className="w-6 text-center text-[#4A3728] font-bold text-sm">{cartQty}</span>
                 <button
                   onClick={handleExtraIncrement}
                   className="w-7 h-7 rounded-md bg-[#D48040] hover:bg-[#302b26] text-[#FFFBDA] flex items-center justify-center transition-all active:scale-90"
@@ -70,7 +70,7 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
             </div>
           ) : (
             <>
-              <span className="text-lg font-bold text-[#D48040]">₱{item.price}</span>
+              <span className="text-lg font-bold text-[#4A3728]">₱{item.price}</span>
               <button
                 onClick={() => onAdd(item, [])}
                 disabled={addingId === item.id}
@@ -128,7 +128,7 @@ export default function MenuSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-[#D48040]">
             Signature Dishes
           </h2>
-          <p className="text-[#D48040] max-w-xl mx-auto">
+          <p className="text-[#4A3728] max-w-xl mx-auto">
             From classic silogs to refreshing shakes — every dish is made to satisfy.
           </p>
         </motion.div>
@@ -141,7 +141,7 @@ export default function MenuSection() {
               className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${
                 activeCategory === cat.key
                   ? 'bg-[#D48040] text-[#FFFBDA] shadow-md shadow-[#D48040]/10'
-                  : 'bg-[#FFFBDA] text-[#D48040] border border-[#FFEC9E] hover:border-[#FFBB70]'
+                  : 'bg-[#FFFBDA] text-[#4A3728] border border-[#FFEC9E] hover:border-[#FFBB70]'
               }`}
             >
               {cat.label}

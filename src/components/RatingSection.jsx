@@ -61,7 +61,7 @@ export default function RatingSection() {
           {submitted ? (
             <div className="text-center py-6">
               <Star className="w-12 h-12 text-[#FFBB70] fill-[#FFBB70] mx-auto mb-3" />
-              <p className="text-[#D48040] font-semibold text-lg">Thank you for your rating!</p>
+              <p className="text-[#4A3728] font-semibold text-lg">Thank you for your rating!</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -76,17 +76,17 @@ export default function RatingSection() {
               </div>
               {user ? (
                 <>
-                  <div className="px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#D48040] text-sm opacity-80">
+                  <div className="px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm opacity-80">
                     {user.name}
                   </div>
                 </>
               ) : (
-                <a href="#/login" className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#D48040] text-sm hover:border-[#FFBB70] transition-colors font-medium">
+                <a href="#/login" className="block w-full text-center px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm hover:border-[#FFBB70] transition-colors font-medium">
                   Sign in to leave a rating
                 </a>
               )}
               <textarea placeholder="Comment (optional)" value={comment} onChange={e => setComment(e.target.value)} rows={3}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#D48040] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
               <button type="submit" disabled={!user || !rating || submitting}
                 className="w-full px-6 py-3 rounded-xl bg-[#D48040] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold transition-all disabled:opacity-40 active:scale-[0.98]">
                 {submitting ? 'Submitting...' : 'Submit Rating'}
@@ -102,7 +102,7 @@ export default function RatingSection() {
                 <Star key={n} className={`w-5 h-5 ${n <= Math.round(average) ? 'fill-[#FFBB70] text-[#FFBB70]' : 'text-[#FFEC9E]'}`} />
               ))}
             </div>
-            <p className="text-2xl font-bold text-[#D48040]">{average} <span className="text-sm text-[#D48040]/80 font-normal">({count} review{count !== 1 ? 's' : ''})</span></p>
+            <p className="text-2xl font-bold text-[#D48040]">{average} <span className="text-sm text-[#4A3728]/80 font-normal">({count} review{count !== 1 ? 's' : ''})</span></p>
           </motion.div>
         )}
 
@@ -114,9 +114,9 @@ export default function RatingSection() {
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-[#FFBB70]/20 flex items-center justify-center">
-                    <span className="text-xs font-bold text-[#D48040]">{item.name[0]}</span>
+                    <span className="text-xs font-bold text-[#4A3728]">{item.name[0]}</span>
                   </div>
-                  <span className="text-sm font-medium text-[#D48040]">{item.name}</span>
+                  <span className="text-sm font-medium text-[#4A3728]">{item.name}</span>
                 </div>
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map(n => (
@@ -124,7 +124,7 @@ export default function RatingSection() {
                   ))}
                 </div>
               </div>
-              {item.comment && <p className="text-sm text-[#D48040] leading-relaxed">{item.comment}</p>}
+              {item.comment && <p className="text-sm text-[#4A3728] leading-relaxed">{item.comment}</p>}
             </motion.div>
           ))}
         </div>
