@@ -271,7 +271,7 @@ export async function registerRider(req, res) {
       .single()
     if (error) {
       if (error.code === '23505') return res.status(409).json({ error: 'Phone number already registered' })
-      return res.status(500).json({ error: 'Registration failed: ' + error.message })
+      return res.status(500).json({ error: 'Registration failed' })
     }
     const regToken = riderTokens.generate(data.id)
     res.status(201).json({

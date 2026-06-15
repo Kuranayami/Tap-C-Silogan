@@ -8,7 +8,15 @@ router.post('/resolve', async (req, res) => {
     if (!url || typeof url !== 'string') {
       return res.status(400).json({ error: 'URL is required' })
     }
-    if (!url.includes('google') && !url.includes('goo.gl') && !url.includes('maps.app')) {
+    let parsed
+    try { parsed = new URL(url) } catch {
+      return res.status(400).json({ error: 'Invalid URL' })
+    }
+    if (parsed.protocol !== 'https:') {
+      return res.status(400).json({ error: 'Only HTTPS URLs are allowed' })
+    }
+    const host = parsed.hostname.toLowerCase()
+    if (!host.endsWith('.google.com') && host !== 'google.com' && !host.endsWith('.goo.gl') && host !== 'goo.gl' && !host.endsWith('maps.app') && host !== 'maps.app') {
       return res.status(400).json({ error: 'Only Google Maps URLs are supported' })
     }
     const response = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(5000) })

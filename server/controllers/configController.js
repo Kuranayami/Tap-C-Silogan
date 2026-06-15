@@ -68,7 +68,7 @@ export async function submitRating(req, res) {
   try {
     const { name, rating, comment } = req.body
     if (!name || !rating || rating < 1 || rating > 5) return res.status(400).json({ error: 'Name and rating (1-5) required' })
-    const entry = await addRating({ name: name.trim(), rating: Number(rating), comment: (comment || '').trim() })
+    const entry = await addRating({ name: name.trim().replace(/<[^>]*>/g, '').slice(0, 100), rating: Number(rating), comment: (comment || '').trim().replace(/<[^>]*>/g, '').slice(0, 500) })
     res.status(201).json(entry)
   } catch (err) {
     res.status(500).json({ error: 'Failed to submit rating' })
