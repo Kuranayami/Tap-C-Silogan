@@ -2,6 +2,7 @@ import { createHash } from 'crypto'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { cashierTokens } from '../services/tokenStore.js'
 import { saveFile } from '../services/storage.js'
+import { updateOrderStatus } from '../services/supabase.js'
 
 export async function loginCashier(req, res) {
   try {
@@ -166,5 +167,25 @@ export async function deleteCashier(req, res) {
   } catch (err) {
     console.error('deleteCashier error:', err)
     res.status(500).json({ error: 'Failed to delete cashier' })
+  }
+}
+
+export async function cashierUpdateOrder(req, res) {
+  try {
+    const { id } = req.params
+    const { status } = req.body
+
+    const ALLOWED = ['ongoing', 'canceled']
+    if (!status || !ALLOWED.includes(status.toLowerCase())) {
+      return res.status(403).json({ error: 'Cashier can only accept (ongoing) or cancel orders' })
+    }
+
+    const order = await updateOrderStatus(id, status.toLowerCase())
+    if (!order) return res.status(404).json({ error: 'Order not found' })
+
+    res.json(order)
+  } catch (err) {
+    console.error('cashierUpdateOrder error:', err)
+    res.status(500).json({ error: 'Failed to update order' })
   }
 }

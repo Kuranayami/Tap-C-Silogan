@@ -218,7 +218,6 @@ export default function CashierPanel() {
                           className="rounded-xl border border-[#27272a] bg-[#202024] p-3 cursor-pointer hover:border-[#f97316]/30 transition-colors"
                           onClick={() => {
                             if (col.key === 'pending') changeStatus(order.id, 'ongoing')
-                            else if (col.key === 'ongoing') changeStatus(order.id, 'in_delivery')
                           }}
                         >
                           <div className="flex items-start justify-between mb-2">
@@ -281,21 +280,10 @@ export default function CashierPanel() {
                                 <CheckCircle className="w-3 h-3" /> Accept
                               </button>
                             )}
-                            {col.key === 'ongoing' && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); changeStatus(order.id, 'in_delivery') }}
-                                className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-all"
-                              >
-                                <Package className="w-3 h-3" /> Ready
-                              </button>
-                            )}
                             {col.key === 'in_delivery' && (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); changeStatus(order.id, 'done') }}
-                                className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition-all"
-                              >
-                                <CheckCircle className="w-3 h-3" /> Done
-                              </button>
+                              <div className="flex-1 text-center py-1.5 text-[10px] text-emerald-400 font-medium">
+                                Awaiting rider pickup
+                              </div>
                             )}
                           </div>
                         </motion.div>
@@ -311,14 +299,7 @@ export default function CashierPanel() {
                     Accept All ({items.length})
                   </button>
                 )}
-                {col.key === 'in_delivery' && items.length > 1 && (
-                  <button
-                    onClick={() => items.forEach(o => changeStatus(o.id, 'done'))}
-                    className="mt-2 w-full py-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white hover:border-emerald-500/30 text-xs font-medium transition-all"
-                  >
-                    Done All ({items.length})
-                  </button>
-                )}
+
               </div>
             )
           })}

@@ -134,6 +134,15 @@ const OrderCard = memo(({ order, colKey, onChangeStatus, onDeleteOrder, onDragSt
               <CheckCircle className="w-3 h-3" /> Accept
             </button>
           )}
+          {colKey === 'ongoing' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onChangeStatus(order.id, 'in_delivery') }}
+              className="hover:text-blue-400 transition-colors p-0.5 text-[10px] flex items-center gap-0.5"
+              title="Mark as ready for delivery"
+            >
+              <Package className="w-3 h-3" /> Ready
+            </button>
+          )}
           <button onClick={(e) => { e.stopPropagation(); onDeleteOrder(order.id) }} className="hover:text-red-400 transition-colors p-0.5"><Trash2 className="w-3 h-3" /></button>
         </div>
       </div>
