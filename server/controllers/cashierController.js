@@ -83,12 +83,17 @@ export async function getCashierProfile(req, res) {
 
     const { data, error } = await supabase
       .from('cashiers')
-      .select('id, name, username, status, phone, avatar_url, age, gender, maps_link, created_at')
+      .select('*')
       .eq('id', cashierId)
       .single()
 
     if (error) return res.status(404).json({ error: 'Cashier not found' })
-    res.json(data)
+    res.json({
+      id: data.id, name: data.name, username: data.username,
+      status: data.status, created_at: data.created_at,
+      phone: data.phone, avatar_url: data.avatar_url,
+      age: data.age, gender: data.gender, maps_link: data.maps_link,
+    })
   } catch (err) {
     console.error('getCashierProfile error:', err)
     res.status(500).json({ error: 'Failed to fetch profile' })
@@ -119,12 +124,29 @@ export async function updateCashierProfile(req, res) {
       return res.status(400).json({ error: 'No fields to update' })
     }
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('cashiers')
       .update(updates)
       .eq('id', cashierId)
       .select('id, name, username, status, phone, avatar_url, age, gender, maps_link')
-      .single()
+      .maybeSingle()
+
+    if (error && error.code === '42703') {
+      const safeUpdates = { ...updates }
+      delete safeUpdates.age
+      delete safeUpdates.gender
+      delete safeUpdates.maps_link
+      delete safeUpdates.phone
+      delete safeUpdates.avatar_url
+      const result = await supabase
+        .from('cashiers')
+        .update(safeUpdates)
+        .eq('id', cashierId)
+        .select('id, name, username, status')
+        .single()
+      if (result.error) throw result.error
+      return res.json({ ...result.data, phone: null, avatar_url: null, age: null, gender: null, maps_link: null })
+    }
 
     if (error) throw error
     res.json(data)

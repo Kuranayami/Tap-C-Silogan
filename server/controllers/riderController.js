@@ -196,12 +196,27 @@ export async function updateRiderProfile(req, res) {
       return res.status(400).json({ error: 'No fields to update' })
     }
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('riders')
       .update(updates)
       .eq('id', riderId)
       .select('id, name, phone, email, avatar_url, status, total_deliveries, rating, vehicle_type, license_plate, age, gender, maps_link')
-      .single()
+      .maybeSingle()
+
+    if (error && error.code === '42703') {
+      const safeUpdates = { ...updates }
+      delete safeUpdates.age
+      delete safeUpdates.gender
+      delete safeUpdates.maps_link
+      const result = await supabase
+        .from('riders')
+        .update(safeUpdates)
+        .eq('id', riderId)
+        .select('id, name, phone, email, avatar_url, status, total_deliveries, rating, vehicle_type, license_plate')
+        .single()
+      if (result.error) throw result.error
+      return res.json({ ...result.data, age: null, gender: null, maps_link: null })
+    }
 
     if (error) throw error
     res.json(data)

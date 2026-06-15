@@ -181,12 +181,17 @@ export async function getProfile(req, res) {
     if (hasSupabase) {
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, phone, email, avatar_url, auth_provider, created_at, name_edited, age, gender, maps_link')
+        .select('*')
         .eq('id', userId)
         .single()
 
       if (error) return res.status(404).json({ error: 'User not found' })
-      return res.json(data)
+      return res.json({
+        id: data.id, name: data.name, phone: data.phone, email: data.email,
+        avatar_url: data.avatar_url, auth_provider: data.auth_provider,
+        created_at: data.created_at, name_edited: data.name_edited,
+        age: data.age, gender: data.gender, maps_link: data.maps_link,
+      })
     }
 
     res.json({ id: userId, name: 'Customer', phone: userId, name_edited: false })
@@ -232,12 +237,27 @@ export async function updateProfile(req, res) {
         return res.status(400).json({ error: 'No fields to update' })
       }
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('users')
         .update(updates)
         .eq('id', userId)
         .select('id, name, phone, email, avatar_url, age, gender, maps_link, name_edited')
-        .single()
+        .maybeSingle()
+
+      if (error && error.code === '42703') {
+        const safeUpdates = { ...updates }
+        delete safeUpdates.age
+        delete safeUpdates.gender
+        delete safeUpdates.maps_link
+        const result = await supabase
+          .from('users')
+          .update(safeUpdates)
+          .eq('id', userId)
+          .select('id, name, phone, email, avatar_url, name_edited')
+          .single()
+        if (result.error) throw result.error
+        return res.json({ ...result.data, age: null, gender: null, maps_link: null })
+      }
 
       if (error) throw error
       return res.json(data)
