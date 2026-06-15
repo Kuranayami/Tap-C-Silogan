@@ -67,19 +67,49 @@ export async function verifyOtpHandler(req, res) {
 
     let user = null
 
-    if (phone && hasSupabase) {
-      const { data: existing } = await supabase
-        .from('users')
-        .select('*')
-        .eq('phone', identifier)
-        .maybeSingle()
+    if (hasSupabase) {
+      if (phone) {
+        const { data: byPhone } = await supabase
+          .from('users')
+          .select('*')
+          .eq('phone', identifier)
+          .maybeSingle()
 
-      if (existing) {
-        user = existing
-      } else {
+        if (byPhone) {
+          user = byPhone
+        } else if (email) {
+          const cleanEmail = email.toLowerCase().trim()
+          const { data: byEmail } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', cleanEmail)
+            .maybeSingle()
+
+          if (byEmail) {
+            await supabase.from('users').update({ phone: identifier }).eq('id', byEmail.id)
+            user = { ...byEmail, phone: identifier }
+          }
+        }
+      } else if (email) {
+        const { data: byEmail } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', identifier)
+          .maybeSingle()
+
+        if (byEmail) {
+          user = byEmail
+        }
+      }
+
+      if (!user) {
+        const insertData = phone
+          ? { phone: identifier, name: 'Customer', is_verified: true }
+          : { email: identifier, name: 'Customer', is_verified: true }
+
         const { data: newUser, error: createErr } = await supabase
           .from('users')
-          .insert({ phone: identifier, name: 'Customer', is_verified: true })
+          .insert(insertData)
           .select()
           .single()
 
