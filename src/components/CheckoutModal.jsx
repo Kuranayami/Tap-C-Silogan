@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check, Loader2, MapPin } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
@@ -16,6 +16,20 @@ export default function CheckoutModal() {
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
   const [resolving, setResolving] = useState(false)
+
+  useEffect(() => {
+    if (checkoutOpen && token) {
+      fetch(api('/api/auth/profile'), { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok && r.json())
+        .then(d => {
+          if (d) {
+            setForm({ name: d.name || user?.name || '', contact: d.phone || user?.phone || '', address: '' })
+            setMapsLink(d.maps_link || user?.maps_link || '')
+          }
+        })
+        .catch(() => {})
+    }
+  }, [checkoutOpen])
 
   const showTotal = subtotal + DELIVERY_FEE
 
