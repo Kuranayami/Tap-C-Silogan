@@ -240,6 +240,14 @@ export default function CheckoutModal() {
                         className="w-full px-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
                       />
                     </div>
+                    <div>
+                      <input
+                        type="text"
+                        value={mapsLink || 'No Google Maps link set'}
+                        readOnly
+                        className="w-full px-4 py-2.5 rounded-xl bg-[#202024] border border-[#27272a] text-[#71717a] text-sm cursor-not-allowed"
+                      />
+                    </div>
 
                     {error && (
                       <p className="text-red-400 text-xs">{error}</p>
