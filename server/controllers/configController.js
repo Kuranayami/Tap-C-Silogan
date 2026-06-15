@@ -4,27 +4,21 @@ import { saveFile } from '../services/storage.js'
 function parseKmlCoordinates(kmlText) {
   const coordsRe = /<(?:[^:]*:)?coordinates[^>]*>([\s\S]*?)<\s*\/(?:[^:]*:)?coordinates\s*>/i
   const coordsMatch = kmlText.match(coordsRe)
-  if (!coordsMatch) {
-    console.log('KML parse: no <coordinates> tag found. Trying fallback...')
-    const fallback = kmlText.match(/(-?\d+\.\d+),(-?\d+\.\d+)(?:,0)?/)
-    if (fallback) {
-      console.log('KML fallback: found coordinate pair via regex')
-      const allPairs = [...kmlText.matchAll(/(-?\d+\.\d+),(-?\d+\.\d+)(?:,0)?/g)].map(m => [parseFloat(m[2]), parseFloat(m[1])])
-      if (allPairs.length > 2) return allPairs
-    }
-    console.log('KML parse fallback also failed. First 2000 chars:', kmlText.slice(0, 2000))
-    return null
-  }
+  if (!coordsMatch) return null
   const raw = coordsMatch[1].trim()
   const tokens = raw.split(/\s+/).filter(Boolean)
-  console.log('KML parse: raw length:', raw.length, 'tokens:', tokens.length, 'first:', tokens[0])
   const points = tokens.map(pair => {
     const parts = pair.split(',').map(Number)
     if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null
     return [parts[1], parts[0]]
   }).filter(Boolean)
-  console.log('KML parse: valid points:', points.length)
   return points.length > 2 ? points : null
+}
+
+function extractNetworkLinkHref(kmlText) {
+  const match = kmlText.match(/<href[^>]*>([\s\S]*?)<\/href\s*>/i)
+  if (!match) return null
+  return match[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim()
 }
 
 export async function getConfigHandler(req, res) {
@@ -157,11 +151,31 @@ export async function deleteZoneImage(req, res) {
 export async function uploadZoneKml(req, res) {
   try {
     if (!req.file) return res.status(400).json({ error: 'KML file is required' })
-    const kmlText = req.file.buffer.toString('utf-8')
+    let kmlText = req.file.buffer.toString('utf-8')
     console.log('KML file received, size:', req.file.size, 'bytes, mimetype:', req.file.mimetype)
-    console.log('KML preview:', kmlText.slice(0, 500))
-    const polygon = parseKmlCoordinates(kmlText)
-    if (!polygon) return res.status(400).json({ error: 'Could not find valid polygon coordinates in KML' })
+
+    let polygon = parseKmlCoordinates(kmlText)
+
+    if (!polygon) {
+      const href = extractNetworkLinkHref(kmlText)
+      if (href) {
+        console.log('KML has NetworkLink, fetching from:', href)
+        try {
+          const resp = await fetch(href)
+          if (resp.ok) {
+            const resolved = await resp.text()
+            console.log('Resolved KML size:', resolved.length, 'bytes')
+            polygon = parseKmlCoordinates(resolved)
+          } else {
+            console.log('Failed to fetch NetworkLink href, status:', resp.status)
+          }
+        } catch (fetchErr) {
+          console.log('NetworkLink fetch failed:', fetchErr.message)
+        }
+      }
+    }
+
+    if (!polygon) return res.status(400).json({ error: 'Could not find valid polygon coordinates in KML. Make sure your map has a drawn polygon and try exporting again.' })
     await updateConfig({ zoneKml: kmlText, zonePolygon: polygon })
     res.json({ message: 'Zone KML uploaded', zonePolygon: polygon })
   } catch (err) {
