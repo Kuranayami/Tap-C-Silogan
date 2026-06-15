@@ -50,7 +50,7 @@ export default function Hero() {
               <span className="text-[#FFBB70]"> Perfection</span>.
             </h1>
 
-            <p className="text-lg sm:text-xl text-[#D48040]/80 max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl text-[#D48040] max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
               Late-night cravings? We've got you covered. Tap C Silogan serves
               the best silog meals and fresh fruit shakes in Marikina.
             </p>

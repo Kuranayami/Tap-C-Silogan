@@ -37,7 +37,7 @@ export default function MediaShowcase() {
         </motion.div>
 
         {!loading && images.length === 0 && (
-          <div className="text-center py-20 text-[#D48040]/60">
+          <div className="text-center py-20 text-[#D48040]/80">
             <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-30" />
             <p className="text-sm">No images yet.</p>
           </div>

@@ -21,7 +21,7 @@ export default function Footer() {
                 Tap C <span className="text-[#FFBB70]">Silogan</span>
               </span>
             </div>
-            <p className="text-sm text-[#D48040]/80 leading-relaxed">
+            <p className="text-sm text-[#D48040] leading-relaxed">
               Serving the best silog meals and fresh fruit shakes in Marikina.
               Late-night cravings, sorted.
             </p>

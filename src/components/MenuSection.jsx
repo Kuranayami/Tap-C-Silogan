@@ -128,7 +128,7 @@ export default function MenuSection() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4 text-[#D48040]">
             Signature Dishes
           </h2>
-          <p className="text-[#D48040]/80 max-w-xl mx-auto">
+          <p className="text-[#D48040] max-w-xl mx-auto">
             From classic silogs to refreshing shakes — every dish is made to satisfy.
           </p>
         </motion.div>

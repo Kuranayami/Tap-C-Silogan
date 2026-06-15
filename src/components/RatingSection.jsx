@@ -102,7 +102,7 @@ export default function RatingSection() {
                 <Star key={n} className={`w-5 h-5 ${n <= Math.round(average) ? 'fill-[#FFBB70] text-[#FFBB70]' : 'text-[#FFEC9E]'}`} />
               ))}
             </div>
-            <p className="text-2xl font-bold text-[#D48040]">{average} <span className="text-sm text-[#D48040]/60 font-normal">({count} review{count !== 1 ? 's' : ''})</span></p>
+            <p className="text-2xl font-bold text-[#D48040]">{average} <span className="text-sm text-[#D48040]/80 font-normal">({count} review{count !== 1 ? 's' : ''})</span></p>
           </motion.div>
         )}
 
@@ -124,7 +124,7 @@ export default function RatingSection() {
                   ))}
                 </div>
               </div>
-              {item.comment && <p className="text-sm text-[#D48040]/80 leading-relaxed">{item.comment}</p>}
+              {item.comment && <p className="text-sm text-[#D48040] leading-relaxed">{item.comment}</p>}
             </motion.div>
           ))}
         </div>

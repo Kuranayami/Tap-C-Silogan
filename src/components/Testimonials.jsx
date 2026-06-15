@@ -35,7 +35,7 @@ export default function Testimonials() {
             </span>{' '}
             Us
           </h2>
-          <p className="text-[#D48040]/80 max-w-xl mx-auto">
+          <p className="text-[#D48040] max-w-xl mx-auto">
             Here's what our customers have to say about their experience.
           </p>
         </motion.div>
