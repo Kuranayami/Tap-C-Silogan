@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Crosshair, Loader2 } from 'lucide-react'
+import 'leaflet/dist/leaflet.css'
 
 export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange, dark }) {
   const mapRef = useRef(null)
@@ -8,6 +9,23 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
   const leafletRef = useRef(null)
   const [detecting, setDetecting] = useState(false)
   const [mapReady, setMapReady] = useState(false)
+
+  function parseCoordsFromLink(link) {
+    if (!link) return null
+    if (link.includes('@')) {
+      const m = link.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+      if (m) return [parseFloat(m[1]), parseFloat(m[2])]
+    }
+    if (link.includes('/search/')) {
+      const m = link.match(/\/search\/(-?\d+\.?\d*),\+?(-?\d+\.?\d*)/)
+      if (m) return [parseFloat(m[1]), parseFloat(m[2])]
+    }
+    if (link.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)) {
+      const m = link.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
+      if (m) return [parseFloat(m[1]), parseFloat(m[2])]
+    }
+    return null
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -18,17 +36,8 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
 
       const defaultCoords = [14.5582, 121.0217]
       let lat, lng
-
-      if (mapsLink?.includes('@')) {
-        const atMatch = mapsLink.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
-        if (atMatch) { lat = parseFloat(atMatch[1]); lng = parseFloat(atMatch[2]) }
-      } else if (mapsLink?.includes('/search/')) {
-        const sMatch = mapsLink.match(/\/search\/(-?\d+\.?\d*),\+?(-?\d+\.?\d*)/)
-        if (sMatch) { lat = parseFloat(sMatch[1]); lng = parseFloat(sMatch[2]) }
-      } else if (mapsLink?.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)) {
-        const qMatch = mapsLink.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
-        if (qMatch) { lat = parseFloat(qMatch[1]); lng = parseFloat(qMatch[2]) }
-      }
+      const parsed = parseCoordsFromLink(mapsLink)
+      if (parsed) { lat = parsed[0]; lng = parsed[1] }
 
       if ((!lat || !lng) && navigator.geolocation) {
         try {
@@ -81,8 +90,24 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
       }
     }
     init()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      if (mapInstance.current) {
+        mapInstance.current.remove()
+        mapInstance.current = null
+      }
+    }
   }, [])
+
+  useEffect(() => {
+    if (!mapInstance.current || !markerRef.current) return
+    const parsed = parseCoordsFromLink(mapsLink)
+    if (parsed) {
+      const [lat, lng] = parsed
+      markerRef.current.setLatLng([lat, lng])
+      mapInstance.current.setView([lat, lng], mapInstance.current.getZoom())
+    }
+  }, [mapsLink])
 
   function updateLocation(lat, lng, skipUpdate) {
     const link = `https://www.google.com/maps?q=${lat},${lng}`
