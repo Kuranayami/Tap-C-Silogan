@@ -4,6 +4,7 @@ import { getConfigHandler, updateHeroImage, deleteHeroImage, updateHeroDish, upd
 import { readFileSync, existsSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { requireAdmin } from '../middleware/auth.js'
 import { requireCashier } from '../middleware/cashierAuth.js'
 
 const __dirname2 = dirname(fileURLToPath(import.meta.url))
