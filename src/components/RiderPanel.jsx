@@ -4,7 +4,7 @@ import {
   Bike, Clock, MapPin, Phone, User, Package, Check, AlertTriangle,
   LogOut, Navigation, RefreshCw, Zap, ArrowLeft, XCircle,
 } from 'lucide-react'
-import { api } from '../api'
+import { api, imageUrl } from '../api'
 import RiderLogin from './RiderLogin'
 
 const riderHeaders = () => {
@@ -68,8 +68,8 @@ export default function RiderPanel() {
       if (res.ok) {
         const profile = await res.json()
         setStatus(profile.status || 'online')
-        const existing = JSON.parse(localStorage.getItem('rider_profile') || '{}')
-        localStorage.setItem('rider_profile', JSON.stringify({ ...existing, status: profile.status }))
+        setRider(profile)
+        localStorage.setItem('rider_profile', JSON.stringify(profile))
       }
     } catch {}
     await Promise.all([fetchReadyOrders(), fetchActiveOrders()])
@@ -201,12 +201,23 @@ export default function RiderPanel() {
             <button onClick={goBack} className="p-2 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
+            {rider?.avatar_url ? (
+              <img src={imageUrl(rider.avatar_url)} alt="" className="w-10 h-10 rounded-xl object-cover border border-[#27272a]" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                <Bike className="w-5 h-5 text-emerald-400" />
+              </div>
+            )}
             <div>
               <h1 className="text-lg sm:text-xl font-bold tracking-tight flex items-center gap-2">
                 <Bike className="w-5 h-5 text-emerald-400" />
                 Rider <span className="text-emerald-400">Panel</span>
               </h1>
-              <p className="text-xs text-[#71717a]">{rider?.name || 'Rider'}</p>
+              <p className="text-xs text-[#71717a] flex items-center gap-2">
+                {rider?.name ? <span className="text-white">{rider.name}</span> : null}
+                {rider?.email ? <span className="text-[#71717a]">{rider.email}</span> : null}
+                {rider?.id ? <span className="text-[#52525b] font-mono">#{rider.id.slice(0, 8)}</span> : null}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -9,7 +9,7 @@ export async function getUsers(req, res) {
     }
     const { data, error } = await supabase
       .from('users')
-      .select('id, name, email, phone, auth_provider, is_verified, created_at, google_id')
+      .select('id, name, email, phone, auth_provider, is_verified, created_at, google_id, avatar_url')
       .order('created_at', { ascending: false })
 
     if (error) throw error

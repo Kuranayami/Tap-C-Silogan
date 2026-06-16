@@ -15,7 +15,7 @@ export async function loginCashier(req, res) {
     }
     const { data, error } = await supabase
       .from('cashiers')
-      .select('id, name, status, password_hash')
+      .select('id, name, username, avatar_url, status, password_hash')
       .eq('username', username)
       .single()
 
@@ -26,7 +26,7 @@ export async function loginCashier(req, res) {
       return res.status(403).json({ error: 'Account is disabled' })
     }
     const token = cashierTokens.generate(data.id)
-    res.json({ token, cashier: { id: data.id, name: data.name, status: data.status } })
+    res.json({ token, cashier: { id: data.id, name: data.name, username: data.username, avatar_url: data.avatar_url ?? null, status: data.status } })
   } catch (err) {
     console.error('loginCashier error:', err)
     res.status(500).json({ error: 'Login failed' })

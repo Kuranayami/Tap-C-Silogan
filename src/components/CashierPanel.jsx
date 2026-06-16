@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Clock, Package, Bike, User, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, Timer, ListChecks, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react'
-import { api } from '../api'
+import { api, imageUrl } from '../api'
 import CashierLogin from './CashierLogin'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
 import { updateDeliveryFees, fetchDeliveryFees } from '../data/deliveryZone'
@@ -166,12 +166,22 @@ export default function CashierPanel() {
         {/* ── Header ── */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#408A71] to-[#B0E4CC] flex items-center justify-center shadow-lg shadow-[#408A71]/20">
-              <ChefHat className="w-5 h-5 text-white" />
-            </div>
+            {cashier?.avatar_url ? (
+              <img src={imageUrl(cashier.avatar_url)} alt="" className="w-10 h-10 rounded-xl object-cover border border-[#408A71]" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#408A71] to-[#B0E4CC] flex items-center justify-center shadow-lg shadow-[#408A71]/20">
+                <ChefHat className="w-5 h-5 text-white" />
+              </div>
+            )}
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Cashier <span className="bg-gradient-to-r from-[#408A71] to-[#B0E4CC] bg-clip-text text-transparent">Dashboard</span></h1>
-              <p className="text-xs text-[#408A71]">{cashier?.name ? `${cashier.name} · ` : ''}{activeTotal} active orders</p>
+              <p className="text-xs text-[#408A71] flex items-center gap-2">
+                {cashier?.name ? <span className="text-[#B0E4CC]">{cashier.name}</span> : null}
+                {cashier?.username ? <span className="text-[#408A71]">@{cashier.username}</span> : null}
+                {cashier?.id ? <span className="text-[#408A71] font-mono">#{cashier.id.slice(0, 8)}</span> : null}
+                <span className="text-[#408A71]">·</span>
+                <span>{activeTotal} active</span>
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">

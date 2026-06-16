@@ -4,7 +4,7 @@ import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike, ChefHat,
-  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign, Map,
+  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign, Map, Search,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
@@ -165,6 +165,7 @@ export default function Admin() {
   const [showUsersManager, setShowUsersManager] = useState(false)
   const [users, setUsers] = useState([])
   const [usersLoading, setUsersLoading] = useState(false)
+  const [userSearch, setUserSearch] = useState('')
   const [newItem, setNewItem] = useState({ name: '', price: '', category: 'ulam' })
   const [newImage, setNewImage] = useState(null)
   const [adding, setAdding] = useState(false)
@@ -285,15 +286,15 @@ export default function Admin() {
     } catch {} finally { setUsersLoading(false) }
   }
 
-  const handleBanUser = async (id, status) => {
+  const handleBanUser = async (id, newStatus) => {
     try {
       const res = await fetch(api(`/api/admin/users/${id}/status`), {
         method: 'PATCH',
         headers: { ...adminHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status: newStatus }),
       })
       if (res.status === 401) { logout(); return }
-      if (res.ok) fetchUsers()
+      if (res.ok) { fetchUsers(); addActivity(`User ${newStatus}`, 'info') }
     } catch {}
   }
 
@@ -947,6 +948,14 @@ export default function Admin() {
                     <RefreshCw className={`w-3.5 h-3.5 ${usersLoading ? 'animate-spin' : ''}`} />
                   </button>
                 </div>
+                <div className="relative mb-3">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#408A71]" />
+                  <input
+                    type="text" placeholder="Search by name, email, phone, or ID..."
+                    value={userSearch} onChange={e => setUserSearch(e.target.value)}
+                    className="w-full bg-[#091413] border border-[#408A71] rounded-lg pl-8 pr-3 py-1.5 text-xs text-[#B0E4CC] placeholder-[#408A71] focus:outline-none focus:border-[#B0E4CC]"
+                  />
+                </div>
                 {users.length === 0 ? (
                   <p className="text-sm text-[#408A71] text-center py-4">{usersLoading ? 'Loading...' : 'No users found.'}</p>
                 ) : (
@@ -954,54 +963,47 @@ export default function Admin() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-[#408A71] text-xs border-b border-[#408A71]">
-                          <th className="text-left py-2 pr-2">Name</th>
-                          <th className="text-left py-2 pr-2">Email / Phone</th>
-                          <th className="text-left py-2 pr-2">Provider</th>
-                          <th className="text-left py-2 pr-2">Status</th>
+                          <th className="text-left py-2 pr-2">User</th>
+                          <th className="text-left py-2 pr-2">Contact</th>
+                          <th className="text-left py-2 pr-2">ID</th>
                           <th className="text-left py-2 pr-2">Joined</th>
                           <th className="text-right py-2">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {users.map(u => (
+                        {users
+                          .filter(u => !userSearch || u.name?.toLowerCase().includes(userSearch.toLowerCase()) || u.email?.toLowerCase().includes(userSearch.toLowerCase()) || u.phone?.includes(userSearch) || u.id?.toLowerCase().includes(userSearch.toLowerCase()))
+                          .map(u => (
                           <tr key={u.id} className="border-b border-[#408A71] hover:bg-[#285A48] transition-colors">
-                            <td className="py-2 pr-2 text-white font-medium truncate max-w-[120px]">{u.name || '—'}</td>
-                            <td className="py-2 pr-2 text-[#B0E4CC] truncate max-w-[150px]">{u.email || u.phone || '—'}</td>
-                            <td className="py-2 pr-2 text-[#B0E4CC] capitalize">{u.auth_provider || '—'}</td>
                             <td className="py-2 pr-2">
-                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
-                                ${u.status === 'banned' ? 'bg-red-500/10 text-red-400 border border-red-500/30'
-                                : u.status === 'disabled' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'}`}>
-                                <span className={`w-1 h-1 rounded-full
-                                  ${u.status === 'banned' ? 'bg-red-400'
-                                  : u.status === 'disabled' ? 'bg-amber-400'
-                                  : 'bg-emerald-400'}`} />
-                                {u.status || 'active'}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                {u.avatar_url ? (
+                                  <img src={imageUrl(u.avatar_url)} alt="" className="w-7 h-7 rounded-full object-cover border border-[#408A71]" />
+                                ) : (
+                                  <div className="w-7 h-7 rounded-full bg-[#408A71]/20 border border-[#408A71] flex items-center justify-center">
+                                    <User className="w-3.5 h-3.5 text-[#B0E4CC]" />
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <p className="text-white font-medium text-xs truncate max-w-[100px]">{u.name || '—'}</p>
+                                  <p className="text-[#408A71] text-[10px] capitalize">{u.auth_provider || '—'}</p>
+                                </div>
+                              </div>
                             </td>
-                            <td className="py-2 pr-2 text-[#408A71] text-xs">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+                            <td className="py-2 pr-2 text-[#B0E4CC] text-xs truncate max-w-[130px]">{u.email || u.phone || '—'}</td>
+                            <td className="py-2 pr-2">
+                              <span className="text-[10px] font-mono text-[#408A71]">{u.id ? `${u.id.slice(0, 8)}...` : '—'}</span>
+                            </td>
+                            <td className="py-2 pr-2 text-[#408A71] text-[10px]">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
                             <td className="py-2 text-right">
                               <div className="flex items-center justify-end gap-1">
-                                {(!u.status || u.status === 'active') ? (
-                                  <button onClick={() => handleBanUser(u.id, 'disabled')} className="p-1 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-amber-400 hover:border-amber-400/30 transition-all" title="Disable">
-                                    <Zap className="w-3.5 h-3.5" />
-                                  </button>
-                                ) : u.status === 'disabled' ? (
-                                  <button onClick={() => handleBanUser(u.id, 'active')} className="p-1 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-emerald-400 hover:border-emerald-400/30 transition-all" title="Enable">
-                                    <Check className="w-3.5 h-3.5" />
-                                  </button>
-                                ) : null}
-                                {u.status !== 'banned' ? (
-                                  <button onClick={() => handleBanUser(u.id, 'banned')} className="p-1 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-red-400 hover:border-red-400/30 transition-all" title="Ban">
-                                    <XCircle className="w-3.5 h-3.5" />
-                                  </button>
-                                ) : (
-                                  <button onClick={() => handleBanUser(u.id, 'active')} className="p-1 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-emerald-400 hover:border-emerald-400/30 transition-all" title="Unban">
-                                    <Check className="w-3.5 h-3.5" />
-                                  </button>
-                                )}
-                                <button onClick={() => handleDeleteUser(u.id, u.name)} className="p-1 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
+                                <button onClick={() => handleBanUser(u.id, u.status === 'banned' ? 'active' : 'banned')} className={`p-1 rounded-lg border transition-all ${u.status === 'banned' ? 'border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10' : 'border-red-400/30 text-red-400 hover:bg-red-400/10'}`} title={u.status === 'banned' ? 'Unban' : 'Ban'}>
+                                  <XCircle className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleBanUser(u.id, u.status === 'disabled' ? 'active' : 'disabled')} className={`p-1 rounded-lg border transition-all ${u.status === 'disabled' ? 'border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10' : 'border-amber-400/30 text-amber-400 hover:bg-amber-400/10'}`} title={u.status === 'disabled' ? 'Enable' : 'Disable'}>
+                                  <Zap className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDeleteUser(u.id, u.name)} className="p-1 rounded-lg border border-red-400/30 text-red-400 hover:bg-red-400/10 transition-all" title="Delete">
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
@@ -1049,7 +1051,8 @@ export default function Admin() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-[#408A71] text-xs border-b border-[#408A71]">
-                          <th className="text-left py-2 pr-2">Name</th>
+                          <th className="text-left py-2 pr-2">Rider</th>
+                          <th className="text-left py-2 pr-2">ID</th>
                           <th className="text-left py-2 pr-2">Phone</th>
                           <th className="text-left py-2 pr-2">Vehicle</th>
                           <th className="text-left py-2 pr-2">Status</th>
@@ -1060,7 +1063,19 @@ export default function Admin() {
                       <tbody>
                         {riders.map(r => (
                           <tr key={r.id} className="border-b border-[#408A71] hover:bg-[#285A48] transition-colors">
-                            <td className="py-2 pr-2 text-white font-medium truncate max-w-[120px]">{r.name || '—'}</td>
+                            <td className="py-2 pr-2">
+                              <div className="flex items-center gap-2">
+                                {r.avatar_url ? (
+                                  <img src={imageUrl(r.avatar_url)} alt="" className="w-7 h-7 rounded-full object-cover border border-[#408A71]" />
+                                ) : (
+                                  <div className="w-7 h-7 rounded-full bg-[#408A71]/20 border border-[#408A71] flex items-center justify-center">
+                                    <Bike className="w-3.5 h-3.5 text-[#B0E4CC]" />
+                                  </div>
+                                )}
+                                <span className="text-white font-medium text-xs truncate max-w-[100px]">{r.name || '—'}</span>
+                              </div>
+                            </td>
+                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#408A71]">{r.id ? `${r.id.slice(0, 8)}...` : '—'}</span></td>
                             <td className="py-2 pr-2 text-[#B0E4CC] truncate max-w-[130px]">{r.phone || '—'}</td>
                             <td className="py-2 pr-2 text-[#B0E4CC] capitalize">{r.vehicle_type || '—'}</td>
                             <td className="py-2 pr-2">
@@ -1142,7 +1157,8 @@ export default function Admin() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-[#408A71] text-xs border-b border-[#408A71]">
-                          <th className="text-left py-2 pr-2">Name</th>
+                          <th className="text-left py-2 pr-2">Cashier</th>
+                          <th className="text-left py-2 pr-2">ID</th>
                           <th className="text-left py-2 pr-2">Username</th>
                           <th className="text-left py-2 pr-2">Status</th>
                           <th className="text-left py-2 pr-2">Created</th>
@@ -1152,7 +1168,19 @@ export default function Admin() {
                       <tbody>
                         {cashiers.map(c => (
                           <tr key={c.id} className="border-b border-[#408A71] hover:bg-[#285A48] transition-colors">
-                            <td className="py-2 pr-2 text-white font-medium truncate max-w-[120px]">{c.name}</td>
+                            <td className="py-2 pr-2">
+                              <div className="flex items-center gap-2">
+                                {c.avatar_url ? (
+                                  <img src={imageUrl(c.avatar_url)} alt="" className="w-7 h-7 rounded-full object-cover border border-[#408A71]" />
+                                ) : (
+                                  <div className="w-7 h-7 rounded-full bg-[#408A71]/20 border border-[#408A71] flex items-center justify-center">
+                                    <User className="w-3.5 h-3.5 text-[#B0E4CC]" />
+                                  </div>
+                                )}
+                                <span className="text-white font-medium text-xs truncate max-w-[100px]">{c.name}</span>
+                              </div>
+                            </td>
+                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#408A71]">{c.id ? `${c.id.slice(0, 8)}...` : '—'}</span></td>
                             <td className="py-2 pr-2 text-[#B0E4CC]">{c.username}</td>
                             <td className="py-2 pr-2">
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${c.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
