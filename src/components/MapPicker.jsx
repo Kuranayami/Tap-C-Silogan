@@ -101,19 +101,26 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
     }
   }, [])
 
+  const updateLocationRef = useRef(false)
+
   useEffect(() => {
-    if (!mapInstance.current || !markerRef.current) return
+    if (!mapInstance.current || !markerRef.current || updateLocationRef.current) {
+      updateLocationRef.current = false
+      return
+    }
     const parsed = parseCoordsFromLink(mapsLink)
     if (parsed) {
       const [lat, lng] = parsed
       markerRef.current.setLatLng([lat, lng])
-      mapInstance.current.setView([lat, lng], mapInstance.current.getZoom())
     }
   }, [mapsLink])
 
   function updateLocation(lat, lng, skipUpdate) {
     const link = `https://www.google.com/maps?q=${lat},${lng}`
-    if (!skipUpdate) onMapsLinkChange(link)
+    if (!skipUpdate) {
+      updateLocationRef.current = true
+      onMapsLinkChange(link)
+    }
     if (!skipUpdate && onAddressChange) {
       fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
         headers: { 'User-Agent': 'TapCSilogan/1.0' },
