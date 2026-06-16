@@ -260,16 +260,22 @@ export async function updateProfile(req, res) {
       }
 
       if (phone) {
-        const { data: phoneUser } = await supabase
+        console.log('phone check: looking for duplicate')
+        const { data: phoneUser, error: dupErr } = await supabase
           .from('users')
           .select('id, name')
           .eq('phone', phone)
           .neq('id', userId)
           .maybeSingle()
+        console.log('phone check result:', { found: !!phoneUser, dupErr: dupErr?.message })
         if (phoneUser) {
-          await supabase.from('users').update({ phone: 'f_' + phoneUser.id.slice(0, 12) }).eq('id', phoneUser.id)
+          const freedPhone = 'f_' + phoneUser.id.slice(0, 12)
+          console.log('freeing old phone:', { oldId: phoneUser.id, newPhone: freedPhone })
+          const { error: freeErr } = await supabase.from('users').update({ phone: freedPhone }).eq('id', phoneUser.id)
+          console.log('free result:', { freeErr: freeErr?.message })
         }
         updates.phone = phone
+        console.log('phone added to updates')
       }
       if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
       if (gender) updates.gender = gender
@@ -279,8 +285,12 @@ export async function updateProfile(req, res) {
         } else {
           updates.maps_link = maps_link
         }
+        console.log('maps_link added to updates')
       }
-      if (address !== undefined) updates.address = address
+      if (address !== undefined) {
+        updates.address = address
+        console.log('address added to updates')
+      }
 
       if (req.file) {
       const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
@@ -291,9 +301,11 @@ export async function updateProfile(req, res) {
       }
 
       if (Object.keys(updates).length === 0) {
+        console.log('ERROR: no fields to update')
         return res.status(400).json({ error: 'No fields to update' })
       }
 
+      console.log('about to run main update:', { keys: Object.keys(updates).join(',') })
       let { data, error } = await supabase
         .from('users')
         .update(updates)
