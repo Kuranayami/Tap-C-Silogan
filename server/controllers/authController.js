@@ -260,22 +260,16 @@ export async function updateProfile(req, res) {
       }
 
       if (phone) {
-        console.log('phone check: looking for duplicate')
-        const { data: phoneUser, error: dupErr } = await supabase
+        const { data: phoneUser } = await supabase
           .from('users')
           .select('id, name')
           .eq('phone', phone)
           .neq('id', userId)
           .maybeSingle()
-        console.log('phone check result:', { found: !!phoneUser, dupErr: dupErr?.message })
         if (phoneUser) {
-          const freedPhone = 'f_' + phoneUser.id.slice(0, 12)
-          console.log('freeing old phone:', { oldId: phoneUser.id, newPhone: freedPhone })
-          const { error: freeErr } = await supabase.from('users').update({ phone: freedPhone }).eq('id', phoneUser.id)
-          console.log('free result:', { freeErr: freeErr?.message })
+          await supabase.from('users').update({ phone: 'f_' + phoneUser.id.slice(0, 12) }).eq('id', phoneUser.id)
         }
         updates.phone = phone
-        console.log('phone added to updates')
       }
       if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
       if (gender) updates.gender = gender
@@ -285,12 +279,8 @@ export async function updateProfile(req, res) {
         } else {
           updates.maps_link = maps_link
         }
-        console.log('maps_link added to updates')
       }
-      if (address !== undefined) {
-        updates.address = address
-        console.log('address added to updates')
-      }
+      if (address !== undefined) updates.address = address
 
       if (req.file) {
       const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
@@ -301,11 +291,9 @@ export async function updateProfile(req, res) {
       }
 
       if (Object.keys(updates).length === 0) {
-        console.log('ERROR: no fields to update')
         return res.status(400).json({ error: 'No fields to update' })
       }
 
-      console.log('about to run main update:', { keys: Object.keys(updates).join(',') })
       let { data, error } = await supabase
         .from('users')
         .update(updates)
@@ -314,19 +302,16 @@ export async function updateProfile(req, res) {
         .maybeSingle()
 
       if (error && (error.code === 'PGRST204' || error.code === '42703')) {
-        console.log('PGRST204 hit, querying information_schema.columns')
-        const { data: userCols, error: colErr } = await supabase
+        const { data: userCols } = await supabase
           .from('information_schema.columns')
           .select('column_name')
           .eq('table_schema', 'public')
           .eq('table_name', 'users')
-        console.log('columns result:', { colErr, count: (userCols || []).length, cols: (userCols || []).map(c => c.column_name).join(',') })
         const colNames = new Set((userCols || []).map(c => c.column_name))
         const safeUpdates = {}
         for (const key of Object.keys(updates)) {
           if (colNames.has(key)) safeUpdates[key] = updates[key]
         }
-        console.log('safeUpdates keys:', Object.keys(safeUpdates).join(','))
         if (Object.keys(safeUpdates).length === 0) {
           return res.status(400).json({ error: 'No fields to update' })
         }
@@ -336,7 +321,6 @@ export async function updateProfile(req, res) {
           .eq('id', userId)
           .select('*')
           .single()
-        console.log('fallback update result:', { err: result.error?.message, code: result.error?.code, maps_link: result.data?.maps_link, phone: result.data?.phone })
         if (result.error) throw result.error
         return res.json({
           id: result.data.id, name: result.data.name, phone: result.data.phone,
@@ -349,11 +333,7 @@ export async function updateProfile(req, res) {
         })
       }
 
-      if (error) {
-        console.log('update error:', error.message, error.code)
-        throw error
-      }
-      console.log('update succeeded:', { maps_link: data.maps_link?.slice(0, 30), phone: data.phone })
+      if (error) throw error
       return res.json({
         id: data.id, name: data.name, phone: data.phone ?? null,
         email: data.email, avatar_url: data.avatar_url ?? null,

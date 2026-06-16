@@ -59,7 +59,7 @@ export default function UserProfile({ onBack }) {
     setError('')
     try {
       const fd = new FormData()
-      if (name.trim()) fd.append('name', name.trim())
+      if (name.trim() && name.trim() !== (user?.name || '')) fd.append('name', name.trim())
       if (phone.trim()) fd.append('phone', phone.trim())
       if (age !== '' && age !== undefined) fd.append('age', String(age))
       if (gender) fd.append('gender', gender)
