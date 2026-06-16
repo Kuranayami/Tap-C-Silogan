@@ -1,14 +1,26 @@
 import { Router } from 'express'
 import multer from 'multer'
 import { getConfigHandler, updateHeroImage, deleteHeroImage, updateHeroDish, updateTestimonials, submitRating, getRatingsHandler, updateDeliveryFeeHandler, uploadZoneImage, deleteZoneImage, uploadZoneKml, deleteZoneKml } from '../controllers/configController.js'
-import { requireAdmin } from '../middleware/auth.js'
+import { readFileSync, existsSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 import { requireCashier } from '../middleware/cashierAuth.js'
 
+const __dirname2 = dirname(fileURLToPath(import.meta.url))
+const TOKENS_FILE2 = join(__dirname2, '../data/admin_tokens.json')
+let _adminTokens = null
+function getAdminTokens() {
+  if (!_adminTokens && existsSync(TOKENS_FILE2)) {
+    try { _adminTokens = new Set(JSON.parse(readFileSync(TOKENS_FILE2, 'utf-8'))) } catch {}
+  }
+  return _adminTokens || new Set()
+}
+setInterval(() => { _adminTokens = null }, 30000)
+
 const authAdminOrCashier = (req, res, next) => {
-  requireAdmin(req, res, (adminErr) => {
-    if (!adminErr) return next()
-    requireCashier(req, res, next)
-  })
+  const header = req.headers.authorization
+  if (header && header.startsWith('Bearer ') && getAdminTokens().has(header.slice(7))) return next()
+  requireCashier(req, res, next)
 }
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })

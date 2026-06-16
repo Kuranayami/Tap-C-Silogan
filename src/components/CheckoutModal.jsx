@@ -4,10 +4,10 @@ import { X, Check, Loader2, MapPin } from 'lucide-react'
 import { useCart, useCheckout } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../api'
-import { extractCoordinatesFromUrl, fetchZoneImage, fetchZonePolygon, pointInPolygon } from '../data/deliveryZone'
+import { extractCoordinatesFromUrl, fetchZoneImage, fetchZonePolygon, pointInPolygon, fetchDeliveryFees } from '../data/deliveryZone'
 
 export default function CheckoutModal() {
-  const { items, subtotal, deliveryFeeInZone, deliveryFeeOutOfZone, clearCart, closeCart } = useCart()
+  const { items, subtotal, deliveryFeeInZone, deliveryFeeOutOfZone, clearCart, closeCart, setDeliveryFeeInZone, setDeliveryFeeOutOfZone } = useCart()
   const { checkoutOpen, closeCheckout } = useCheckout()
   const { user, token } = useAuth()
   const [form, setForm] = useState({ name: user?.name || '', contact: user?.phone || '', address: user?.address || '' })
@@ -29,6 +29,10 @@ export default function CheckoutModal() {
     if (checkoutOpen) {
       fetchZoneImage().then(setZoneImage)
       fetchZonePolygon().then(setZonePolygon)
+      fetchDeliveryFees().then(fees => {
+        setDeliveryFeeInZone(fees.inZone)
+        setDeliveryFeeOutOfZone(fees.outOfZone)
+      })
     }
   }, [checkoutOpen])
 
