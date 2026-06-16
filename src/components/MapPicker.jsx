@@ -34,12 +34,11 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
       if (cancelled) return
       leafletRef.current = L
 
-      const defaultCoords = [14.5582, 121.0217]
       let lat, lng
       const parsed = parseCoordsFromLink(mapsLink)
       if (parsed) { lat = parsed[0]; lng = parsed[1] }
 
-      if ((!lat || !lng) && navigator.geolocation) {
+      if (!lat && navigator.geolocation) {
         try {
           const pos = await new Promise((resolve, reject) =>
             navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
@@ -49,8 +48,6 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
       }
 
       if (cancelled) return
-      lat = lat || defaultCoords[0]
-      lng = lng || defaultCoords[1]
 
       delete L.Icon.Default.prototype._getIconUrl
       L.Icon.Default.mergeOptions({
@@ -60,23 +57,28 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
       })
 
       if (mapRef.current && !mapInstance.current) {
-        const map = L.map(mapRef.current, { zoomControl: false }).setView([lat, lng], 15)
+        const map = L.map(mapRef.current, { zoomControl: false })
+        if (lat && lng) map.setView([lat, lng], lat ? 15 : 2)
+        else map.setView([20, 0], 2)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
         }).addTo(map)
         L.control.zoom({ position: 'bottomright' }).addTo(map)
 
-        const marker = L.marker([lat, lng], { draggable: true }).addTo(map)
+        const marker = L.marker(lat && lng ? [lat, lng] : [0, 0], { draggable: true })
+        if (lat && lng) marker.addTo(map)
         markerRef.current = marker
 
         marker.on('dragend', () => {
           const pos = marker.getLatLng()
+          if (!marker._map) marker.addTo(map)
           updateLocation(pos.lat, pos.lng)
         })
 
         map.on('click', (e) => {
           marker.setLatLng(e.latlng)
+          if (!marker._map) marker.addTo(map)
           updateLocation(e.latlng.lat, e.latlng.lng)
         })
 
@@ -85,7 +87,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
 
         if (mapsLink) {
           const pos = marker.getLatLng()
-          updateLocation(pos.lat, pos.lng, true)
+          if (pos.lat !== 0 || pos.lng !== 0) updateLocation(pos.lat, pos.lng, true)
         }
       }
     }
