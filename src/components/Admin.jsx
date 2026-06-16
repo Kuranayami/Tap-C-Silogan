@@ -624,11 +624,30 @@ export default function Admin() {
     if (!zoneKmlFile) return
     setUploadingKml(true)
     try {
-      const fd = new FormData(); fd.append('kml', zoneKmlFile)
+      let file = zoneKmlFile
+      const text = await file.text()
+      const networkLinkMatch = text.match(/<href[^>]*>([\s\S]*?)<\/href\s*>/i)
+      if (networkLinkMatch) {
+        const href = networkLinkMatch[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim()
+        try {
+          const remoteResp = await fetch(href)
+          if (remoteResp.ok) {
+            const remoteText = await remoteResp.text()
+            file = new File([remoteText], 'resolved.kml', { type: 'application/vnd.google-earth.kml+xml' })
+          }
+        } catch {}
+      }
+      const fd = new FormData(); fd.append('kml', file)
       const res = await fetch(api('/api/config/zone/kml'), { method: 'PUT', headers: adminHeaders(), body: fd })
       if (res.status === 401) { logout(); return }
       const d = await res.json().catch(() => ({}))
-      if (!res.ok) { setUploadError(d.error || 'Upload failed'); return }
+      if (!res.ok) {
+        const badLinkMsg = 'Could not find valid polygon coordinates in KML. Make sure your map has a drawn polygon and try exporting again.'
+        setUploadError(d.error === badLinkMsg
+          ? 'Google blocked the KML fetch. Please export your map directly: Open Google My Maps → three dots on your layer → "Export data" → "KML/KMZ" — then upload the downloaded file.'
+          : d.error || 'Upload failed')
+        return
+      }
       setZoneKmlFile(null); setZonePolygon(d.zonePolygon)
       addActivity(`Zone KML uploaded (${d.zonePolygon.length} points)`, 'info')
     } catch (err) { setUploadError(err.message) } finally { setUploadingKml(false) }
