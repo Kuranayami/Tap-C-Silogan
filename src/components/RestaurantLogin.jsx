@@ -33,42 +33,42 @@ export default function RestaurantLogin({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#091413] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="rounded-2xl border border-[#27272a] bg-[#18181b] p-6 sm:p-8">
+        <div className="rounded-2xl border border-[#408A71] bg-[#285A48] p-6 sm:p-8">
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-[#f97316]/20 flex items-center justify-center mx-auto mb-3">
-              <ChefHat className="w-6 h-6 text-[#f97316]" />
+            <div className="w-12 h-12 rounded-2xl bg-[#408A71]/20 flex items-center justify-center mx-auto mb-3">
+              <ChefHat className="w-6 h-6 text-[#408A71]" />
             </div>
-            <h1 className="text-xl font-bold text-white">Restaurant Login</h1>
-            <p className="text-sm text-[#a1a1aa] mt-1">Mark orders as ready for delivery</p>
+            <h1 className="text-xl font-bold text-[#B0E4CC]">Restaurant Login</h1>
+            <p className="text-sm text-[#B0E4CC] mt-1">Mark orders as ready for delivery</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="text-xs text-[#71717a] mb-1.5 block">Username</label>
+              <label className="text-xs text-[#408A71] mb-1.5 block">Username</label>
               <input
                 type="text" placeholder="restaurant" value={username}
                 onChange={e => setUsername(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#09090b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#091413] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#B0E4CC]/50 transition-colors"
               />
             </div>
             <div>
-              <label className="text-xs text-[#71717a] mb-1.5 block">Password</label>
+              <label className="text-xs text-[#408A71] mb-1.5 block">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-[#09090b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
+                  className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-[#091413] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#B0E4CC]/50 transition-colors"
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717a] hover:text-[#a1a1aa] transition-colors">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#408A71] hover:text-[#B0E4CC] transition-colors">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
             {error && <p className="text-red-400 text-xs">{error}</p>}
             <button type="submit" disabled={loading || !username || !password}
-              className="w-full py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl bg-[#408A71] hover:bg-[#285A48] text-white font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Sign In

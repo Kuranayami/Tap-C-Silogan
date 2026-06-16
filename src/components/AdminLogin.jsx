@@ -35,44 +35,44 @@ export default function AdminLogin({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-[#fafafa] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#091413] text-[#B0E4CC] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <button
           onClick={() => { window.location.hash = '' }}
-          className="mb-8 p-2 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors"
+          className="mb-8 p-2 rounded-xl border border-[#408A71] text-[#B0E4CC] hover:text-white transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#f97316] to-[#f59e0b] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#f97316]/20">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#408A71] to-[#B0E4CC] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#408A71]/20">
             <ChefHat className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold">Admin Login</h1>
-          <p className="text-sm text-[#a1a1aa] mt-1">Tap C Silogan Dashboard</p>
+          <p className="text-sm text-[#B0E4CC] mt-1">Tap C Silogan Dashboard</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#408A71]" />
             <input
               type="text"
               placeholder="Username"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#B0E4CC]/50 transition-colors"
             />
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#408A71]" />
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#18181b] border border-[#27272a] text-white text-sm placeholder-[#71717a] focus:outline-none focus:border-[#f97316]/50 transition-colors"
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#B0E4CC]/50 transition-colors"
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717a] hover:text-[#a1a1aa] transition-colors">
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#408A71] hover:text-[#B0E4CC] transition-colors">
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
@@ -80,13 +80,13 @@ export default function AdminLogin({ onLogin }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-[#f97316] hover:bg-[#ea580c] text-white font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-2.5 rounded-xl bg-[#408A71] hover:bg-[#285A48] text-white font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <p className="text-xs text-[#71717a] text-center mt-6">
+        <p className="text-xs text-[#408A71] text-center mt-6">
           Authorized personnel only
         </p>
       </div>
