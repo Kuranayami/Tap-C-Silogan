@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Crosshair, Loader2 } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 import { api } from '../api'
+import { pointInPolygon } from '../data/deliveryZone'
 
 export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange, dark, zonePolygon: propZonePolygon }) {
   const [zonePolygon, setZonePolygon] = useState(propZonePolygon || null)
+  const polygonDataRef = useRef(propZonePolygon || null)
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const markerRef = useRef(null)
@@ -12,6 +14,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
   const leafletRef = useRef(null)
   const [detecting, setDetecting] = useState(false)
   const [mapReady, setMapReady] = useState(false)
+  const [isInZone, setIsInZone] = useState(null)
 
   function parseCoordsFromLink(link) {
     if (!link) return null
@@ -42,7 +45,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
         try {
           const cfgRes = await fetch(api('/api/config'))
           const cfg = await cfgRes.json()
-          if (cfg.zonePolygon && !cancelled) { polygonData = cfg.zonePolygon; setZonePolygon(cfg.zonePolygon) }
+          if (cfg.zonePolygon && !cancelled) { polygonData = cfg.zonePolygon; polygonDataRef.current = cfg.zonePolygon; setZonePolygon(cfg.zonePolygon) }
         } catch {}
       }
 
@@ -85,6 +88,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
             fillOpacity: 0.15,
             weight: 2,
           }).addTo(map)
+          polygonDataRef.current = polygonData; setZonePolygon(polygonData)
         }
 
         const marker = L.marker(lat && lng ? [lat, lng] : [0, 0], { draggable: true })
@@ -106,7 +110,8 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
         mapInstance.current = map
         if (!cancelled) setMapReady(true)
 
-        if (mapsLink) {
+        if (lat && lng) updateLocation(lat, lng, true)
+        else if (mapsLink) {
           const pos = marker.getLatLng()
           if (pos.lat !== 0 || pos.lng !== 0) updateLocation(pos.lat, pos.lng, true)
         }
@@ -141,6 +146,10 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
     if (!skipUpdate) {
       updateLocationRef.current = true
       onMapsLinkChange(link)
+    }
+    const poly = polygonDataRef.current
+    if (poly && poly.length > 2) {
+      setIsInZone(pointInPolygon([lat, lng], poly))
     }
     if (!skipUpdate && onAddressChange) {
       fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
@@ -191,6 +200,12 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
           </div>
         )}
       </div>
+      {isInZone !== null && (
+        <div className={`mt-2 text-xs font-medium px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5 ${isInZone ? (dark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-700') : (dark ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-700')}`}>
+          <span className={`w-2 h-2 rounded-full ${isInZone ? 'bg-green-500' : 'bg-red-500'}`} />
+          {isInZone ? 'In delivery zone' : 'Outside delivery zone'}
+        </div>
+      )}
       <div className="flex items-center justify-between mt-2">
         <button type="button" onClick={handleDetectLocation} disabled={detecting}
           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${t.btnBg} ${t.btnText} text-xs font-medium transition-all disabled:opacity-50`}>
