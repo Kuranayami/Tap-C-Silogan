@@ -489,7 +489,11 @@ export default function Admin() {
           fetchRiderStats()
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') console.log('[realtime] riders channel connected')
+        else if (status === 'CHANNEL_ERROR') console.error('[realtime] riders channel error')
+        else if (status === 'TIMED_OUT') console.warn('[realtime] riders channel timed out')
+      })
     return () => { supabase.removeChannel(channel) }
   }, [loggedIn])
 

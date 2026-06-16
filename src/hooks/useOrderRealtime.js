@@ -6,7 +6,7 @@ export function useOrderRealtime(onChange) {
   callbackRef.current = onChange
 
   useEffect(() => {
-    if (!supabase) return
+    if (!supabase) { console.warn('[realtime] supabase client not available'); return }
 
     const channel = supabase
       .channel('orders-realtime')
@@ -16,7 +16,12 @@ export function useOrderRealtime(onChange) {
           callbackRef.current?.(payload)
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') console.log('[realtime] orders channel connected')
+        else if (status === 'CHANNEL_ERROR') console.error('[realtime] orders channel error')
+        else if (status === 'TIMED_OUT') console.warn('[realtime] orders channel timed out')
+        else if (status === 'CLOSED') console.log('[realtime] orders channel closed')
+      })
 
     return () => {
       supabase.removeChannel(channel)
