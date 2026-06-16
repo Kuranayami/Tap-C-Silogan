@@ -216,6 +216,7 @@ export async function getProfile(req, res) {
         .single()
 
       if (error) return res.status(404).json({ error: 'User not found' })
+      console.log('getProfile returning:', { maps_link: data.maps_link?.slice(0, 30), phone: data.phone })
       return res.json({
         id: data.id, name: data.name, phone: data.phone ?? null, email: data.email,
         avatar_url: data.avatar_url ?? null, auth_provider: data.auth_provider,
@@ -226,6 +227,7 @@ export async function getProfile(req, res) {
 
     res.json({ id: userId, name: 'Customer', phone: userId, name_edited: false })
   } catch (err) {
+    console.error('getProfile error:', err?.message)
     res.status(500).json({ error: 'Failed to fetch profile' })
   }
 }
@@ -234,6 +236,8 @@ export async function updateProfile(req, res) {
   try {
     const userId = req.userId
     const { name, phone, age, gender, maps_link, address } = req.body
+
+    console.log('=== updateProfile ===', { userId, name, phone, maps_link: maps_link?.slice(0, 30), address })
 
     if (hasSupabase) {
       const updates = {}
@@ -298,16 +302,19 @@ export async function updateProfile(req, res) {
         .maybeSingle()
 
       if (error && (error.code === 'PGRST204' || error.code === '42703')) {
-        const { data: userCols } = await supabase
+        console.log('PGRST204 hit, querying information_schema.columns')
+        const { data: userCols, error: colErr } = await supabase
           .from('information_schema.columns')
           .select('column_name')
           .eq('table_schema', 'public')
           .eq('table_name', 'users')
+        console.log('columns result:', { colErr, count: (userCols || []).length, cols: (userCols || []).map(c => c.column_name).join(',') })
         const colNames = new Set((userCols || []).map(c => c.column_name))
         const safeUpdates = {}
         for (const key of Object.keys(updates)) {
           if (colNames.has(key)) safeUpdates[key] = updates[key]
         }
+        console.log('safeUpdates keys:', Object.keys(safeUpdates).join(','))
         if (Object.keys(safeUpdates).length === 0) {
           return res.status(400).json({ error: 'No fields to update' })
         }
@@ -317,6 +324,7 @@ export async function updateProfile(req, res) {
           .eq('id', userId)
           .select('*')
           .single()
+        console.log('fallback update result:', { err: result.error?.message, code: result.error?.code, maps_link: result.data?.maps_link, phone: result.data?.phone })
         if (result.error) throw result.error
         return res.json({
           id: result.data.id, name: result.data.name, phone: result.data.phone,
@@ -329,7 +337,11 @@ export async function updateProfile(req, res) {
         })
       }
 
-      if (error) throw error
+      if (error) {
+        console.log('update error:', error.message, error.code)
+        throw error
+      }
+      console.log('update succeeded:', { maps_link: data.maps_link?.slice(0, 30), phone: data.phone })
       return res.json({
         id: data.id, name: data.name, phone: data.phone ?? null,
         email: data.email, avatar_url: data.avatar_url ?? null,
