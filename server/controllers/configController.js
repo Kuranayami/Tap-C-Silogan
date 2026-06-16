@@ -5,7 +5,8 @@ function parseKmlCoordinates(kmlText) {
   const coordsRe = /<(?:[^:]*:)?coordinates[^>]*>([\s\S]*?)<\s*\/(?:[^:]*:)?coordinates\s*>/i
   const coordsMatch = kmlText.match(coordsRe)
   if (!coordsMatch) return null
-  const raw = coordsMatch[1].trim()
+  let raw = coordsMatch[1].trim()
+  raw = raw.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').trim()
   const tokens = raw.split(/\s+/).filter(Boolean)
   const points = tokens.map(pair => {
     const parts = pair.split(',').map(Number)
@@ -175,7 +176,10 @@ export async function uploadZoneKml(req, res) {
       }
     }
 
-    if (!polygon) return res.status(400).json({ error: 'Could not find valid polygon coordinates in KML. Make sure your map has a drawn polygon and try exporting again.' })
+    if (!polygon) {
+      console.log('KML parse failed. First 500 chars:', kmlText.slice(0, 500))
+      return res.status(400).json({ error: 'Could not find valid polygon coordinates in KML. Make sure your map has a drawn polygon and try exporting again.' })
+    }
     await updateConfig({ zoneKml: kmlText, zonePolygon: polygon })
     res.json({ message: 'Zone KML uploaded', zonePolygon: polygon })
   } catch (err) {
