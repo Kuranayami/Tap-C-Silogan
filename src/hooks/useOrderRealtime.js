@@ -6,25 +6,33 @@ export function useOrderRealtime(onChange) {
   callbackRef.current = onChange
 
   useEffect(() => {
-    if (!supabase) { console.warn('[realtime] supabase client not available'); return }
+    let pollTimer
+    let channel
 
-    const channel = supabase
-      .channel('orders-realtime')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'orders' },
-        (payload) => {
-          callbackRef.current?.(payload)
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') console.log('[realtime] orders channel connected')
-        else if (status === 'CHANNEL_ERROR') console.error('[realtime] orders channel error')
-        else if (status === 'TIMED_OUT') console.warn('[realtime] orders channel timed out')
-        else if (status === 'CLOSED') console.log('[realtime] orders channel closed')
-      })
+    if (supabase) {
+      channel = supabase
+        .channel('orders-realtime')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload) => {
+            callbackRef.current?.(payload)
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') console.log('[realtime] orders channel connected')
+          else if (status === 'CHANNEL_ERROR') console.error('[realtime] orders channel error — will fall back to polling')
+          else if (status === 'TIMED_OUT') console.warn('[realtime] orders channel timed out — will fall back to polling')
+          else if (status === 'CLOSED') console.log('[realtime] orders channel closed')
+        })
+    } else {
+      console.warn('[realtime] supabase client not available — using polling fallback')
+    }
+
+    pollTimer = setInterval(() => callbackRef.current?.({ _poll: true }), 12000)
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) supabase.removeChannel(channel)
+      clearInterval(pollTimer)
     }
   }, [])
 }

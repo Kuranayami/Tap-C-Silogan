@@ -456,6 +456,7 @@ export default function Admin() {
   }, [loggedIn])
 
   useOrderRealtime(useCallback((payload) => {
+    if (payload._poll) { fetchOrders(); return }
     if (payload.eventType === 'INSERT') {
       setOrders(prev => [payload.new, ...prev])
       addActivity(`New order from ${payload.new.customer_name || 'someone'}`, 'success')
@@ -464,37 +465,62 @@ export default function Admin() {
     } else if (payload.eventType === 'DELETE') {
       setOrders(prev => prev.filter(o => o.id !== payload.old.id))
     }
-  }, [addActivity]))
+  }, [addActivity, fetchOrders]))
 
   useEffect(() => {
-    if (!loggedIn || !supabase) return
-    const channel = supabase
-      .channel('riders-realtime')
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'riders' },
-        (payload) => {
-          if (payload.eventType === 'UPDATE') {
-            setRiders(prev => prev.map(r => r.id === payload.new.id ? { ...r, ...payload.new } : r))
-          } else if (payload.eventType === 'INSERT') {
-            setRiders(prev => [payload.new, ...prev])
-          } else if (payload.eventType === 'DELETE') {
-            setRiders(prev => prev.filter(r => r.id !== payload.old.id))
-          }
-          const fetchRiderStats = async () => {
-            try {
-              const res = await fetch(api('/api/rider/stats'), { headers: adminHeaders() })
-              if (res.ok) setRiderStats(await res.json())
-            } catch {}
-          }
-          fetchRiderStats()
+    if (!loggedIn) return
+
+    const fetchAllRiders = async () => {
+      try {
+        const res = await fetch(api('/api/rider/all'), { headers: adminHeaders() })
+        if (res.ok) {
+          const data = await res.json()
+          setRiders(data)
         }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') console.log('[realtime] riders channel connected')
-        else if (status === 'CHANNEL_ERROR') console.error('[realtime] riders channel error')
-        else if (status === 'TIMED_OUT') console.warn('[realtime] riders channel timed out')
-      })
-    return () => { supabase.removeChannel(channel) }
+      } catch {}
+    }
+    const fetchRiderStats = async () => {
+      try {
+        const res = await fetch(api('/api/rider/stats'), { headers: adminHeaders() })
+        if (res.ok) setRiderStats(await res.json())
+      } catch {}
+    }
+
+    let channel
+    if (supabase) {
+      channel = supabase
+        .channel('riders-realtime')
+        .on('postgres_changes',
+          { event: '*', schema: 'public', table: 'riders' },
+          (payload) => {
+            if (payload.eventType === 'UPDATE') {
+              setRiders(prev => prev.map(r => r.id === payload.new.id ? { ...r, ...payload.new } : r))
+            } else if (payload.eventType === 'INSERT') {
+              setRiders(prev => [payload.new, ...prev])
+            } else if (payload.eventType === 'DELETE') {
+              setRiders(prev => prev.filter(r => r.id !== payload.old.id))
+            }
+            fetchRiderStats()
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') console.log('[realtime] riders channel connected')
+          else if (status === 'CHANNEL_ERROR') console.error('[realtime] riders channel error')
+          else if (status === 'TIMED_OUT') console.warn('[realtime] riders channel timed out')
+        })
+    } else {
+      console.warn('[realtime] supabase client not available — polling riders every 15s')
+    }
+
+    const pollTimer = setInterval(() => {
+      fetchAllRiders()
+      fetchRiderStats()
+    }, 15000)
+
+    return () => {
+      if (channel) supabase.removeChannel(channel)
+      clearInterval(pollTimer)
+    }
   }, [loggedIn])
 
   useEffect(() => {

@@ -91,6 +91,7 @@ export default function CashierPanel() {
 
   useOrderRealtime(useCallback((payload) => {
     if (!loggedIn) return
+    if (payload._poll) { fetchOrders(); return }
     if (payload.eventType === 'INSERT') {
       setOrders(prev => [payload.new, ...prev])
     } else if (payload.eventType === 'UPDATE') {
@@ -98,7 +99,7 @@ export default function CashierPanel() {
     } else if (payload.eventType === 'DELETE') {
       setOrders(prev => prev.filter(o => o.id !== payload.old.id))
     }
-  }, [loggedIn]))
+  }, [loggedIn, fetchOrders]))
 
   const changeStatus = async (id, newStatus) => {
     const prevOrder = orders.find(o => o.id === id)

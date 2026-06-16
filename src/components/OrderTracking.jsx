@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Package, Clock, Bike, CheckCircle, XCircle, ArrowLeft, MapPin, Phone, User, ShoppingBag } from 'lucide-react'
 import { api } from '../api'
@@ -102,6 +102,19 @@ export default function OrderTracking() {
   const { user, token } = useAuth()
   const [orders, setOrders] = useState(null)
   const [loading, setLoading] = useState(true)
+  const tokenRef = useRef(token)
+  tokenRef.current = token
+
+  const fetchOrders = useCallback(async () => {
+    const t = tokenRef.current
+    if (!t || !user) return
+    try {
+      const res = await fetch(api('/api/orders/my'), {
+        headers: { Authorization: `Bearer ${t}` },
+      })
+      if (res.ok) setOrders(await res.json())
+    } catch {}
+  }, [user])
 
   useEffect(() => {
     if (!token || !user) return
@@ -116,6 +129,7 @@ export default function OrderTracking() {
   }, [token, user])
 
   useOrderRealtime(useCallback((payload) => {
+    if (payload._poll) { fetchOrders(); return }
     if (!user) return
     const belongsToUser = payload.new?.user_id === user.id || payload.old?.user_id === user.id
     if (!belongsToUser) return
@@ -126,7 +140,7 @@ export default function OrderTracking() {
     } else if (payload.eventType === 'DELETE') {
       setOrders(prev => prev ? prev.filter(o => o.id !== payload.old.id) : prev)
     }
-  }, [user]))
+  }, [user, fetchOrders]))
 
   if (!user || !token) {
     return (

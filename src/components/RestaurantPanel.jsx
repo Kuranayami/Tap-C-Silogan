@@ -72,6 +72,7 @@ export default function RestaurantPanel() {
 
   useOrderRealtime(useCallback((payload) => {
     if (!loggedIn) return
+    if (payload._poll) { fetchOrders(); return }
     if (payload.eventType === 'INSERT') {
       setOrders(prev => [payload.new, ...prev])
     } else if (payload.eventType === 'UPDATE') {
@@ -79,7 +80,7 @@ export default function RestaurantPanel() {
     } else if (payload.eventType === 'DELETE') {
       setOrders(prev => prev.filter(o => o.id !== payload.old.id))
     }
-  }, [loggedIn]))
+  }, [loggedIn, fetchOrders]))
 
   const handleReady = async (orderId) => {
     setReadyLoading(orderId)
