@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Crosshair, Loader2 } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
+import { api } from '../api'
 
-export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange, dark }) {
+export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange, dark, zonePolygon: propZonePolygon }) {
+  const [zonePolygon, setZonePolygon] = useState(propZonePolygon || null)
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const markerRef = useRef(null)
+  const polygonRef = useRef(null)
   const leafletRef = useRef(null)
   const [detecting, setDetecting] = useState(false)
   const [mapReady, setMapReady] = useState(false)
@@ -29,10 +32,19 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
 
   useEffect(() => {
     let cancelled = false
+    let polygonData = propZonePolygon || zonePolygon
     async function init() {
       const L = (await import('leaflet')).default
       if (cancelled) return
       leafletRef.current = L
+
+      if (!polygonData) {
+        try {
+          const cfgRes = await fetch(api('/api/config'))
+          const cfg = await cfgRes.json()
+          if (cfg.zonePolygon && !cancelled) { polygonData = cfg.zonePolygon; setZonePolygon(cfg.zonePolygon) }
+        } catch {}
+      }
 
       let lat, lng
       const parsed = parseCoordsFromLink(mapsLink)
@@ -65,6 +77,15 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
           attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
         }).addTo(map)
         L.control.zoom({ position: 'bottomright' }).addTo(map)
+
+        if (polygonData && polygonData.length > 2) {
+          polygonRef.current = L.polygon(polygonData, {
+            color: '#f97316',
+            fillColor: '#f97316',
+            fillOpacity: 0.15,
+            weight: 2,
+          }).addTo(map)
+        }
 
         const marker = L.marker(lat && lng ? [lat, lng] : [0, 0], { draggable: true })
         if (lat && lng) marker.addTo(map)
