@@ -4,7 +4,7 @@ import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike, ChefHat,
-  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign, Map, Search,
+  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign, Map, Search, Eye, EyeOff,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
@@ -196,13 +196,16 @@ export default function Admin() {
   const [cashiersLoading, setCashiersLoading] = useState(false)
   const [newCashier, setNewCashier] = useState({ name: '', username: '', password: '' })
   const [addingCashier, setAddingCashier] = useState(false)
+  const [showCashierPassword, setShowCashierPassword] = useState(false)
   const [newRider, setNewRider] = useState({ name: '', phone: '', password: '', email: '', vehicle_type: 'motorcycle', license_plate: '' })
   const [addingRider, setAddingRider] = useState(false)
+  const [showRiderPassword, setShowRiderPassword] = useState(false)
   const [showRestaurantsManager, setShowRestaurantsManager] = useState(false)
   const [restaurants, setRestaurants] = useState([])
   const [restaurantsLoading, setRestaurantsLoading] = useState(false)
   const [newRestaurant, setNewRestaurant] = useState({ name: '', username: '', password: '' })
   const [addingRestaurant, setAddingRestaurant] = useState(false)
+  const [showRestaurantPassword, setShowRestaurantPassword] = useState(false)
   const [showTestimonialsManager, setShowTestimonialsManager] = useState(false)
   const [testimonials, setTestimonials] = useState([])
   const [testimonialsForm, setTestimonialsForm] = useState({ name: '', text: '', rating: 5 })
@@ -1035,7 +1038,12 @@ export default function Admin() {
                   <input type="text" placeholder="Full name" value={newRider.name} onChange={e => setNewRider(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
                   <input type="tel" placeholder="Phone" value={newRider.phone} onChange={e => setNewRider(f => ({ ...f, phone: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
                   <input type="email" placeholder="Email (optional)" value={newRider.email} onChange={e => setNewRider(f => ({ ...f, email: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
-                  <input type="password" placeholder="Password" value={newRider.password} onChange={e => setNewRider(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
+                  <div className="relative">
+                    <input type={showRiderPassword ? 'text' : 'password'} placeholder="Password" value={newRider.password} onChange={e => setNewRider(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50 pr-9" />
+                    <button type="button" onClick={() => setShowRiderPassword(!showRiderPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#408A71] hover:text-[#B0E4CC] transition-colors">
+                      {showRiderPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <select value={newRider.vehicle_type} onChange={e => setNewRider(f => ({ ...f, vehicle_type: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm focus:outline-none focus:border-[#408A71]/50">
                     <option value="bicycle">Bicycle</option>
                     <option value="motorcycle">Motorcycle</option>
@@ -1146,7 +1154,12 @@ export default function Admin() {
                 <form onSubmit={handleAddCashier} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#285A48]">
                   <input type="text" placeholder="Full name" value={newCashier.name} onChange={e => setNewCashier(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
                   <input type="text" placeholder="Username" value={newCashier.username} onChange={e => setNewCashier(f => ({ ...f, username: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
-                  <input type="password" placeholder="Password" value={newCashier.password} onChange={e => setNewCashier(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
+                  <div className="relative">
+                    <input type={showCashierPassword ? 'text' : 'password'} placeholder="Password" value={newCashier.password} onChange={e => setNewCashier(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50 pr-9" />
+                    <button type="button" onClick={() => setShowCashierPassword(!showCashierPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#408A71] hover:text-[#B0E4CC] transition-colors">
+                      {showCashierPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <button type="submit" disabled={addingCashier || !newCashier.name || !newCashier.username || !newCashier.password} className="px-3 py-2 rounded-lg bg-[#408A71] hover:bg-[#285A48] text-white font-semibold text-sm transition-all disabled:opacity-50">{addingCashier ? 'Adding...' : 'Add Cashier'}</button>
                 </form>
 
@@ -1220,7 +1233,12 @@ export default function Admin() {
                 <form onSubmit={handleAddRestaurant} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#285A48]">
                   <input type="text" placeholder="Restaurant name" value={newRestaurant.name} onChange={e => setNewRestaurant(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
                   <input type="text" placeholder="Username" value={newRestaurant.username} onChange={e => setNewRestaurant(f => ({ ...f, username: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
-                  <input type="password" placeholder="Password" value={newRestaurant.password} onChange={e => setNewRestaurant(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50" />
+                  <div className="relative">
+                    <input type={showRestaurantPassword ? 'text' : 'password'} placeholder="Password" value={newRestaurant.password} onChange={e => setNewRestaurant(f => ({ ...f, password: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm placeholder-[#408A71] focus:outline-none focus:border-[#408A71]/50 pr-9" />
+                    <button type="button" onClick={() => setShowRestaurantPassword(!showRestaurantPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#408A71] hover:text-[#B0E4CC] transition-colors">
+                      {showRestaurantPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   <button type="submit" disabled={addingRestaurant || !newRestaurant.name || !newRestaurant.username || !newRestaurant.password} className="px-3 py-2 rounded-lg bg-[#408A71] hover:bg-[#285A48] text-white font-semibold text-sm transition-all disabled:opacity-50">{addingRestaurant ? 'Adding...' : 'Add Restaurant'}</button>
                 </form>
 
