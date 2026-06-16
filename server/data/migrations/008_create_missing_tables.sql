@@ -1,0 +1,31 @@
+CREATE TABLE IF NOT EXISTS config (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS restaurants (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  status TEXT DEFAULT 'active',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS menu (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  price NUMERIC(10,2) NOT NULL,
+  category TEXT,
+  image TEXT,
+  available BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS about_images (
+  id BIGSERIAL PRIMARY KEY,
+  image_url TEXT NOT NULL,
+  caption TEXT,
+  ord INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);

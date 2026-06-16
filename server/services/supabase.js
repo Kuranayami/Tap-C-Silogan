@@ -27,6 +27,7 @@ function writeJSON(file, data) {
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || ''
 
 export const hasSupabase = supabaseUrl && supabaseKey
 if (!hasSupabase) {
@@ -59,7 +60,7 @@ async function runPendingMigrations() {
     try {
       const res = await fetch(`${supabaseUrl}/rest/v1/sql`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}`, 'apikey': supabaseAnonKey },
         body: JSON.stringify({ query: sql }),
       })
       if (res.ok) {
