@@ -27,7 +27,7 @@ function writeJSON(file, data) {
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || ''
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 export const hasSupabase = supabaseUrl && supabaseKey
 if (!hasSupabase) {
