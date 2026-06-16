@@ -21,6 +21,8 @@ router.post('/resolve', async (req, res) => {
     }
     const response = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(5000) })
     const resolved = response.url
+    console.log('Resolved URL:', resolved)
+
     const atMatch = resolved.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
     if (atMatch) {
       return res.json({ lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) })
@@ -28,6 +30,10 @@ router.post('/resolve', async (req, res) => {
     const qMatch = resolved.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)
     if (qMatch) {
       return res.json({ lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) })
+    }
+    const coordMatch = resolved.match(/(\d{1,2}\.\d+)[+,]\s*(\d{1,3}\.\d+)/)
+    if (coordMatch) {
+      return res.json({ lat: parseFloat(coordMatch[1]), lng: parseFloat(coordMatch[2]) })
     }
     const placeMatch = resolved.match(/\/place\/([^/?#]+?)(?:\/|$|[?#])/)
     if (placeMatch) {
@@ -41,7 +47,19 @@ router.post('/resolve', async (req, res) => {
         return res.json({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) })
       }
     }
-    res.status(400).json({ error: 'Could not extract coordinates from the link. Please open Google Maps, drop a pin, and share the link.' })
+    const dirMatch = resolved.match(/\/dir\/\/?([^/]+?)\/@/)
+    if (dirMatch) {
+      const query = decodeURIComponent(dirMatch[1].replace(/\+/g, ' '))
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=0`,
+        { headers: { 'User-Agent': 'TapCSilogan/1.0' }, signal: AbortSignal.timeout(5000) }
+      )
+      const geoData = await geoRes.json()
+      if (geoData?.[0]?.lat && geoData?.[0]?.lon) {
+        return res.json({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) })
+      }
+    }
+    res.status(400).json({ error: 'Could not extract coordinates from the link: ' + resolved.slice(0, 200) + '. Please open Google Maps, drop a pin, and share the link.' })
   } catch (err) {
     if (err.name === 'TimeoutError' || err.code === 'ETIMEDOUT') {
       return res.status(504).json({ error: 'Timed out resolving link' })

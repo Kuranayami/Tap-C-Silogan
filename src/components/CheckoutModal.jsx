@@ -19,8 +19,10 @@ export default function CheckoutModal() {
   const [zoneImage, setZoneImage] = useState(null)
   const [zonePolygon, setZonePolygon] = useState(null)
   const [inZone, setInZone] = useState(true)
+  const [zoneUnknown, setZoneUnknown] = useState(false)
+  const [zoneError, setZoneError] = useState('')
 
-  const deliveryFee = inZone ? deliveryFeeInZone : deliveryFeeOutOfZone
+  const deliveryFee = (!zonePolygon || zoneUnknown || inZone) ? deliveryFeeInZone : deliveryFeeOutOfZone
   const showTotal = subtotal + deliveryFee
 
   useEffect(() => {
@@ -45,7 +47,11 @@ export default function CheckoutModal() {
   }, [checkoutOpen])
 
   useEffect(() => {
-    if (!zonePolygon || !mapsLink) return
+    if (!zonePolygon) { setZoneUnknown(false); setZoneError(''); return }
+    if (!mapsLink) { setZoneUnknown(true); setZoneError('No Google Maps link in profile'); return }
+    setZoneUnknown(false)
+    setZoneError('')
+
     const coords = extractCoordinatesFromUrl(mapsLink)
     if (coords) {
       setInZone(pointInPolygon([coords.lat, coords.lng], zonePolygon))
@@ -57,8 +63,18 @@ export default function CheckoutModal() {
       }).then(r => r.json()).then(d => {
         if (d.lat != null && d.lng != null) {
           setInZone(pointInPolygon([d.lat, d.lng], zonePolygon))
+          setZoneUnknown(false)
+        } else {
+          setZoneUnknown(true)
+          setZoneError(d.error || 'Could not determine location from link')
         }
-      }).catch(() => {})
+      }).catch(e => {
+        setZoneUnknown(true)
+        setZoneError('Failed to check delivery zone')
+      })
+    } else {
+      setZoneUnknown(true)
+      setZoneError('Could not extract coordinates from your Google Maps link')
     }
   }, [mapsLink, zonePolygon])
 
@@ -183,9 +199,9 @@ export default function CheckoutModal() {
                   )}
 
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
-                    <MapPin className={`w-5 h-5 shrink-0 ${inZone ? 'text-emerald-400' : 'text-red-400'}`} />
-                    <span className={`text-sm font-medium ${inZone ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {inZone ? 'You are within our delivery zone' : 'You are outside our delivery zone'}
+                    <MapPin className={`w-5 h-5 shrink-0 ${!zonePolygon ? 'text-[#a1a1aa]' : zoneUnknown ? 'text-yellow-400' : inZone ? 'text-emerald-400' : 'text-red-400'}`} />
+                    <span className={`text-sm font-medium ${!zonePolygon ? 'text-[#a1a1aa]' : zoneUnknown ? 'text-yellow-400' : inZone ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {!zonePolygon ? 'Delivery zone not configured' : zoneUnknown ? 'Unable to determine delivery zone' : inZone ? 'You are within our delivery zone' : 'You are outside our delivery zone'}
                     </span>
                   </div>
 
@@ -216,7 +232,7 @@ export default function CheckoutModal() {
                       <span>₱{subtotal}</span>
                     </div>
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
-                      <span>Delivery {inZone ? '(In Zone)' : '(Out of Zone)'}</span>
+                      <span>Delivery {!zonePolygon ? '' : zoneUnknown ? '(In Zone - default)' : inZone ? '(In Zone)' : '(Out of Zone)'}</span>
                       <span>₱{deliveryFee}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-[#27272a]">
