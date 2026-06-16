@@ -173,6 +173,9 @@ export async function uploadZoneKml(req, res) {
         } catch (fetchErr) {
           console.log('NetworkLink fetch failed:', fetchErr.message)
         }
+        if (!polygon) {
+          return res.status(400).json({ error: 'Google blocked the KML fetch.' })
+        }
       }
     }
 
