@@ -45,11 +45,20 @@ export default function CheckoutModal() {
   }, [checkoutOpen])
 
   useEffect(() => {
-    if (zonePolygon && mapsLink) {
-      const coords = extractCoordinatesFromUrl(mapsLink)
-      if (coords) {
-        setInZone(pointInPolygon([coords.lat, coords.lng], zonePolygon))
-      }
+    if (!zonePolygon || !mapsLink) return
+    const coords = extractCoordinatesFromUrl(mapsLink)
+    if (coords) {
+      setInZone(pointInPolygon([coords.lat, coords.lng], zonePolygon))
+    } else if (mapsLink.includes('goo.gl') || mapsLink.includes('maps.app')) {
+      fetch(api('/api/location/resolve'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: mapsLink }),
+      }).then(r => r.json()).then(d => {
+        if (d.lat != null && d.lng != null) {
+          setInZone(pointInPolygon([d.lat, d.lng], zonePolygon))
+        }
+      }).catch(() => {})
     }
   }, [mapsLink, zonePolygon])
 
