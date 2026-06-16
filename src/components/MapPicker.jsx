@@ -56,10 +56,17 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
       if (!lat && navigator.geolocation) {
         try {
           const pos = await new Promise((resolve, reject) =>
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+            navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000 })
           )
           if (!cancelled) { lat = pos.coords.latitude; lng = pos.coords.longitude }
-        } catch {}
+        } catch {
+          try {
+            const pos = await new Promise((resolve, reject) =>
+              navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: false, timeout: 10000 })
+            )
+            if (!cancelled) { lat = pos.coords.latitude; lng = pos.coords.longitude }
+          } catch {}
+        }
       }
 
       if (cancelled) return
@@ -168,23 +175,34 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
     }
   }
 
-  const handleDetectLocation = () => {
+  function tryGetPosition(opts) {
+    return new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, opts)
+    )
+  }
+
+  const handleDetectLocation = async () => {
     if (!navigator.geolocation) return
     setDetecting(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
-        if (mapInstance.current && markerRef.current) {
-          mapInstance.current.setView([lat, lng], 16)
-          markerRef.current.setLatLng([lat, lng])
-          updateLocation(lat, lng)
-        }
+    let lat, lng
+    try {
+      const pos = await tryGetPosition({ enableHighAccuracy: true, timeout: 15000 })
+      lat = pos.coords.latitude; lng = pos.coords.longitude
+    } catch {
+      try {
+        const pos = await tryGetPosition({ enableHighAccuracy: false, timeout: 10000 })
+        lat = pos.coords.latitude; lng = pos.coords.longitude
+      } catch {
         setDetecting(false)
-      },
-      () => setDetecting(false),
-      { enableHighAccuracy: true, timeout: 10000 }
-    )
+        return
+      }
+    }
+    if (mapInstance.current && markerRef.current) {
+      mapInstance.current.setView([lat, lng], 16)
+      markerRef.current.setLatLng([lat, lng])
+      updateLocation(lat, lng)
+    }
+    setDetecting(false)
   }
 
   const t = dark ? { label: 'text-[#a1a1aa]', border: 'border-[#27272a]', loaderBg: 'bg-[#18181b]', loaderIcon: 'text-[#71717a]', btnBg: 'bg-[#27272a] hover:bg-[#333]', btnText: 'text-white', hint: 'text-[#71717a]/60' } : { label: 'text-[#D48040]', border: 'border-[#FFEC9E]', loaderBg: 'bg-[#FFFBDA]', loaderIcon: 'text-[#D48040]/60', btnBg: 'bg-[#FFEC9E] hover:bg-[#FFD966]', btnText: 'text-[#4A3728]', hint: 'text-[#D48040]/60' }
