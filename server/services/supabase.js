@@ -60,9 +60,9 @@ async function runPendingMigrations() {
     const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8')
     let ok = false
     try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/sql`, {
+      const res = await fetch(`${supabaseUrl}/rest/v1/sql?apikey=${encodeURIComponent(supabaseAnonKey)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}`, 'apikey': supabaseAnonKey },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}` },
         body: JSON.stringify({ query: sql }),
       })
       if (res.ok) { ok = true; markRan(file); console.log(`Migration ${file} applied`) }

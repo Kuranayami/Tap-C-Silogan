@@ -9,7 +9,7 @@ export async function getUsers(req, res) {
     }
     const { data, error } = await supabase
       .from('users')
-      .select('id, name, email, phone, auth_provider, status, is_verified, created_at, google_id')
+      .select('id, name, email, phone, auth_provider, is_verified, created_at, google_id')
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -35,9 +35,14 @@ export async function updateUserStatus(req, res) {
       .update({ status })
       .eq('id', id)
       .select('id, name, email, phone, auth_provider, status, is_verified, created_at')
-      .single()
+      .maybeSingle()
 
-    if (error) throw error
+    if (error) {
+      if (error.code === '42703') {
+        return res.status(400).json({ error: 'User status feature not available — run migration 004_add_user_status.sql in Supabase SQL Editor' })
+      }
+      throw error
+    }
     res.json({ user: data, message: `User ${status}` })
   } catch (err) {
     console.error('updateUserStatus error:', err)
