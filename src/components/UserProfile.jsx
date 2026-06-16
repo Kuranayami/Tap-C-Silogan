@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { User, Phone, MapPin, Camera, Save, Loader2, ArrowLeft, Calendar1, Home } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { api, imageUrl } from '../api'
+import MapPicker from './MapPicker'
 
 export default function UserProfile({ onBack }) {
   const { user, token, updateUser } = useAuth()
@@ -186,6 +187,12 @@ export default function UserProfile({ onBack }) {
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#D48040]/40 focus:outline-none focus:border-[#FFBB70] transition-colors" />
             </div>
           </div>
+
+          <MapPicker
+            mapsLink={mapsLink}
+            onMapsLinkChange={setMapsLink}
+            onAddressChange={setAddress}
+          />
 
           <div>
             <label className="block text-sm font-medium text-[#D48040] mb-1.5">Google Maps Link</label>

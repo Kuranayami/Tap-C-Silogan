@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { User, Phone, MapPin, Camera, Save, Loader2, ArrowLeft, Calendar1 } from 'lucide-react'
 import { api, imageUrl } from '../api'
+import MapPicker from './MapPicker'
 
 export default function CashierProfile({ onBack }) {
   const [name, setName] = useState('')
@@ -171,6 +172,12 @@ export default function CashierProfile({ onBack }) {
               </div>
             </div>
           </div>
+
+          <MapPicker
+            mapsLink={mapsLink}
+            onMapsLinkChange={setMapsLink}
+            dark
+          />
 
           <div>
             <label className="block text-sm font-medium text-[#a1a1aa] mb-1.5">Google Maps Link</label>
