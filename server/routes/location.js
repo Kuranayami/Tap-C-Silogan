@@ -31,9 +31,13 @@ router.post('/resolve', async (req, res) => {
     if (qMatch) {
       return res.json({ lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) })
     }
-    const coordMatch = resolved.match(/(\d{1,2}\.\d+)[+,]\s*(\d{1,3}\.\d+)/)
+    const coordMatch = resolved.match(/(\d{1,2}\.\d+)[+,]\s*\+?(\d{1,3}\.\d+)/)
     if (coordMatch) {
       return res.json({ lat: parseFloat(coordMatch[1]), lng: parseFloat(coordMatch[2]) })
+    }
+    const searchMatch = resolved.match(/\/search\/(\d+\.\d+),\+(\d+\.\d+)/)
+    if (searchMatch) {
+      return res.json({ lat: parseFloat(searchMatch[1]), lng: parseFloat(searchMatch[2]) })
     }
     const placeMatch = resolved.match(/\/place\/([^/?#]+?)(?:\/|$|[?#])/)
     if (placeMatch) {
