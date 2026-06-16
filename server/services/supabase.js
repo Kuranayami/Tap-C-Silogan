@@ -54,26 +54,31 @@ async function runPendingMigrations() {
   if (!hasSupabase || !existsSync(MIGRATIONS_DIR)) return
   const ran = getRanMigrations()
   const files = readdirSync(MIGRATIONS_DIR).filter(f => f.endsWith('.sql')).sort()
+  let sqlFailed = false
   for (const file of files) {
     if (ran.includes(file)) continue
     const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8')
+    let ok = false
     try {
       const res = await fetch(`${supabaseUrl}/rest/v1/sql`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}`, 'apikey': supabaseAnonKey },
         body: JSON.stringify({ query: sql }),
       })
-      if (res.ok) {
-        markRan(file)
-        console.log(`Migration ${file} applied`)
-      } else {
-        const text = await res.text().catch(() => '')
-        console.warn(`Migration ${file} failed (${res.status}): ${text.slice(0, 200)}`)
-      }
-    } catch (e) {
-      console.warn(`Migration ${file} error:`, e.message)
+      if (res.ok) { ok = true; markRan(file); console.log(`Migration ${file} applied`) }
+    } catch {}
+    if (!ok) {
+      try {
+        const { error } = await supabase.rpc('exec_sql', { query_text: sql })
+        if (!error) { ok = true; markRan(file); console.log(`Migration ${file} applied via RPC`) }
+      } catch {}
+    }
+    if (!ok) {
+      sqlFailed = true
+      console.warn(`Migration ${file} — could not auto-apply. Run this SQL in Supabase dashboard SQL Editor:\n${sql}\n`)
     }
   }
+  if (sqlFailed) console.warn('Some migrations could not be auto-applied. Copy the SQL above into Supabase dashboard → SQL Editor → Run.')
 }
 
 runPendingMigrations()
