@@ -669,7 +669,8 @@ export default function Admin() {
     if (isNaN(inZone) || inZone < 0 || isNaN(outOfZone) || outOfZone < 0) { setUploadError('Enter valid non-negative numbers'); return }
     setSavingDeliveryFee(true)
     try {
-      await updateDeliveryFees({ inZone, outOfZone }, token)
+      const adminToken = localStorage.getItem('admin_token')
+      await updateDeliveryFees({ inZone, outOfZone }, adminToken)
       setDeliveryFeeInZoneLocal(inZone)
       setDeliveryFeeOutOfZoneLocal(outOfZone)
       addActivity(`In-zone: ₱${inZone}, Out-of-zone: ₱${outOfZone}`, 'info')
