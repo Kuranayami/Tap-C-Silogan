@@ -90,17 +90,31 @@ function saveOrders() {
   writeJSON(ORDERS_FILE, inMemoryOrders)
 }
 
+function mergeOrders(supabaseOrders) {
+  const seen = new Set()
+  const merged = [...supabaseOrders]
+  for (const o of supabaseOrders) seen.add(o.id)
+  for (const o of inMemoryOrders) {
+    if (!seen.has(o.id)) { seen.add(o.id); merged.push(o) }
+  }
+  return merged
+}
+
 export async function getAllOrders() {
+  let supabaseOrders = []
   if (hasSupabase) {
     try {
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
-      if (!error && data) return data
+      if (!error && data) supabaseOrders = data
     } catch (e) { console.warn('Supabase orders fetch failed:', e.message) }
   }
-  return [...inMemoryOrders]
+  return mergeOrders(supabaseOrders)
 }
 
 export async function createOrder(orderData) {
+  const order = { id: Date.now().toString(), ...orderData, created_at: new Date().toISOString(), status: 'pending' }
+  inMemoryOrders.unshift(order)
+  saveOrders()
   if (hasSupabase) {
     try {
       const { data, error } = await supabase.from('orders').insert({
@@ -116,12 +130,13 @@ export async function createOrder(orderData) {
         total: orderData.total,
         status: 'pending',
       }).select().single()
-      if (!error && data) return { data, error: null }
+      if (!error && data) {
+        inMemoryOrders = inMemoryOrders.map(o => o.id === order.id ? { ...o, id: data.id } : o)
+        saveOrders()
+        return { data, error: null }
+      }
     } catch (e) { console.warn('Supabase insert failed:', e.message) }
   }
-  const order = { id: Date.now().toString(), ...orderData, created_at: new Date().toISOString(), status: 'pending' }
-  inMemoryOrders.unshift(order)
-  saveOrders()
   return { data: order, error: null }
 }
 
@@ -129,18 +144,17 @@ export async function updateOrderStatus(id, status) {
   if (hasSupabase) {
     try {
       const { data, error } = await supabase.from('orders').update({ status }).eq('id', id).select().single()
-      if (!error && data) { inMemoryOrders = inMemoryOrders.map(o => o.id === id ? { ...o, status } : o); return data }
+      if (!error && data) { inMemoryOrders = inMemoryOrders.map(o => o.id === id ? { ...o, status } : o); saveOrders(); return data }
     } catch (e) { console.warn('Supabase status update failed:', e.message) }
   }
-  const order = inMemoryOrders.find(o => o.id === id)
-  if (!order) return null
-  order.status = status
-  saveOrders()
-  return order
+  let order = inMemoryOrders.find(o => o.id === id)
+  if (order) { order.status = status; saveOrders(); return order }
+  return null
 }
 
 export async function getOrdersByContact(contact) {
   const clean = contact.replace(/\D/g, '').slice(0, 11)
+  let supabaseOrders = []
   if (hasSupabase) {
     try {
       const { data, error } = await supabase
@@ -148,13 +162,14 @@ export async function getOrdersByContact(contact) {
         .select('*')
         .eq('customer_contact', clean)
         .order('created_at', { ascending: false })
-      if (!error && data) return data
+      if (!error && data) supabaseOrders = data
     } catch (e) { console.warn('Supabase contact lookup failed:', e.message) }
   }
-  return inMemoryOrders.filter(o => o.customer_contact === clean)
+  return mergeOrders(supabaseOrders).filter(o => o.customer_contact === clean)
 }
 
 export async function getOrdersByUser(userId) {
+  let supabaseOrders = []
   if (hasSupabase) {
     try {
       const { data, error } = await supabase
@@ -162,10 +177,10 @@ export async function getOrdersByUser(userId) {
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
-      if (!error && data) return data
+      if (!error && data) supabaseOrders = data
     } catch (e) { console.warn('Supabase user orders lookup failed:', e.message) }
   }
-  return inMemoryOrders.filter(o => o.user_id === userId)
+  return mergeOrders(supabaseOrders).filter(o => o.user_id === userId)
 }
 
 export async function deleteOrder(id) {
@@ -177,9 +192,7 @@ export async function deleteOrder(id) {
   }
   const idx = inMemoryOrders.findIndex(o => o.id === id)
   if (idx === -1) return null
-  const removed = inMemoryOrders.splice(idx, 1)[0]
-  saveOrders()
-  return removed
+  return inMemoryOrders.splice(idx, 1)[0]
 }
 
 // ── Menu ────────────────────────────────────────────
