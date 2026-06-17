@@ -234,7 +234,7 @@ export async function getDriverLocation(orderId) {
 
   const { data, error } = await supabase
     .from('driver_locations')
-    .select('*, riders!inner(name, phone, vehicle_type)')
+    .select('*')
     .eq('order_id', orderId)
     .order('updated_at', { ascending: false })
     .limit(1)
