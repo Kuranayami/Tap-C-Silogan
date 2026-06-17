@@ -191,12 +191,32 @@ function LiveMap({ orderId }) {
   )
 }
 
+function ConfirmDialog({ open, onConfirm, onCancel, loading }) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onCancel}>
+      <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-5 max-w-xs w-full mx-3 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <h3 className="text-sm font-semibold text-white mb-2">Cancel this order?</h3>
+        <p className="text-xs text-[#71717a] mb-4">This cannot be undone. Any rescue-eligible items will be held for matching.</p>
+        <div className="flex items-center gap-2 justify-end">
+          <button onClick={onCancel} disabled={loading} className="px-3 py-1.5 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white text-xs font-medium transition-all disabled:opacity-50">No</button>
+          <button onClick={onConfirm} disabled={loading} className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition-all disabled:opacity-50 inline-flex items-center gap-1">
+            {loading && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+            Yes, Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function OrderTracking() {
   const { user, token } = useAuth()
   const [orders, setOrders] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
   const [cancelling, setCancelling] = useState(null)
+  const [confirmOrderId, setConfirmOrderId] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const tokenRef = useRef(token)
   tokenRef.current = token
@@ -239,7 +259,6 @@ export default function OrderTracking() {
   }, [user, fetchOrders]))
 
   const handleCancelOrder = useCallback(async (orderId) => {
-    if (!confirm('Cancel this order?')) return
     setCancelling(orderId)
     try {
       const res = await fetch(api(`/api/orders/user/cancel/${orderId}`), {
@@ -320,7 +339,7 @@ export default function OrderTracking() {
               <OrderCard
                 order={order}
                 canCancel={canCancelOrder(order)}
-                onCancel={handleCancelOrder}
+                onCancel={setConfirmOrderId}
               />
             </div>
           ))}
@@ -338,6 +357,13 @@ export default function OrderTracking() {
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOrderId !== null}
+        loading={cancelling === confirmOrderId}
+        onConfirm={() => { const id = confirmOrderId; setConfirmOrderId(null); handleCancelOrder(id) }}
+        onCancel={() => setConfirmOrderId(null)}
+      />
     </div>
   )
 }
