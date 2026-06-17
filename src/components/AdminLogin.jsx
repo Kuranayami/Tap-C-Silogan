@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { ChefHat, Lock, User, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { api } from '../api'
 
@@ -35,44 +35,44 @@ export default function AdminLogin({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#37353E] text-[#D3DAD9] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#FFFBDA] text-[#4A3728] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <button
           onClick={() => { window.location.hash = '' }}
-          className="mb-8 p-2 rounded-xl border border-[#715A5A] text-[#D3DAD9] hover:text-white transition-colors"
+          className="mb-8 p-2 rounded-xl border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#715A5A] to-[#D3DAD9] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#715A5A]/20">
-            <ChefHat className="w-7 h-7 text-white" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D48040] to-[#4A3728] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#D48040]/20">
+            <ChefHat className="w-7 h-7 text-[#4A3728]" />
           </div>
           <h1 className="text-2xl font-bold">Admin Login</h1>
-          <p className="text-sm text-[#D3DAD9] mt-1">Tap C Silogan Dashboard</p>
+          <p className="text-sm text-[#4A3728] mt-1">Tap C Silogan Dashboard</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#715A5A]" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D48040]" />
             <input
               type="text"
               placeholder="Username"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#44444E] border border-[#715A5A] text-white text-sm placeholder-[#715A5A] focus:outline-none focus:border-[#D3DAD9]/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50 transition-colors"
             />
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#715A5A]" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#D48040]" />
             <input
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#44444E] border border-[#715A5A] text-white text-sm placeholder-[#715A5A] focus:outline-none focus:border-[#D3DAD9]/50 transition-colors"
+              className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50 transition-colors"
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#715A5A] hover:text-[#D3DAD9] transition-colors">
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#D48040] hover:text-[#4A3728] transition-colors">
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
@@ -80,16 +80,17 @@ export default function AdminLogin({ onLogin }) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-[#715A5A] hover:bg-[#44444E] text-white font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-2.5 rounded-xl bg-[#D48040] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <p className="text-xs text-[#715A5A] text-center mt-6">
+        <p className="text-xs text-[#D48040] text-center mt-6">
           Authorized personnel only
         </p>
       </div>
     </div>
   )
 }
+

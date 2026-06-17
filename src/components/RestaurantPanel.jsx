@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { Clock, Package, Bike, ChefHat, LogOut, RefreshCw, CheckCircle, Phone, MapPin, AlertTriangle, ArrowLeft, Zap } from 'lucide-react'
 import { api } from '../api'
 import RestaurantLogin from './RestaurantLogin'
@@ -110,27 +110,27 @@ export default function RestaurantPanel() {
   const staleOrders = orders.filter(o => (o.status || 'pending') === 'pending' && o.created_at && (Date.now() - new Date(o.created_at).getTime()) > STALE_THRESHOLD_MIN * 60000)
 
   return (
-    <div className="min-h-screen bg-[#37353E] text-[#D3DAD9]">
+    <div className="min-h-screen bg-[#FFFBDA] text-[#4A3728]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <button onClick={goBack} className="p-2 rounded-xl border border-[#715A5A] text-[#D3DAD9] hover:text-white transition-colors">
+            <button onClick={goBack} className="p-2 rounded-xl border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <h1 className="text-lg sm:text-xl font-bold tracking-tight flex items-center gap-2">
-                <ChefHat className="w-5 h-5 text-[#715A5A]" />
-                Restaurant <span className="text-[#715A5A]">Dashboard</span>
+                <ChefHat className="w-5 h-5 text-[#D48040]" />
+                Restaurant <span className="text-[#D48040]">Dashboard</span>
               </h1>
-              <p className="text-xs text-[#715A5A]">{restaurant?.name || ''} · {orders.filter(o => ['pending', 'ongoing'].includes(o.status)).length} active</p>
+              <p className="text-xs text-[#D48040]">{restaurant?.name || ''} Â· {orders.filter(o => ['pending', 'ongoing'].includes(o.status)).length} active</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#715A5A] text-[#D3DAD9] hover:text-white transition-colors disabled:opacity-50">
+            <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <button onClick={logout} className="p-2 rounded-lg border border-[#715A5A] text-[#D3DAD9] hover:text-red-400 transition-colors">
+            <button onClick={logout} className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-red-400 hover:border-red-400/30 transition-colors">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -139,15 +139,15 @@ export default function RestaurantPanel() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
-            <p className="text-xs text-[#D3DAD9]">Pending</p>
+            <p className="text-xs text-[#4A3728]">Pending</p>
             <p className="text-xl font-bold text-amber-400">{columnOrders('pending').length}</p>
           </div>
           <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3">
-            <p className="text-xs text-[#D3DAD9]">Ongoing</p>
+            <p className="text-xs text-[#4A3728]">Ongoing</p>
             <p className="text-xl font-bold text-blue-400">{columnOrders('ongoing').length}</p>
           </div>
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
-            <p className="text-xs text-[#D3DAD9]">In Delivery</p>
+            <p className="text-xs text-[#4A3728]">In Delivery</p>
             <p className="text-xl font-bold text-emerald-400">{columnOrders('in_delivery').length}</p>
           </div>
         </div>
@@ -175,14 +175,14 @@ export default function RestaurantPanel() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <col.icon className={`w-4 h-4 ${col.text}`} />
-                    <span className="text-sm font-semibold text-white">{col.label}</span>
+                    <span className="text-sm font-semibold text-[#4A3728]">{col.label}</span>
                     <span className={`text-xs px-1.5 py-0.5 rounded-full ${col.bg} ${col.text} font-medium`}>{items.length}</span>
                   </div>
                 </div>
 
                 <div className="space-y-2 min-h-[200px]">
                   {items.length === 0 && (
-                    <p className="text-xs text-[#715A5A] text-center py-8">No orders</p>
+                    <p className="text-xs text-[#D48040] text-center py-8">No orders</p>
                   )}
                   {items.map(order => {
                     const totalQty = (order.items || []).reduce((s, i) => s + i.quantity, 0)
@@ -191,38 +191,38 @@ export default function RestaurantPanel() {
                     return (
                       <div
                         key={order.id}
-                        className={`rounded-xl border ${isStale ? 'border-red-500/40 bg-red-500/5' : 'border-[#715A5A] bg-[#44444E]'} p-3 text-sm space-y-1.5`}
+                        className={`rounded-xl border ${isStale ? 'border-red-500/40 bg-red-500/5' : 'border-[#FFEC9E] bg-[#FFFBDA]'} p-3 text-sm space-y-1.5`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
                               <span className={`w-1.5 h-1.5 rounded-full ${col.dot} ${isStale ? 'animate-pulse' : ''}`} />
-                              <p className="font-semibold text-white truncate text-sm">{order.customer_name}</p>
+                              <p className="font-semibold text-[#4A3728] truncate text-sm">{order.customer_name}</p>
                               {order.express_badge && (
                                 <Zap className="w-3 h-3 text-yellow-400 shrink-0" />
                               )}
                             </div>
-                            <p className="text-[#715A5A] text-xs truncate mt-0.5">{order.customer_contact}</p>
+                            <p className="text-[#D48040] text-xs truncate mt-0.5">{order.customer_contact}</p>
                           </div>
-                          <span className="text-[#715A5A] font-bold text-sm shrink-0">₱{order.total}</span>
+                          <span className="text-[#D48040] font-bold text-sm shrink-0">â‚±{order.total}</span>
                         </div>
 
                         {order.address && (
                           <div className="flex items-start gap-1.5">
-                            <MapPin className="w-3 h-3 text-[#715A5A] mt-0.5 shrink-0" />
-                            <p className="text-[10px] text-[#715A5A] leading-relaxed line-clamp-2">{order.address}</p>
+                            <MapPin className="w-3 h-3 text-[#D48040] mt-0.5 shrink-0" />
+                            <p className="text-[10px] text-[#D48040] leading-relaxed line-clamp-2">{order.address}</p>
                           </div>
                         )}
 
-                        <p className="text-[#D3DAD9] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` · ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
+                        <p className="text-[#4A3728] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` Â· ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
 
-                        <div className="flex items-center justify-between text-[10px] text-[#715A5A]">
+                        <div className="flex items-center justify-between text-[10px] text-[#D48040]">
                           <span>{timeAgo(order.created_at)}</span>
                           {col.key === 'ongoing' && (
                             <button
                               onClick={() => handleReady(order.id)}
                               disabled={readyLoading === order.id}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#715A5A] hover:bg-[#44444E] text-white font-semibold text-xs transition-all disabled:opacity-50"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#D48040] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold text-xs transition-all disabled:opacity-50"
                             >
                               {readyLoading === order.id ? '...' : <><CheckCircle className="w-3 h-3" /> Ready</>}
                             </button>
@@ -245,11 +245,12 @@ export default function RestaurantPanel() {
         {/* Loading */}
         {loading && orders.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-6 h-6 border-2 border-[#715A5A] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-[#D3DAD9] text-sm">Loading orders...</p>
+            <div className="w-6 h-6 border-2 border-[#D48040] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#4A3728] text-sm">Loading orders...</p>
           </div>
         )}
       </div>
     </div>
   )
 }
+

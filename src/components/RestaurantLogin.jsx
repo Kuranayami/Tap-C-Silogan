@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { ChefHat, Loader2, Eye, EyeOff } from 'lucide-react'
 import { api } from '../api'
 
@@ -33,42 +33,42 @@ export default function RestaurantLogin({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#37353E] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#FFFBDA] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="rounded-2xl border border-[#715A5A] bg-[#44444E] p-6 sm:p-8">
+        <div className="rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-6 sm:p-8">
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-[#715A5A]/20 flex items-center justify-center mx-auto mb-3">
-              <ChefHat className="w-6 h-6 text-[#715A5A]" />
+            <div className="w-12 h-12 rounded-2xl bg-[#D48040]/20 flex items-center justify-center mx-auto mb-3">
+              <ChefHat className="w-6 h-6 text-[#D48040]" />
             </div>
-            <h1 className="text-xl font-bold text-[#D3DAD9]">Restaurant Login</h1>
-            <p className="text-sm text-[#D3DAD9] mt-1">Mark orders as ready for delivery</p>
+            <h1 className="text-xl font-bold text-[#4A3728]">Restaurant Login</h1>
+            <p className="text-sm text-[#4A3728] mt-1">Mark orders as ready for delivery</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="text-xs text-[#715A5A] mb-1.5 block">Username</label>
+              <label className="text-xs text-[#4A3728]/60 mb-1.5 block">Username</label>
               <input
                 type="text" placeholder="restaurant" value={username}
                 onChange={e => setUsername(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#37353E] border border-[#715A5A] text-white text-sm placeholder-[#715A5A] focus:outline-none focus:border-[#D3DAD9]/50 transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50 transition-colors"
               />
             </div>
             <div>
-              <label className="text-xs text-[#715A5A] mb-1.5 block">Password</label>
+              <label className="text-xs text-[#4A3728]/60 mb-1.5 block">Password</label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
+                  type={showPassword ? 'text' : 'password'} placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-[#37353E] border border-[#715A5A] text-white text-sm placeholder-[#715A5A] focus:outline-none focus:border-[#D3DAD9]/50 transition-colors"
+                  className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50 transition-colors"
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#715A5A] hover:text-[#D3DAD9] transition-colors">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#D48040] hover:text-[#4A3728] transition-colors">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
             {error && <p className="text-red-400 text-xs">{error}</p>}
             <button type="submit" disabled={loading || !username || !password}
-              className="w-full py-2.5 rounded-xl bg-[#715A5A] hover:bg-[#44444E] text-white font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl bg-[#D48040] hover:bg-[#FFBB70] text-[#FFFBDA] font-semibold text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Sign In
@@ -79,3 +79,4 @@ export default function RestaurantLogin({ onLogin }) {
     </div>
   )
 }
+
