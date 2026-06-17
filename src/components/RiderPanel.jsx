@@ -216,7 +216,7 @@ export default function RiderPanel() {
               <p className="text-xs text-[#71717a] flex items-center gap-2">
                 {rider?.name ? <span className="text-white">{rider.name}</span> : null}
                 {rider?.email ? <span className="text-[#71717a]">{rider.email}</span> : null}
-                {rider?.id ? <span className="text-[#52525b] font-mono">#{rider.id.slice(0, 8)}</span> : null}
+                {rider?.id ? <span className="text-[#52525b] font-mono">#{String(rider.id).slice(0, 8)}</span> : null}
               </p>
             </div>
           </div>

@@ -995,7 +995,7 @@ export default function Admin() {
                             </td>
                             <td className="py-2 pr-2 text-[#B0E4CC] text-xs truncate max-w-[130px]">{u.email || u.phone || '—'}</td>
                             <td className="py-2 pr-2">
-                              <span className="text-[10px] font-mono text-[#408A71]">{u.id ? `${u.id.slice(0, 8)}...` : '—'}</span>
+                              <span className="text-[10px] font-mono text-[#408A71]">{u.id ? `${String(u.id).slice(0, 8)}...` : '—'}</span>
                             </td>
                             <td className="py-2 pr-2 text-[#408A71] text-[10px]">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
                             <td className="py-2 text-right">
@@ -1083,7 +1083,7 @@ export default function Admin() {
                                 <span className="text-white font-medium text-xs truncate max-w-[100px]">{r.name || '—'}</span>
                               </div>
                             </td>
-                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#408A71]">{r.id ? `${r.id.slice(0, 8)}...` : '—'}</span></td>
+                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#408A71]">{r.id ? `${String(r.id).slice(0, 8)}...` : '—'}</span></td>
                             <td className="py-2 pr-2 text-[#B0E4CC] truncate max-w-[130px]">{r.phone || '—'}</td>
                             <td className="py-2 pr-2 text-[#B0E4CC] capitalize">{r.vehicle_type || '—'}</td>
                             <td className="py-2 pr-2">
@@ -1193,7 +1193,7 @@ export default function Admin() {
                                 <span className="text-white font-medium text-xs truncate max-w-[100px]">{c.name}</span>
                               </div>
                             </td>
-                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#408A71]">{c.id ? `${c.id.slice(0, 8)}...` : '—'}</span></td>
+                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#408A71]">{c.id ? `${String(c.id).slice(0, 8)}...` : '—'}</span></td>
                             <td className="py-2 pr-2 text-[#B0E4CC]">{c.username}</td>
                             <td className="py-2 pr-2">
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${c.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>

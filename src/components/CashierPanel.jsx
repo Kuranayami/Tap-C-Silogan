@@ -178,7 +178,7 @@ export default function CashierPanel() {
               <p className="text-xs text-[#408A71] flex items-center gap-2">
                 {cashier?.name ? <span className="text-[#B0E4CC]">{cashier.name}</span> : null}
                 {cashier?.username ? <span className="text-[#408A71]">@{cashier.username}</span> : null}
-                {cashier?.id ? <span className="text-[#408A71] font-mono">#{cashier.id.slice(0, 8)}</span> : null}
+                {cashier?.id ? <span className="text-[#408A71] font-mono">#{String(cashier.id).slice(0, 8)}</span> : null}
                 <span className="text-[#408A71]">·</span>
                 <span>{activeTotal} active</span>
               </p>
