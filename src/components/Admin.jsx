@@ -500,7 +500,7 @@ export default function Admin() {
 
     const fetchAllRiders = async () => {
       try {
-        const res = await fetch(api('/api/rider/all'), { headers: adminHeaders() })
+        const res = await fetch(api('/api/admin/riders'), { headers: adminHeaders() })
         if (res.ok) {
           const data = await res.json()
           setRiders(data)
