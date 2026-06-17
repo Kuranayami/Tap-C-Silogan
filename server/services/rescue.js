@@ -237,8 +237,7 @@ export async function updateDriverLocation(riderId, orderId, lat, lng, heading, 
   const idx = inMemoryLocations.findIndex(l => String(l.rider_id) === String(riderId) && String(l.order_id) === String(orderId))
   if (idx >= 0) inMemoryLocations[idx] = entry
   else inMemoryLocations.unshift(entry)
-  // Keep only last 100 per rider
-  inMemoryLocations = inMemoryLocations.filter(l => String(l.rider_id) === String(riderId)).slice(0, 100)
+  if (inMemoryLocations.length > 500) inMemoryLocations = inMemoryLocations.slice(0, 500)
   saveLocations()
 
   if (!hasSupabase) return entry
@@ -278,13 +277,14 @@ export async function getDriverLocation(orderId) {
     .limit(1)
     .maybeSingle()
 
+  // Try local file fallback if Supabase has no data
+  const localLoc = inMemoryLocations.filter(l => String(l.order_id) === String(orderId)).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))[0]
+
   if (error) {
     console.warn('[rescue] getDriverLocation error:', error.message)
-    // fallback to local
-    const loc = inMemoryLocations.filter(l => String(l.order_id) === String(orderId)).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))[0]
-    return loc || null
+    return localLoc || null
   }
-  return data
+  return data || localLoc || null
 }
 
 // ── Earnings ─────────────────────────────────────
