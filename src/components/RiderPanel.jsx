@@ -102,29 +102,37 @@ export default function RiderPanel() {
   // Live GPS tracking: send rider location for active in_delivery orders
   useEffect(() => {
     const activeDelivery = activeOrders.find(o => o.status === 'in_delivery')
-    if (!activeDelivery) return
+    if (!activeDelivery) {
+      console.log('[GPS] no in_delivery order in activeOrders:', activeOrders.map(o => ({ id: o.id, status: o.status })))
+      return
+    }
 
+    console.log('[GPS] starting watchPosition for order', activeDelivery.id)
     let lastSend = 0
     let watchId = null
 
     const sendLocation = (lat, lng) => {
       const now = Date.now()
-      if (now - lastSend < 3000) return // throttle to 3s
+      if (now - lastSend < 3000) return
       lastSend = now
+      console.log('[GPS] sending location', lat, lng, 'for order', activeDelivery.id)
       fetch(api('/api/rescue/location'), {
         method: 'POST',
         headers: { ...riderHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_id: activeDelivery.id, lat, lng }),
-      }).catch(() => {})
+      }).then(r => {
+        if (!r.ok) console.warn('[GPS] location POST failed:', r.status)
+      }).catch(e => console.warn('[GPS] location POST error:', e))
     }
 
     watchId = navigator.geolocation.watchPosition(
       (pos) => sendLocation(pos.coords.latitude, pos.coords.longitude),
-      () => {}, // error — silently ignore
+      (err) => console.warn('[GPS] watchPosition error:', err.message),
       { enableHighAccuracy: true, maximumAge: 2000 }
     )
 
     return () => {
+      console.log('[GPS] cleaning up watchPosition', watchId)
       if (watchId !== null) navigator.geolocation.clearWatch(watchId)
     }
   }, [activeOrders])
