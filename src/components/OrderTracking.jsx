@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Package, Clock, Bike, CheckCircle, XCircle, ArrowLeft, MapPin, Phone, User, ShoppingBag, Zap, AlertTriangle, RefundIcon, Map, Navigation } from 'lucide-react'
 import { api } from '../api'
@@ -30,7 +30,7 @@ function timeAgo(dateStr) {
   return `${hrs}h ${min % 60}m ago`
 }
 
-function OrderCard({ order, canCancel, onCancel }) {
+const OrderCard = memo(({ order, canCancel, onCancel }) => {
   const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending
   const Icon = cfg.icon
   const idx = statusIndex(order.status)
@@ -136,7 +136,7 @@ function OrderCard({ order, canCancel, onCancel }) {
       )}
     </div>
   )
-}
+})
 
 function LiveMap({ orderId }) {
   const [location, setLocation] = useState(null)
@@ -238,7 +238,7 @@ export default function OrderTracking() {
     }
   }, [user, fetchOrders]))
 
-  const handleCancelOrder = async (orderId) => {
+  const handleCancelOrder = useCallback(async (orderId) => {
     if (!confirm('Cancel this order?')) return
     setCancelling(orderId)
     try {
@@ -254,7 +254,7 @@ export default function OrderTracking() {
     } catch {} finally {
       setCancelling(null)
     }
-  }
+  }, [token, fetchOrders])
 
   if (!user || !token) {
     return (
