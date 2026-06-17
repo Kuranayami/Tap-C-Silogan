@@ -1,4 +1,21 @@
 import { supabase, hasSupabase } from './supabase.js'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const LOCATIONS_FILE = join(__dirname, '../data/driver_locations.json')
+let inMemoryLocations = []
+
+function loadLocations() {
+  if (existsSync(LOCATIONS_FILE)) {
+    try { inMemoryLocations = JSON.parse(readFileSync(LOCATIONS_FILE, 'utf-8')) } catch { inMemoryLocations = [] }
+  }
+}
+function saveLocations() {
+  writeFileSync(LOCATIONS_FILE, JSON.stringify(inMemoryLocations), 'utf-8')
+}
+loadLocations()
 
 const DEFAULT_HOLD_MINUTES = 15
 
@@ -206,7 +223,25 @@ export async function processAutoRefund(order, reason = 'cancellation') {
 // ── Driver Location Tracking ─────────────────────
 
 export async function updateDriverLocation(riderId, orderId, lat, lng, heading, speed) {
-  if (!hasSupabase) return null
+  const entry = {
+    rider_id: riderId,
+    order_id: orderId,
+    lat,
+    lng,
+    heading: heading || null,
+    speed: speed || null,
+    updated_at: new Date().toISOString(),
+  }
+
+  // Always save to local file as fallback
+  const idx = inMemoryLocations.findIndex(l => String(l.rider_id) === String(riderId) && String(l.order_id) === String(orderId))
+  if (idx >= 0) inMemoryLocations[idx] = entry
+  else inMemoryLocations.unshift(entry)
+  // Keep only last 100 per rider
+  inMemoryLocations = inMemoryLocations.filter(l => String(l.rider_id) === String(riderId)).slice(0, 100)
+  saveLocations()
+
+  if (!hasSupabase) return entry
 
   const { data, error } = await supabase
     .from('driver_locations')
@@ -225,12 +260,15 @@ export async function updateDriverLocation(riderId, orderId, lat, lng, heading, 
     .select()
     .single()
 
-  if (error) return null
+  if (error) { console.warn('[rescue] updateDriverLocation error:', error.message); return entry }
   return data
 }
 
 export async function getDriverLocation(orderId) {
-  if (!hasSupabase) return null
+  if (!hasSupabase) {
+    const loc = inMemoryLocations.filter(l => String(l.order_id) === String(orderId)).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))[0]
+    return loc || null
+  }
 
   const { data, error } = await supabase
     .from('driver_locations')
@@ -240,7 +278,12 @@ export async function getDriverLocation(orderId) {
     .limit(1)
     .maybeSingle()
 
-  if (error) return null
+  if (error) {
+    console.warn('[rescue] getDriverLocation error:', error.message)
+    // fallback to local
+    const loc = inMemoryLocations.filter(l => String(l.order_id) === String(orderId)).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))[0]
+    return loc || null
+  }
   return data
 }
 
