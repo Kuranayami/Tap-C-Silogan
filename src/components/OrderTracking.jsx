@@ -96,6 +96,15 @@ const OrderCard = memo(({ order, canCancel, onCancel }) => {
         </div>
       </div>
 
+      {order.status === 'in_delivery' && order.rider_name && (
+        <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 space-y-1">
+          <div className="flex items-center gap-1.5 text-xs text-blue-400">
+            <Bike className="w-3.5 h-3.5" />
+            <span className="font-medium">{order.rider_name}</span>
+          </div>
+        </div>
+      )}
+
       {order.status === 'in_delivery' && order.maps_link && (
         <a
           href={order.maps_link}
