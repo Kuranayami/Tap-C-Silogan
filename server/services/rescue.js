@@ -51,12 +51,13 @@ export async function findMatchingRescue(items) {
 
   const { data: holds, error } = await supabase
     .from('rescue_holds')
-    .select('*, orders!inner(*)')
+    .select('*')
     .eq('status', 'available')
     .gt('hold_until', now)
     .order('created_at', { ascending: true })
 
-  if (error || !holds || holds.length === 0) return null
+  if (error) { console.warn('[rescue] findMatchingRescue query error:', error.message); return null }
+  if (!holds || holds.length === 0) return null
 
   const orderItemKeys = items.map(itemMatchKey)
 
@@ -65,11 +66,9 @@ export async function findMatchingRescue(items) {
     const holdKeys = holdItems.map(itemMatchKey)
     const matchKeys = orderItemKeys.filter(k => holdKeys.includes(k))
     if (matchKeys.length > 0) {
-      const matchedItem = holdItems.find(i => orderItemKeys.includes(itemMatchKey(i)))
       return {
         hold,
         matchedItems: holdItems.filter(i => orderItemKeys.includes(itemMatchKey(i))),
-        order: hold.orders,
       }
     }
   }
