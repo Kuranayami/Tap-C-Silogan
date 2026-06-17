@@ -216,18 +216,22 @@ export async function cancelOrder(req, res) {
     const canceled = await updateOrderStatus(id, 'canceled')
     if (!canceled) return res.status(404).json({ error: 'Order not found' })
 
-    // Auto-refund
-    await processAutoRefund(order)
+    const isPending = order.status === 'pending'
+    const response = { message: 'Order canceled', order: canceled }
 
-    // Create rescue hold (food is available for matching)
-    const hold = await createRescueHold(order)
+    if (isPending) {
+      // Canceled before cashier accepts — no refund, no rescue hold
+      response.refund = 'skipped'
+      response.rescueHold = 'skipped'
+    } else {
+      // Canceled after acceptance — auto-refund + rescue hold
+      await processAutoRefund(order)
+      const hold = await createRescueHold(order)
+      response.refund = 'processed'
+      response.rescueHold = hold ? 'created' : 'skipped'
+    }
 
-    res.json({
-      message: 'Order canceled',
-      order: canceled,
-      refund: 'processed',
-      rescueHold: hold ? 'created' : 'skipped',
-    })
+    res.json(response)
   } catch (err) {
     console.error('cancelOrder error:', err)
     res.status(500).json({ error: 'Failed to cancel order' })

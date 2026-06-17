@@ -1,4 +1,5 @@
 import { supabase, hasSupabase } from './supabase.js'
+import { createRescueHold } from './rescue.js'
 import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
@@ -196,6 +197,13 @@ export async function getOnlineRiderCount() {
 
 export async function cancelDelivery(orderId, riderId) {
   if (hasSupabase) {
+    const { data: order, error: fetchErr } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .single()
+    if (fetchErr) throw new Error('Order not found: ' + fetchErr.message)
+
     const { data, error } = await supabase
       .from('orders')
       .update({
@@ -214,6 +222,11 @@ export async function cancelDelivery(orderId, riderId) {
       .from('riders')
       .update({ status: 'online' })
       .eq('id', riderId)
+
+    // Put items into rescue so another customer can claim them
+    if (order.status === 'in_delivery') {
+      await createRescueHold(order)
+    }
 
     return data
   }
