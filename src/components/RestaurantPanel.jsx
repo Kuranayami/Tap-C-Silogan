@@ -110,27 +110,27 @@ export default function RestaurantPanel() {
   const staleOrders = orders.filter(o => (o.status || 'pending') === 'pending' && o.created_at && (Date.now() - new Date(o.created_at).getTime()) > STALE_THRESHOLD_MIN * 60000)
 
   return (
-    <div className="min-h-screen bg-[#091413] text-[#B0E4CC]">
+    <div className="min-h-screen bg-[#37353E] text-[#D3DAD9]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <button onClick={goBack} className="p-2 rounded-xl border border-[#408A71] text-[#B0E4CC] hover:text-white transition-colors">
+            <button onClick={goBack} className="p-2 rounded-xl border border-[#715A5A] text-[#D3DAD9] hover:text-white transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <h1 className="text-lg sm:text-xl font-bold tracking-tight flex items-center gap-2">
-                <ChefHat className="w-5 h-5 text-[#408A71]" />
-                Restaurant <span className="text-[#408A71]">Dashboard</span>
+                <ChefHat className="w-5 h-5 text-[#715A5A]" />
+                Restaurant <span className="text-[#715A5A]">Dashboard</span>
               </h1>
-              <p className="text-xs text-[#408A71]">{restaurant?.name || ''} · {orders.filter(o => ['pending', 'ongoing'].includes(o.status)).length} active</p>
+              <p className="text-xs text-[#715A5A]">{restaurant?.name || ''} · {orders.filter(o => ['pending', 'ongoing'].includes(o.status)).length} active</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-white transition-colors disabled:opacity-50">
+            <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#715A5A] text-[#D3DAD9] hover:text-white transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <button onClick={logout} className="p-2 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-red-400 transition-colors">
+            <button onClick={logout} className="p-2 rounded-lg border border-[#715A5A] text-[#D3DAD9] hover:text-red-400 transition-colors">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -139,15 +139,15 @@ export default function RestaurantPanel() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
-            <p className="text-xs text-[#B0E4CC]">Pending</p>
+            <p className="text-xs text-[#D3DAD9]">Pending</p>
             <p className="text-xl font-bold text-amber-400">{columnOrders('pending').length}</p>
           </div>
           <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3">
-            <p className="text-xs text-[#B0E4CC]">Ongoing</p>
+            <p className="text-xs text-[#D3DAD9]">Ongoing</p>
             <p className="text-xl font-bold text-blue-400">{columnOrders('ongoing').length}</p>
           </div>
           <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
-            <p className="text-xs text-[#B0E4CC]">In Delivery</p>
+            <p className="text-xs text-[#D3DAD9]">In Delivery</p>
             <p className="text-xl font-bold text-emerald-400">{columnOrders('in_delivery').length}</p>
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function RestaurantPanel() {
 
                 <div className="space-y-2 min-h-[200px]">
                   {items.length === 0 && (
-                    <p className="text-xs text-[#408A71] text-center py-8">No orders</p>
+                    <p className="text-xs text-[#715A5A] text-center py-8">No orders</p>
                   )}
                   {items.map(order => {
                     const totalQty = (order.items || []).reduce((s, i) => s + i.quantity, 0)
@@ -191,7 +191,7 @@ export default function RestaurantPanel() {
                     return (
                       <div
                         key={order.id}
-                        className={`rounded-xl border ${isStale ? 'border-red-500/40 bg-red-500/5' : 'border-[#408A71] bg-[#285A48]'} p-3 text-sm space-y-1.5`}
+                        className={`rounded-xl border ${isStale ? 'border-red-500/40 bg-red-500/5' : 'border-[#715A5A] bg-[#44444E]'} p-3 text-sm space-y-1.5`}
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
@@ -202,27 +202,27 @@ export default function RestaurantPanel() {
                                 <Zap className="w-3 h-3 text-yellow-400 shrink-0" />
                               )}
                             </div>
-                            <p className="text-[#408A71] text-xs truncate mt-0.5">{order.customer_contact}</p>
+                            <p className="text-[#715A5A] text-xs truncate mt-0.5">{order.customer_contact}</p>
                           </div>
-                          <span className="text-[#408A71] font-bold text-sm shrink-0">₱{order.total}</span>
+                          <span className="text-[#715A5A] font-bold text-sm shrink-0">₱{order.total}</span>
                         </div>
 
                         {order.address && (
                           <div className="flex items-start gap-1.5">
-                            <MapPin className="w-3 h-3 text-[#408A71] mt-0.5 shrink-0" />
-                            <p className="text-[10px] text-[#408A71] leading-relaxed line-clamp-2">{order.address}</p>
+                            <MapPin className="w-3 h-3 text-[#715A5A] mt-0.5 shrink-0" />
+                            <p className="text-[10px] text-[#715A5A] leading-relaxed line-clamp-2">{order.address}</p>
                           </div>
                         )}
 
-                        <p className="text-[#B0E4CC] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` · ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
+                        <p className="text-[#D3DAD9] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` · ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
 
-                        <div className="flex items-center justify-between text-[10px] text-[#408A71]">
+                        <div className="flex items-center justify-between text-[10px] text-[#715A5A]">
                           <span>{timeAgo(order.created_at)}</span>
                           {col.key === 'ongoing' && (
                             <button
                               onClick={() => handleReady(order.id)}
                               disabled={readyLoading === order.id}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#408A71] hover:bg-[#285A48] text-white font-semibold text-xs transition-all disabled:opacity-50"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#715A5A] hover:bg-[#44444E] text-white font-semibold text-xs transition-all disabled:opacity-50"
                             >
                               {readyLoading === order.id ? '...' : <><CheckCircle className="w-3 h-3" /> Ready</>}
                             </button>
@@ -245,8 +245,8 @@ export default function RestaurantPanel() {
         {/* Loading */}
         {loading && orders.length === 0 && (
           <div className="text-center py-16">
-            <div className="w-6 h-6 border-2 border-[#408A71] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-[#B0E4CC] text-sm">Loading orders...</p>
+            <div className="w-6 h-6 border-2 border-[#715A5A] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-[#D3DAD9] text-sm">Loading orders...</p>
           </div>
         )}
       </div>

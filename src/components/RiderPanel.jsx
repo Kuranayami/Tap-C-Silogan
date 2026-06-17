@@ -233,7 +233,7 @@ export default function RiderPanel() {
   if (!loggedIn) return <RiderLogin onLogin={(r) => { setRider(r); setLoggedIn(true); setStatus(r.status || 'online') }} />
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-[#fafafa]">
+    <div className="min-h-screen bg-[#37353E] text-[#D3DAD9]">
       {/* Notification toast */}
       <AnimatePresence>
         {notification && (
@@ -241,7 +241,7 @@ export default function RiderPanel() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-2xl text-sm font-medium whitespace-nowrap"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-emerald-600 text-[#D3DAD9] px-4 py-2.5 rounded-xl shadow-2xl text-sm font-medium max-w-[90vw] text-center"
           >
             {notification}
           </motion.div>
@@ -252,11 +252,11 @@ export default function RiderPanel() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <button onClick={goBack} className="p-2 rounded-xl border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors">
+            <button onClick={goBack} className="p-2 rounded-xl border border-[#44444E] text-[#D3DAD9]/80 hover:text-[#D3DAD9] transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
             {rider?.avatar_url ? (
-              <img src={imageUrl(rider.avatar_url)} alt="" className="w-10 h-10 rounded-xl object-cover border border-[#27272a]" />
+              <img src={imageUrl(rider.avatar_url)} alt="" className="w-10 h-10 rounded-xl object-cover border border-[#44444E]" />
             ) : (
               <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                 <Bike className="w-5 h-5 text-emerald-400" />
@@ -267,17 +267,17 @@ export default function RiderPanel() {
                 <Bike className="w-5 h-5 text-emerald-400" />
                 Rider <span className="text-emerald-400">Panel</span>
               </h1>
-              <p className="text-xs text-[#71717a] flex items-center gap-2">
-                {rider?.name ? <span className="text-white">{rider.name}</span> : null}
-                {rider?.email ? <span className="text-[#71717a]">{rider.email}</span> : null}
-                {rider?.id ? <span className="text-[#52525b] font-mono">#{String(rider.id).slice(0, 8)}</span> : null}
+              <p className="text-xs text-[#D3DAD9]/60 flex items-center gap-2">
+                {rider?.name ? <span className="text-[#D3DAD9]">{rider.name}</span> : null}
+                {rider?.email ? <span className="text-[#D3DAD9]/60">{rider.email}</span> : null}
+                {rider?.id ? <span className="text-[#D3DAD9]/50 font-mono">#{String(rider.id).slice(0, 8)}</span> : null}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowEarnings(!showEarnings)}
-              className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-yellow-400 transition-colors"
+              className="p-2 rounded-lg border border-[#44444E] text-[#D3DAD9]/80 hover:text-yellow-400 transition-colors"
               title="Earnings"
             >
               <DollarSign className="w-4 h-4" />
@@ -286,17 +286,17 @@ export default function RiderPanel() {
               onClick={handleStatusToggle}
               className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg ${
                 status === 'online'
-                  ? 'bg-emerald-600 text-white shadow-emerald-500/30 hover:bg-emerald-500'
-                  : 'bg-[#27272a] text-[#71717a] hover:bg-[#3f3f46] hover:text-white'
+                  ? 'bg-emerald-600 text-[#D3DAD9] shadow-emerald-500/30 hover:bg-emerald-500'
+                  : 'bg-[#44444E] text-[#D3DAD9]/60 hover:bg-[#44444E] hover:text-[#D3DAD9]'
               }`}
             >
               <span className={`w-3 h-3 rounded-full ${status === 'online' ? 'bg-white animate-pulse' : 'bg-[#71717a]'}`} />
               {status === 'online' ? 'Online' : status === 'busy' ? 'Busy' : 'Idle'}
             </button>
-            <a href="#/rider/profile" className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors" title="Profile">
+            <a href="#/rider/profile" className="p-2 rounded-lg border border-[#44444E] text-[#D3DAD9]/80 hover:text-[#D3DAD9] transition-colors" title="Profile">
               <User className="w-4 h-4" />
             </a>
-            <button onClick={logout} className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-red-400 transition-colors">
+            <button onClick={logout} className="p-2 rounded-lg border border-[#44444E] text-[#D3DAD9]/80 hover:text-red-400 transition-colors">
               <LogOut className="w-4 h-4" />
             </button>
           </div>
@@ -316,12 +316,12 @@ export default function RiderPanel() {
                   <DollarSign className="w-4 h-4" /> Earnings
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-[#18181b] border border-[#27272a] p-3">
-                    <p className="text-xs text-[#71717a]">Total Earned</p>
-                    <p className="text-xl font-bold text-white">₱{earnings}</p>
+                  <div className="rounded-xl bg-[#44444E] border border-[#44444E] p-3">
+                    <p className="text-xs text-[#D3DAD9]/60">Total Earned</p>
+                    <p className="text-xl font-bold text-[#D3DAD9]">₱{earnings}</p>
                   </div>
-                  <div className="rounded-xl bg-[#18181b] border border-[#27272a] p-3">
-                    <p className="text-xs text-[#71717a]">Pending</p>
+                  <div className="rounded-xl bg-[#44444E] border border-[#44444E] p-3">
+                    <p className="text-xs text-[#D3DAD9]/60">Pending</p>
                     <p className="text-xl font-bold text-yellow-400">₱{pendingEarnings}</p>
                   </div>
                 </div>
@@ -343,7 +343,7 @@ export default function RiderPanel() {
                 <Zap className="w-5 h-5 text-green-400 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-green-400">Rescue Alert</p>
-                  <p className="text-xs text-[#a1a1aa]">
+                  <p className="text-xs text-[#D3DAD9]/80">
                     {rescueAlerts.length} rescued item{rescueAlerts.length > 1 ? 's' : ''} available for express delivery
                   </p>
                 </div>
@@ -354,17 +354,17 @@ export default function RiderPanel() {
 
         {/* Stats bar */}
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="rounded-xl border border-[#27272a] bg-[#18181b] p-3 text-center">
-            <p className="text-xs text-[#71717a]">Available</p>
-            <p className="text-lg font-bold text-white">{readyOrders.length}</p>
+          <div className="rounded-xl border border-[#44444E] bg-[#44444E] p-3 text-center">
+            <p className="text-xs text-[#D3DAD9]/60">Available</p>
+            <p className="text-lg font-bold text-[#D3DAD9]">{readyOrders.length}</p>
           </div>
-          <div className="rounded-xl border border-[#27272a] bg-[#18181b] p-3 text-center">
-            <p className="text-xs text-[#71717a]">Active</p>
+          <div className="rounded-xl border border-[#44444E] bg-[#44444E] p-3 text-center">
+            <p className="text-xs text-[#D3DAD9]/60">Active</p>
             <p className="text-lg font-bold text-emerald-400">{activeOrders.length}</p>
           </div>
-          <div className="rounded-xl border border-[#27272a] bg-[#18181b] p-3 text-center">
-            <p className="text-xs text-[#71717a]">Total Delivered</p>
-            <p className="text-lg font-bold text-white">{rider?.total_deliveries || 0}</p>
+          <div className="rounded-xl border border-[#44444E] bg-[#44444E] p-3 text-center">
+            <p className="text-xs text-[#D3DAD9]/60">Total Delivered</p>
+            <p className="text-lg font-bold text-[#D3DAD9]">{rider?.total_deliveries || 0}</p>
           </div>
         </div>
 
@@ -373,7 +373,7 @@ export default function RiderPanel() {
           <button
             onClick={() => setActiveTab('pool')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === 'pool' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-[#71717a] border border-[#27272a] hover:text-white'
+              activeTab === 'pool' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-[#D3DAD9]/60 border border-[#44444E] hover:text-[#D3DAD9]'
             }`}
           >
             <Zap className="w-3.5 h-3.5 inline mr-1" />Pickup Pool ({readyOrders.length})
@@ -381,12 +381,12 @@ export default function RiderPanel() {
           <button
             onClick={() => setActiveTab('active')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-[#71717a] border border-[#27272a] hover:text-white'
+              activeTab === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-[#D3DAD9]/60 border border-[#44444E] hover:text-[#D3DAD9]'
             }`}
           >
             <Package className="w-3.5 h-3.5 inline mr-1" />Active ({activeOrders.length})
           </button>
-          <button onClick={fetchAll} disabled={loading} className="ml-auto p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors disabled:opacity-50">
+          <button onClick={fetchAll} disabled={loading} className="ml-auto p-2 rounded-lg border border-[#44444E] text-[#D3DAD9]/80 hover:text-[#D3DAD9] transition-colors disabled:opacity-50">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
@@ -404,13 +404,13 @@ export default function RiderPanel() {
             {loading && readyOrders.length === 0 ? (
               <div className="text-center py-16">
                 <div className="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-[#a1a1aa] text-sm">Checking for orders...</p>
+                <p className="text-[#D3DAD9]/80 text-sm">Checking for orders...</p>
               </div>
             ) : readyOrders.length === 0 ? (
               <div className="text-center py-16">
-                <Package className="w-12 h-12 text-[#27272a] mx-auto mb-3" />
-                <p className="text-[#a1a1aa] font-medium">No orders ready yet</p>
-                <p className="text-xs text-[#71717a] mt-1">Waiting for kitchen to mark orders as ready</p>
+                <Package className="w-12 h-12 text-[#44444E] mx-auto mb-3" />
+                <p className="text-[#D3DAD9]/80 font-medium">No orders ready yet</p>
+                <p className="text-xs text-[#D3DAD9]/60 mt-1">Waiting for kitchen to mark orders as ready</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -419,30 +419,30 @@ export default function RiderPanel() {
                     key={order.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`rounded-2xl border ${order.express_badge ? 'border-yellow-500/40' : 'border-emerald-500/20'} bg-[#18181b] p-4`}
+                    className={`rounded-2xl border ${order.express_badge ? 'border-yellow-500/40' : 'border-emerald-500/20'} bg-[#44444E] p-4`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                          <h3 className="font-semibold text-white truncate">{order.customer_name}</h3>
+                          <h3 className="font-semibold text-[#D3DAD9] truncate">{order.customer_name}</h3>
                           {order.express_badge && (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-[10px] font-bold border border-yellow-500/30">
                               <Zap className="w-2.5 h-2.5" /> Express
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#71717a] flex items-center gap-1">
+                        <p className="text-xs text-[#D3DAD9]/60 flex items-center gap-1">
                           <MapPin className="w-3 h-3" /> {order.address}
                         </p>
-                        <p className="text-xs text-[#71717a] flex items-center gap-1 mt-0.5">
+                        <p className="text-xs text-[#D3DAD9]/60 flex items-center gap-1 mt-0.5">
                           <Phone className="w-3 h-3" /> {order.customer_contact}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs text-[#a1a1aa]">
+                          <span className="text-xs text-[#D3DAD9]/80">
                             {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? 's' : ''}
                           </span>
-                          <span className="text-[10px] text-[#71717a]">
+                          <span className="text-[10px] text-[#D3DAD9]/60">
                             · {timeAgo(order.created_at)}
                           </span>
                         </div>
@@ -452,7 +452,7 @@ export default function RiderPanel() {
                         <button
                           onClick={() => handleClaim(order.id)}
                           disabled={claimingId === order.id}
-                          className="mt-2 inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all disabled:opacity-50"
+                          className="mt-2 inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[#D3DAD9] text-xs font-semibold transition-all disabled:opacity-50"
                         >
                           {claimingId === order.id ? (
                             <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Claiming...</>
@@ -474,9 +474,9 @@ export default function RiderPanel() {
           <>
             {activeOrders.length === 0 ? (
               <div className="text-center py-16">
-                <Bike className="w-12 h-12 text-[#27272a] mx-auto mb-3" />
-                <p className="text-[#a1a1aa] font-medium">No active deliveries</p>
-                <p className="text-xs text-[#71717a] mt-1">Claim an order from the Pickup Pool</p>
+                <Bike className="w-12 h-12 text-[#44444E] mx-auto mb-3" />
+                <p className="text-[#D3DAD9]/80 font-medium">No active deliveries</p>
+                <p className="text-xs text-[#D3DAD9]/60 mt-1">Claim an order from the Pickup Pool</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -485,13 +485,13 @@ export default function RiderPanel() {
                     key={order.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl border border-[#27272a] bg-[#18181b] p-4"
+                    className="rounded-2xl border border-[#44444E] bg-[#44444E] p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="w-2 h-2 rounded-full bg-blue-400" />
-                          <h3 className="font-semibold text-white truncate">{order.customer_name}</h3>
+                          <h3 className="font-semibold text-[#D3DAD9] truncate">{order.customer_name}</h3>
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">In Delivery</span>
                           {order.express_badge && (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-[10px] font-bold border border-yellow-500/30">
@@ -499,7 +499,7 @@ export default function RiderPanel() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#71717a] flex items-center gap-1">
+                        <p className="text-xs text-[#D3DAD9]/60 flex items-center gap-1">
                           <MapPin className="w-3 h-3" /> {order.address}
                         </p>
                         {order.maps_link && (
@@ -514,8 +514,8 @@ export default function RiderPanel() {
                         )}
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-lg font-bold text-white">₱{order.total}</p>
-                        <p className="text-[10px] text-[#71717a] mt-0.5">{timeAgo(order.claimed_at)}</p>
+                        <p className="text-lg font-bold text-[#D3DAD9]">₱{order.total}</p>
+                        <p className="text-[10px] text-[#D3DAD9]/60 mt-0.5">{timeAgo(order.claimed_at)}</p>
                         <div className="flex items-center gap-2 mt-2 justify-end">
                           <button
                             onClick={() => handleCancel(order.id)}
@@ -525,7 +525,7 @@ export default function RiderPanel() {
                           </button>
                           <button
                             onClick={() => handleDeliver(order.id)}
-                            className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all"
+                            className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[#D3DAD9] text-xs font-semibold transition-all"
                           >
                             <Check className="w-3.5 h-3.5" /> Mark Delivered
                           </button>
