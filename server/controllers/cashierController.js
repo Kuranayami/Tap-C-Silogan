@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { cashierTokens } from '../services/tokenStore.js'
 import { saveFile } from '../services/storage.js'
-import { updateOrderStatus } from '../services/supabase.js'
+import { updateOrderStatus, getAllOrders } from '../services/supabase.js'
 
 export async function loginCashier(req, res) {
   try {
@@ -186,7 +186,20 @@ export async function cashierUpdateOrder(req, res) {
       return res.status(403).json({ error: 'Cashier can only accept (ongoing) or cancel orders' })
     }
 
-    const order = await updateOrderStatus(id, status.toLowerCase())
+    const targetStatus = status.toLowerCase()
+
+    // Rescue order accepted — skip kitchen, go directly to rider pool
+    if (targetStatus === 'ongoing') {
+      const allOrders = await getAllOrders()
+      const existing = allOrders.find(o => String(o.id) === String(id))
+      if (existing?.is_rescue) {
+        const order = await updateOrderStatus(id, 'in_delivery')
+        if (!order) return res.status(404).json({ error: 'Order not found' })
+        return res.json({ ...order, status: 'in_delivery', rescue_skip: true })
+      }
+    }
+
+    const order = await updateOrderStatus(id, targetStatus)
     if (!order) return res.status(404).json({ error: 'Order not found' })
 
     res.json(order)

@@ -107,11 +107,10 @@ export async function placeOrder(req, res) {
       total,
     }
 
-    // If rescue match found, skip kitchen — go straight to rider pool
+    // If rescue match found, mark as rescue order
     if (rescueMatch) {
       orderData.is_rescue = true
       orderData.express_badge = true
-      orderData.status = 'in_delivery'
     }
 
     const { data, error } = await createOrder(orderData)
