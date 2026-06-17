@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Package, Bike, ChefHat, LogOut, RefreshCw, CheckCircle, Phone, MapPin, Timer, AlertTriangle, ArrowLeft, Zap } from 'lucide-react'
+import { Clock, Package, Bike, ChefHat, LogOut, RefreshCw, CheckCircle, Phone, MapPin, AlertTriangle, ArrowLeft, Zap } from 'lucide-react'
 import { api } from '../api'
 import RestaurantLogin from './RestaurantLogin'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
@@ -37,15 +36,6 @@ export default function RestaurantPanel() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [readyLoading, setReadyLoading] = useState(null)
-  const [rescueHolds, setRescueHolds] = useState([])
-
-  const fetchRescueHolds = useCallback(async () => {
-    try {
-      const res = await fetch(api('/api/rescue/holds'), { headers: restaurantHeaders() })
-      if (res.ok) setRescueHolds(await res.json())
-    } catch {}
-  }, [])
-
   const logout = useCallback(() => {
     localStorage.removeItem('restaurant_token')
     localStorage.removeItem('restaurant_profile')
@@ -69,14 +59,14 @@ export default function RestaurantPanel() {
   }, [logout])
 
   useEffect(() => {
-    if (loggedIn) { fetchOrders(); fetchRescueHolds() }
-  }, [loggedIn, fetchOrders, fetchRescueHolds])
+    if (loggedIn) { fetchOrders() }
+  }, [loggedIn, fetchOrders])
 
   useEffect(() => {
     if (!loggedIn) return
-    const interval = setInterval(() => { fetchOrders(); fetchRescueHolds() }, 15000)
+    const interval = setInterval(fetchOrders, 15000)
     return () => clearInterval(interval)
-  }, [loggedIn, fetchOrders, fetchRescueHolds])
+  }, [loggedIn, fetchOrders])
 
   useOrderRealtime(useCallback((payload) => {
     if (!loggedIn) return
@@ -161,28 +151,6 @@ export default function RestaurantPanel() {
             <p className="text-xl font-bold text-emerald-400">{columnOrders('in_delivery').length}</p>
           </div>
         </div>
-
-        {/* Rescue Holds */}
-        <AnimatePresence>
-          {rescueHolds.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mb-4 rounded-2xl border border-yellow-500/30 bg-yellow-500/5 p-3"
-            >
-              <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-yellow-400 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-yellow-400">Food Held for Rescue</p>
-                  <p className="text-xs text-[#B0E4CC]">
-                    {rescueHolds.length} canceled order{rescueHolds.length > 1 ? 's' : ''} with food available for matching
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Stale alert */}
         {staleOrders.length > 0 && (
