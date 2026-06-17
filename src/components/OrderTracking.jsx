@@ -170,9 +170,9 @@ function LiveMap({ orderId }) {
     return () => clearInterval(interval)
   }, [orderId])
 
+  // Create map once on first location
   useEffect(() => {
-    if (!location || !mapRef.current || initStarted.current) return
-    initStarted.current = true
+    if (!location || !mapRef.current || mapInstance.current) return
     ;(async () => {
       const L = (await import('leaflet')).default
       delete L.Icon.Default.prototype._getIconUrl
@@ -193,11 +193,12 @@ function LiveMap({ orderId }) {
       mapInstance.current = map
       setTimeout(() => map.invalidateSize(), 100)
     })()
+  }, [location])
 
-    return () => {
-      initStarted.current = false
-      if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null }
-    }
+  // Move marker on subsequent location updates without recreating map
+  useEffect(() => {
+    if (!location || !mapInstance.current || !markerRef.current) return
+    markerRef.current.setLatLng([location.lat, location.lng])
   }, [location])
 
   if (!location) {
