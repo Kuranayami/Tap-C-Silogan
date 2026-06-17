@@ -4,7 +4,7 @@ import { Package, Clock, Bike, CheckCircle, XCircle, ArrowLeft, MapPin, Phone, U
 import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
-import MapPicker from './MapPicker'
+import 'leaflet/dist/leaflet.css'
 
 const STATUS_CONFIG = {
   pending:       { label: 'Pending',       icon: Clock,       color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/25', dot: 'bg-amber-400' },
@@ -140,7 +140,9 @@ const OrderCard = memo(({ order, canCancel, onCancel }) => {
 
 function LiveMap({ orderId }) {
   const [location, setLocation] = useState(null)
-  const [error, setError] = useState('')
+  const mapRef = useRef(null)
+  const mapInstance = useRef(null)
+  const markerRef = useRef(null)
 
   useEffect(() => {
     if (!orderId) return
@@ -158,6 +160,30 @@ function LiveMap({ orderId }) {
     return () => clearInterval(interval)
   }, [orderId])
 
+  useEffect(() => {
+    if (!location || !mapRef.current || mapInstance.current) return
+    ;(async () => {
+      const L = (await import('leaflet')).default
+      delete L.Icon.Default.prototype._getIconUrl
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      })
+      const map = L.map(mapRef.current, { zoomControl: false }).setView([location.lat, location.lng], 15)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map)
+      L.control.zoom({ position: 'bottomright' }).addTo(map)
+      markerRef.current = L.marker([location.lat, location.lng]).addTo(map)
+      mapInstance.current = map
+    })()
+    return () => {
+      if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null }
+    }
+  }, [location])
+
   if (!location) {
     return (
       <div className="p-4 rounded-xl bg-[#18181b] border border-[#27272a] text-center">
@@ -167,26 +193,15 @@ function LiveMap({ orderId }) {
     )
   }
 
-  const riderName = location.riders?.name || 'Driver'
-  const vehicleType = location.riders?.vehicle_type || ''
-
   return (
     <div className="rounded-xl overflow-hidden border border-[#27272a]">
       <div className="bg-[#18181b] p-3">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-sm font-medium text-white">{riderName}</span>
-          {vehicleType && <span className="text-xs text-[#71717a]">{vehicleType}</span>}
+          <span className="text-sm font-medium text-white">Driver</span>
         </div>
       </div>
-      <div className="bg-[#09090b]">
-        <MapPicker
-          lat={parseFloat(location.lat)}
-          lng={parseFloat(location.lng)}
-          readOnly
-          height="200px"
-        />
-      </div>
+      <div ref={mapRef} className="bg-[#09090b]" style={{ height: '200px' }} />
     </div>
   )
 }
