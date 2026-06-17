@@ -143,6 +143,7 @@ function LiveMap({ orderId }) {
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
   const markerRef = useRef(null)
+  const initStarted = useRef(false)
 
   useEffect(() => {
     if (!orderId) return
@@ -161,7 +162,8 @@ function LiveMap({ orderId }) {
   }, [orderId])
 
   useEffect(() => {
-    if (!location || !mapRef.current || mapInstance.current) return
+    if (!location || !mapRef.current || initStarted.current) return
+    initStarted.current = true
     ;(async () => {
       const L = (await import('leaflet')).default
       delete L.Icon.Default.prototype._getIconUrl
@@ -170,6 +172,7 @@ function LiveMap({ orderId }) {
         iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       })
+      if (!mapRef.current) return
       const map = L.map(mapRef.current, { zoomControl: false }).setView([location.lat, location.lng], 15)
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -178,8 +181,11 @@ function LiveMap({ orderId }) {
       L.control.zoom({ position: 'bottomright' }).addTo(map)
       markerRef.current = L.marker([location.lat, location.lng]).addTo(map)
       mapInstance.current = map
+      setTimeout(() => map.invalidateSize(), 100)
     })()
+
     return () => {
+      initStarted.current = false
       if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null }
     }
   }, [location])
