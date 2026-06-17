@@ -112,7 +112,7 @@ export async function getAllOrders() {
 }
 
 export async function createOrder(orderData) {
-  const order = { id: Date.now().toString(), ...orderData, created_at: new Date().toISOString(), status: 'pending' }
+  const order = { id: Date.now().toString(), ...orderData, created_at: new Date().toISOString() }
   inMemoryOrders.unshift(order)
   saveOrders()
   if (hasSupabase) {
@@ -128,7 +128,12 @@ export async function createOrder(orderData) {
         subtotal: orderData.subtotal,
         delivery_fee: orderData.delivery_fee || 0,
         total: orderData.total,
-        status: 'pending',
+        status: orderData.status || 'pending',
+        is_rescue: orderData.is_rescue || false,
+        express_badge: orderData.express_badge || false,
+        original_order_id: orderData.original_order_id || null,
+        refund_amount: orderData.refund_amount || null,
+        refund_status: orderData.refund_status || null,
       }).select().single()
       if (!error && data) {
         inMemoryOrders = inMemoryOrders.map(o => o.id === order.id ? { ...o, id: data.id } : o)
