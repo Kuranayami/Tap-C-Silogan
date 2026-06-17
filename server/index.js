@@ -98,14 +98,6 @@ app.use(async (req, res, next) => {
   next()
 })
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 600,
-  standardHeaders: true,
-  legacyHeaders: false,
-})
-app.use(limiter)
-
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -114,10 +106,9 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-const orderLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 20,
-  message: { error: 'Too many orders placed from this IP, try again later' },
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
 })
@@ -125,7 +116,8 @@ const orderLimiter = rateLimit({
 app.use('/uploads', express.static(uploadsDir, { maxAge: '1d' }))
 app.post('/api/login', authLimiter, loginHandler)
 app.post('/api/logout', requireAdmin, revokeToken)
-app.use('/api/orders', orderLimiter, orderRoutes)
+app.use('/api', apiLimiter)
+app.use('/api/orders', orderRoutes)
 app.use('/api/menu', menuRoutes)
 app.use('/api/about', aboutRoutes)
 app.use('/api/config', configRoutes)
