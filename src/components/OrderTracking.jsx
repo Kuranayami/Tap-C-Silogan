@@ -242,13 +242,11 @@ export default function OrderTracking() {
     if (!confirm('Cancel this order? You will be refunded.')) return
     setCancelling(orderId)
     try {
-      const res = await fetch(api(`/api/orders/${orderId}`), {
-        method: 'PATCH',
+      const res = await fetch(api(`/api/orders/user/cancel/${orderId}`), {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: 'canceled' }),
       })
       if (res.ok) {
         fetchOrders()

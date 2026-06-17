@@ -26,5 +26,6 @@ router.post('/:id/cancel', requireRider, (req, res) => {
   req.body = { order_id: req.params.id }
   cancelDeliveryHandler(req, res)
 })
+router.post('/user/cancel/:id', requireUser, cancelOrder)
 
 export default router
