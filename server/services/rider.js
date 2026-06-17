@@ -34,11 +34,26 @@ export async function getReadyOrders() {
       .order('created_at', { ascending: true })
 
     if (!error && data) all.push(...data)
-  } else {
-    // in-memory fallback — filter from global orders
   }
 
   return all
+}
+
+export async function getRescueAlerts() {
+  if (!hasSupabase) return []
+
+  const now = new Date().toISOString()
+
+  const { data, error } = await supabase
+    .from('rescue_holds')
+    .select('*, orders!inner(*)')
+    .eq('status', 'available')
+    .gt('hold_until', now)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  if (error) return []
+  return data || []
 }
 
 export async function claimOrder(orderId, riderId, riderName) {

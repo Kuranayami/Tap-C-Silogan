@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, Package, Bike, User, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, Timer, ListChecks, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react'
+import { Clock, Package, Bike, User, LogOut, RefreshCw, CheckCircle, XCircle, ChefHat, Phone, MapPin, Timer, ListChecks, TrendingUp, AlertTriangle, DollarSign, Zap, Shield } from 'lucide-react'
 import { api, imageUrl } from '../api'
 import CashierLogin from './CashierLogin'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
@@ -32,6 +32,25 @@ function formatTime(dateStr) {
   return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
+function RescueHoldTimer({ holdUntil }) {
+  const [remaining, setRemaining] = useState('')
+
+  useEffect(() => {
+    function tick() {
+      const diff = new Date(holdUntil).getTime() - Date.now()
+      if (diff <= 0) { setRemaining('Expired'); return }
+      const min = Math.floor(diff / 60000)
+      const sec = Math.floor((diff % 60000) / 1000)
+      setRemaining(`${min}:${String(sec).padStart(2, '0')}`)
+    }
+    tick()
+    const interval = setInterval(tick, 1000)
+    return () => clearInterval(interval)
+  }, [holdUntil])
+
+  return <span className="font-mono text-xs">{remaining}</span>
+}
+
 export default function CashierPanel() {
   const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem('cashier_token'))
   const [cashier, setCashier] = useState(() => {
@@ -46,11 +65,28 @@ export default function CashierPanel() {
   const [deliveryFeeOutOfZoneInput, setDeliveryFeeOutOfZoneInput] = useState('80')
   const [savingDeliveryFee, setSavingDeliveryFee] = useState(false)
   const [showDeliveryFeeInput, setShowDeliveryFeeInput] = useState(false)
+  const [rescueHolds, setRescueHolds] = useState([])
+  const [rescueStats, setRescueStats] = useState({ totalHolds: 0, activeHolds: 0, totalMatches: 0, totalRefunds: 0 })
+  const [showRescuePanel, setShowRescuePanel] = useState(false)
 
   const logout = useCallback(() => {
     localStorage.removeItem('cashier_token')
     localStorage.removeItem('cashier_profile')
     setLoggedIn(false)
+  }, [])
+
+  const fetchRescueHolds = useCallback(async () => {
+    try {
+      const res = await fetch(api('/api/cashier/rescue/holds'), { headers: cashierHeaders() })
+      if (res.ok) setRescueHolds(await res.json())
+    } catch {}
+  }, [])
+
+  const fetchRescueStats = useCallback(async () => {
+    try {
+      const res = await fetch(api('/api/cashier/rescue/stats'), { headers: cashierHeaders() })
+      if (res.ok) setRescueStats(await res.json())
+    } catch {}
   }, [])
 
   const fetchOrders = useCallback(async () => {
@@ -80,14 +116,20 @@ export default function CashierPanel() {
   }, [])
 
   useEffect(() => {
-    if (loggedIn) { fetchOrders(); fetchFee() }
-  }, [loggedIn, fetchOrders, fetchFee])
+    if (loggedIn) { fetchOrders(); fetchFee(); fetchRescueHolds() }
+  }, [loggedIn, fetchOrders, fetchFee, fetchRescueHolds])
 
   useEffect(() => {
     if (!loggedIn) return
     const interval = setInterval(fetchOrders, 15000)
     return () => clearInterval(interval)
   }, [loggedIn, fetchOrders])
+
+  useEffect(() => {
+    if (!loggedIn) return
+    const interval = setInterval(fetchRescueHolds, 10000)
+    return () => clearInterval(interval)
+  }, [loggedIn, fetchRescueHolds])
 
   useOrderRealtime(useCallback((payload) => {
     if (!loggedIn) return
@@ -191,6 +233,9 @@ export default function CashierPanel() {
             <button onClick={() => setShowDeliveryFeeInput(!showDeliveryFeeInput)} className="p-2 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-emerald-400 transition-colors" title="Delivery Fees: In ₱{deliveryFeeInZone} / Out ₱{deliveryFeeOutOfZone}">
               <DollarSign className="w-4 h-4" />
             </button>
+            <button onClick={() => { setShowRescuePanel(!showRescuePanel); if (!showRescuePanel) fetchRescueStats() }} className={`p-2 rounded-lg border transition-colors ${showRescuePanel ? 'bg-[#408A71]/20 border-[#408A71]/40 text-[#408A71]' : 'border-[#408A71] text-[#B0E4CC] hover:text-white'}`} title="Rescue System">
+              <Shield className="w-4 h-4" />
+            </button>
             <a href="#/cashier/profile" className="p-2 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-white transition-colors" title="Profile">
               <User className="w-4 h-4" />
             </a>
@@ -199,6 +244,47 @@ export default function CashierPanel() {
             </button>
           </div>
         </div>
+
+        {/* ── Rescue Alert ── */}
+        <AnimatePresence>
+          {rescueHolds.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-6 rounded-2xl border border-yellow-500/30 bg-yellow-500/5 p-4"
+            >
+              <div className="flex items-start gap-3">
+                <Zap className="w-6 h-6 text-yellow-400 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-yellow-400 text-sm flex items-center gap-2">
+                    Rescue Match Available
+                    <span className="text-[10px] text-yellow-500/70 font-mono">{rescueHolds.length} hold{rescueHolds.length > 1 ? 's' : ''}</span>
+                  </h3>
+                  <p className="text-xs text-[#B0E4CC] mt-1">
+                    These items from canceled orders can be matched to new orders with the same items
+                  </p>
+                  <div className="mt-2 space-y-1.5">
+                    {rescueHolds.map(hold => (
+                      <div key={hold.id} className="flex items-center justify-between text-xs bg-[#285A48] rounded-lg px-3 py-2">
+                        <div>
+                          <span className="text-[#B0E4CC]">Order #{String(hold.order_id).slice(-4)}</span>
+                          <span className="text-[#408A71] ml-2">
+                            {(hold.items || []).map(i => `${i.quantity || 1}x ${i.name}`).join(', ')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Timer className="w-3 h-3 text-yellow-400" />
+                          <RescueHoldTimer holdUntil={hold.hold_until} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Summary Bar ── */}
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-6">
@@ -239,6 +325,40 @@ export default function CashierPanel() {
                     <input type="number" min="0" value={deliveryFeeOutOfZoneInput} onChange={e => setDeliveryFeeOutOfZoneInput(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-white text-sm focus:outline-none focus:border-[#408A71]/50" placeholder="Out of zone fee" />
                   </div>
                   <button onClick={handleSaveDeliveryFee} disabled={savingDeliveryFee} className="px-4 py-2 rounded-lg bg-[#408A71] hover:bg-[#091413] text-white font-semibold text-sm transition-all disabled:opacity-50 self-end">{savingDeliveryFee ? 'Saving...' : 'Update'}</button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Rescue Panel ── */}
+        <AnimatePresence>
+          {showRescuePanel && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#408A71] bg-[#285A48] p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Shield className="w-4 h-4 text-[#408A71]" />Rescue System</h3>
+                  <button onClick={fetchRescueStats} className="p-1.5 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-white transition-colors">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-[#408A71] bg-[#091413] p-3">
+                    <p className="text-[10px] text-[#408A71] mb-1">Total Holds</p>
+                    <p className="text-lg font-bold text-white">{rescueStats.totalHolds}</p>
+                  </div>
+                  <div className="rounded-xl border border-amber-500/30 bg-[#091413] p-3">
+                    <p className="text-[10px] text-amber-400 mb-1">Active Holds</p>
+                    <p className="text-lg font-bold text-white">{rescueStats.activeHolds}</p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/30 bg-[#091413] p-3">
+                    <p className="text-[10px] text-emerald-400 mb-1">Matches</p>
+                    <p className="text-lg font-bold text-white">{rescueStats.totalMatches}</p>
+                  </div>
+                  <div className="rounded-xl border border-blue-500/30 bg-[#091413] p-3">
+                    <p className="text-[10px] text-blue-400 mb-1">Refunds</p>
+                    <p className="text-lg font-bold text-white">{rescueStats.totalRefunds}</p>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -297,6 +417,7 @@ export default function CashierPanel() {
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex items-center gap-1.5">
                               <span className="text-[10px] font-mono text-[#408A71]">#{String(order.id).slice(-4)}</span>
+                              {order.express_badge && <Zap className="w-3 h-3 text-yellow-400" />}
                               <Phone className="w-3 h-3 text-[#408A71]" />
                               <span className="text-xs text-[#B0E4CC]">{order.customer_contact || '—'}</span>
                             </div>

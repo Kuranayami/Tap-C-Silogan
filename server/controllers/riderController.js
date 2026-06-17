@@ -13,6 +13,7 @@ import {
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { saveFile } from '../services/storage.js'
 import { riderTokens } from '../services/tokenStore.js'
+import { addRiderEarnings, getRescueLogs as getRescueLogsSvc } from '../services/rescue.js'
 
 export async function loginRider(req, res) {
   try {
@@ -100,7 +101,13 @@ export async function completeDelivery(req, res) {
     if (!order_id) return res.status(400).json({ error: 'order_id is required' })
 
     const order = await markDelivered(order_id, req.riderId)
-    res.json({ message: 'Delivery completed', order })
+
+    // Add delivery earnings (₱40 base + ₱10 if rescue)
+    const baseFee = 40
+    const rescueBonus = order?.is_rescue ? 10 : 0
+    await addRiderEarnings(req.riderId, baseFee + rescueBonus)
+
+    res.json({ message: 'Delivery completed', order, earnings: baseFee + rescueBonus })
   } catch (err) {
     console.error('completeDelivery error:', err)
     res.status(500).json({ error: 'Failed to complete delivery' })

@@ -1,4 +1,5 @@
 import { createOrder, getAllOrders, updateOrderStatus, deleteOrder, getMenuItemById, ensureMenuLoaded, getOrdersByContact, getOrdersByUser } from '../services/supabase.js'
+import { createRescueHold, processAutoRefund, findMatchingRescue, claimRescueMatch } from '../services/rescue.js'
 
 const VALID_ADDON_IDS = ['extra-rice', 'egg', 'mang-tomas']
 const MAX_ITEMS_PER_ORDER = 50
@@ -87,7 +88,13 @@ export async function placeOrder(req, res) {
     const subtotal = calculateTotal(items)
     const total = subtotal + (delivery_fee || 0)
 
-    const { data, error } = await createOrder({
+    // Check for rescue match
+    let rescueMatch = null
+    try {
+      rescueMatch = await findMatchingRescue(items)
+    } catch {}
+
+    const orderData = {
       user_id: userId,
       customer_name: safeName,
       customer_contact: safeContact,
@@ -98,13 +105,33 @@ export async function placeOrder(req, res) {
       items,
       subtotal,
       total,
-    })
+    }
+
+    // If rescue match found, mark as rescue order
+    if (rescueMatch) {
+      orderData.is_rescue = true
+      orderData.express_badge = true
+    }
+
+    const { data, error } = await createOrder(orderData)
 
     if (error) throw error
+
+    // Claim the rescue match
+    if (rescueMatch?.hold?.id) {
+      try {
+        await claimRescueMatch(rescueMatch.hold.id, data.id, rescueMatch.matchedItems)
+      } catch {}
+    }
 
     res.status(201).json({
       message: 'Order placed successfully',
       order: data,
+      rescueMatch: rescueMatch ? {
+        matched: true,
+        items: rescueMatch.matchedItems,
+        expressBadge: true,
+      } : undefined,
     })
   } catch (err) {
     console.error('placeOrder error:', err)
@@ -182,9 +209,25 @@ export async function trackOrder(req, res) {
 export async function cancelOrder(req, res) {
   try {
     const { id } = req.params
-    const order = await updateOrderStatus(id, 'canceled')
+    const allOrders = await getAllOrders()
+    const order = allOrders.find(o => String(o.id) === String(id))
     if (!order) return res.status(404).json({ error: 'Order not found' })
-    res.json({ message: 'Order canceled', order })
+
+    const canceled = await updateOrderStatus(id, 'canceled')
+    if (!canceled) return res.status(404).json({ error: 'Order not found' })
+
+    // Auto-refund
+    await processAutoRefund(order)
+
+    // Create rescue hold (food is available for matching)
+    const hold = await createRescueHold(order)
+
+    res.json({
+      message: 'Order canceled',
+      order: canceled,
+      refund: 'processed',
+      rescueHold: hold ? 'created' : 'skipped',
+    })
   } catch (err) {
     console.error('cancelOrder error:', err)
     res.status(500).json({ error: 'Failed to cancel order' })

@@ -17,9 +17,11 @@ import riderRoutes from './routes/rider.js'
 import adminRoutes from './routes/admin.js'
 import cashierRoutes from './routes/cashier.js'
 import restaurantRoutes from './routes/restaurant.js'
+import rescueRoutes from './routes/rescue.js'
 import { loginHandler, requireAdmin, revokeToken } from './middleware/auth.js'
 import { ensureMenuLoaded } from './services/supabase.js'
 import { ensureBucket } from './services/storage.js'
+import { startRescueTimer } from './services/rescue.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 config({ path: resolve(__dirname, '../.env') })
@@ -134,6 +136,7 @@ app.use('/api/rider', riderRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/cashier', cashierRoutes)
 app.use('/api/restaurant', restaurantRoutes)
+app.use('/api/rescue', rescueRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err?.message || err, err?.stack || '', 'path:', req.path, 'method:', req.method)
@@ -152,6 +155,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, async () => {
   await ensureMenuLoaded()
   await ensureBucket()
+  startRescueTimer()
   const mode = isProduction ? 'production' : 'development'
   console.log(`Server running on http://localhost:${PORT} [${mode}]`)
 })

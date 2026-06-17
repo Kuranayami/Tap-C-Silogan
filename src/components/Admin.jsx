@@ -4,7 +4,7 @@ import {
   Package, Clock, User, Phone, MapPin, ArrowLeft, RefreshCw,
   ChevronDown, ChevronUp, LogOut, Edit3, Upload, Trash2, X, Save,
   Plus, Check, ImageIcon, Camera, AlertTriangle, TrendingUp, Bike, ChefHat,
-  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign, Map, Search, Eye, EyeOff,
+  Zap, Navigation, Users, Wifi, XCircle, CheckCircle, Star, MessageSquare, ListChecks, DollarSign, Map, Search, Eye, EyeOff, Bell, Shield,
 } from 'lucide-react'
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
@@ -223,6 +223,12 @@ export default function Admin() {
   const [zoneKmlFile, setZoneKmlFile] = useState(null)
   const [uploadingKml, setUploadingKml] = useState(false)
   const [zonePolygon, setZonePolygon] = useState(null)
+  const [showRescueManager, setShowRescueManager] = useState(false)
+  const [rescueStats, setRescueStats] = useState({ totalHolds: 0, activeHolds: 0, totalMatches: 0, totalRefunds: 0 })
+  const [rescueLogs, setRescueLogs] = useState([])
+  const [rescueLogsLoading, setRescueLogsLoading] = useState(false)
+  const [rescueLoading, setRescueLoading] = useState(false)
+
 
   const addActivity = useCallback((msg, type = 'info') => {
     const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
@@ -453,6 +459,24 @@ export default function Admin() {
       if (res.status === 401) { logout(); return }
       if (res.ok) { fetchCashiers(); addActivity(`Cashier "${name}" deleted`, 'info') }
     } catch {}
+  }
+
+  const fetchRescueStats = async () => {
+    setRescueLoading(true)
+    try {
+      const res = await fetch(api('/api/rescue/stats'), { headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) setRescueStats(await res.json())
+    } catch {} finally { setRescueLoading(false) }
+  }
+
+  const fetchRescueLogs = async () => {
+    setRescueLogsLoading(true)
+    try {
+      const res = await fetch(api('/api/rescue/logs'), { headers: adminHeaders() })
+      if (res.status === 401) { logout(); return }
+      if (res.ok) { const data = await res.json(); setRescueLogs(data || []) }
+    } catch {} finally { setRescueLogsLoading(false) }
   }
 
   useEffect(() => {
@@ -797,6 +821,7 @@ export default function Admin() {
             <button onClick={() => { setShowTestimonialsManager(!showTestimonialsManager); if (!showTestimonialsManager && testimonials.length === 0) fetchTestimonials() }} className={`p-2 rounded-lg border transition-colors ${showTestimonialsManager ? 'bg-[#408A71]/20 border-[#408A71]/40 text-[#408A71]' : 'border-[#408A71] text-[#B0E4CC] hover:text-white'}`} title="Manage Testimonials"><MessageSquare className="w-4 h-4" /></button>
             <button onClick={() => setShowDeliveryFeeManager(!showDeliveryFeeManager)} className={`p-2 rounded-lg border transition-colors ${showDeliveryFeeManager ? 'bg-[#408A71]/20 border-[#408A71]/40 text-[#408A71]' : 'border-[#408A71] text-[#B0E4CC] hover:text-white'}`} title="Delivery Fee"><DollarSign className="w-4 h-4" /></button>
             <button onClick={() => setShowZoneManager(!showZoneManager)} className={`p-2 rounded-lg border transition-colors ${showZoneManager ? 'bg-[#408A71]/20 border-[#408A71]/40 text-[#408A71]' : 'border-[#408A71] text-[#B0E4CC] hover:text-white'}`} title="Delivery Zone Map"><Map className="w-4 h-4" /></button>
+            <button onClick={() => { setShowRescueManager(!showRescueManager); if (!showRescueManager) { fetchRescueStats(); fetchRescueLogs() } }} className={`p-2 rounded-lg border transition-colors ${showRescueManager ? 'bg-[#408A71]/20 border-[#408A71]/40 text-[#408A71]' : 'border-[#408A71] text-[#B0E4CC] hover:text-white'}`} title="Rescue System"><Shield className="w-4 h-4" /></button>
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-white transition-colors disabled:opacity-50"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /></button>
             <button onClick={logout} className="p-2 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-red-400 transition-colors" title="Logout"><LogOut className="w-4 h-4" /></button>
           </div>
@@ -1414,6 +1439,87 @@ export default function Admin() {
                   <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#285A48] border border-[#408A71] text-[#B0E4CC] text-sm cursor-pointer hover:border-[#408A71]/50 transition-colors"><Upload className="w-4 h-4 shrink-0" /><span className="truncate">{zoneKmlFile ? zoneKmlFile.name : 'Choose KML'}</span><input type="file" accept=".kml,application/vnd.google-earth.kml+xml,text/xml" onChange={e => { setZoneKmlFile(e.target.files[0]); setUploadError('') }} className="hidden" /></label>
                   <button onClick={handleUploadKml} disabled={!zoneKmlFile || uploadingKml} className="px-4 py-2 rounded-lg bg-[#408A71] hover:bg-[#285A48] text-white font-semibold text-sm transition-all disabled:opacity-50">{uploadingKml ? 'Uploading...' : 'Upload'}</button>
                   {zonePolygon && <span className="text-xs text-emerald-400">{zonePolygon.length} polygon points loaded</span>}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Rescue Manager ── */}
+        <AnimatePresence>
+          {showRescueManager && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
+              <div className="rounded-2xl border border-[#408A71] bg-[#285A48] p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-white flex items-center gap-2 text-sm"><Shield className="w-4 h-4 text-[#408A71]" />Rescue System</h3>
+                  <div className="flex items-center gap-1.5">
+                    <button onClick={() => { fetchRescueStats(); fetchRescueLogs() }} disabled={rescueLoading} className="p-1.5 rounded-lg border border-[#408A71] text-[#B0E4CC] hover:text-white transition-colors disabled:opacity-50">
+                      <RefreshCw className={`w-3.5 h-3.5 ${rescueLoading ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="rounded-xl border border-[#408A71] bg-[#091413] p-3">
+                    <p className="text-[10px] text-[#408A71] mb-1">Total Holds</p>
+                    <p className="text-xl font-bold text-white">{rescueStats.totalHolds}</p>
+                  </div>
+                  <div className="rounded-xl border border-amber-500/30 bg-[#091413] p-3">
+                    <p className="text-[10px] text-amber-400 mb-1">Active Holds</p>
+                    <p className="text-xl font-bold text-white">{rescueStats.activeHolds}</p>
+                  </div>
+                  <div className="rounded-xl border border-emerald-500/30 bg-[#091413] p-3">
+                    <p className="text-[10px] text-emerald-400 mb-1">Matches</p>
+                    <p className="text-xl font-bold text-white">{rescueStats.totalMatches}</p>
+                  </div>
+                  <div className="rounded-xl border border-blue-500/30 bg-[#091413] p-3">
+                    <p className="text-[10px] text-blue-400 mb-1">Refunds</p>
+                    <p className="text-xl font-bold text-white">{rescueStats.totalRefunds}</p>
+                  </div>
+                </div>
+
+                {/* Notification (placeholder) */}
+                <div className="rounded-xl border border-[#408A71] bg-[#091413] p-3">
+                  <h4 className="text-sm font-semibold text-white flex items-center gap-2"><Bell className="w-4 h-4 text-[#408A71]" />Notifications</h4>
+                  <p className="text-xs text-[#408A71] mt-1">Push notification system (FCM) coming in Phase 9.</p>
+                </div>
+
+                {/* Rescue Logs */}
+                <div>
+                  <h4 className="text-sm font-semibold text-white flex items-center gap-2 mb-2"><ListChecks className="w-4 h-4 text-[#408A71]" />Rescue Logs</h4>
+                  {rescueLogsLoading ? (
+                    <div className="text-center py-4"><div className="w-5 h-5 border-2 border-[#408A71] border-t-transparent rounded-full animate-spin mx-auto" /></div>
+                  ) : rescueLogs.length === 0 ? (
+                    <p className="text-sm text-[#408A71] text-center py-4">No rescue activity yet.</p>
+                  ) : (
+                    <div className="overflow-x-auto max-h-64 overflow-y-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-[#408A71] border-b border-[#408A71]">
+                            <th className="text-left py-1.5 pr-2">Time</th>
+                            <th className="text-left py-1.5 pr-2">Action</th>
+                            <th className="text-left py-1.5 pr-2">Details</th>
+                            <th className="text-right py-1.5">Order ID</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rescueLogs.map((log, idx) => {
+                            const detailText = typeof log.details === 'object' && log.details ? JSON.stringify(log.details) : log.details || '—'
+                            const orderId = log.details?.order_id || null
+                            return (
+                            <tr key={idx} className="border-b border-[#408A71] hover:bg-[#285A48] transition-colors">
+                              <td className="py-1.5 pr-2 text-[#408A71] whitespace-nowrap">{log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                              <td className="py-1.5 pr-2 text-[#B0E4CC] capitalize">{log.action?.replace(/_/g, ' ')}</td>
+                              <td className="py-1.5 pr-2 text-[#408A71] truncate max-w-[200px]">{detailText}</td>
+                              <td className="py-1.5 text-right text-[#408A71]">{orderId ? `#${String(orderId).slice(-6)}` : '—'}</td>
+                            </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bike, Clock, MapPin, Phone, User, Package, Check, AlertTriangle,
-  LogOut, Navigation, RefreshCw, Zap, ArrowLeft, XCircle,
+  LogOut, Navigation, RefreshCw, Zap, ArrowLeft, XCircle, DollarSign, TrendingUp,
 } from 'lucide-react'
 import { api, imageUrl } from '../api'
 import RiderLogin from './RiderLogin'
@@ -35,8 +35,12 @@ export default function RiderPanel() {
     catch { return 'online' }
   })
   const [notification, setNotification] = useState(null)
-  const [activeTab, setActiveTab] = useState('pool') // 'pool' | 'active'
+  const [activeTab, setActiveTab] = useState('pool')
   const [error, setError] = useState('')
+  const [rescueAlerts, setRescueAlerts] = useState([])
+  const [earnings, setEarnings] = useState(0)
+  const [pendingEarnings, setPendingEarnings] = useState(0)
+  const [showEarnings, setShowEarnings] = useState(false)
 
   const showNotification = useCallback((msg) => {
     setNotification(msg)
@@ -59,6 +63,13 @@ export default function RiderPanel() {
     } catch {}
   }, [])
 
+  const fetchRescueAlerts = useCallback(async () => {
+    try {
+      const res = await fetch(api('/api/rider/rescue-alerts'), { headers: riderHeaders() })
+      if (res.ok) setRescueAlerts(await res.json())
+    } catch {}
+  }, [])
+
   const fetchAll = useCallback(async () => {
     setLoading(true)
     setError('')
@@ -69,12 +80,14 @@ export default function RiderPanel() {
         const profile = await res.json()
         setStatus(profile.status || 'online')
         setRider(profile)
+        setEarnings(profile.total_earnings || 0)
+        setPendingEarnings(profile.pending_earnings || 0)
         localStorage.setItem('rider_profile', JSON.stringify(profile))
       }
     } catch {}
-    await Promise.all([fetchReadyOrders(), fetchActiveOrders()])
+    await Promise.all([fetchReadyOrders(), fetchActiveOrders(), fetchRescueAlerts()])
     setLoading(false)
-  }, [fetchReadyOrders, fetchActiveOrders])
+  }, [fetchReadyOrders, fetchActiveOrders, fetchRescueAlerts])
 
   useEffect(() => {
     if (loggedIn) fetchAll()
@@ -146,9 +159,12 @@ export default function RiderPanel() {
         body: JSON.stringify({ order_id: orderId }),
       })
       if (!res.ok) throw new Error('Failed to mark delivered')
-      showNotification(`✅ Order #${String(orderId).slice(-4)} delivered!`)
+      const data = await res.json()
+      const earnMsg = data.earnings ? ` (₱${data.earnings} earned)` : ''
+      showNotification(`✅ Order #${String(orderId).slice(-4)} delivered!${earnMsg}`)
       fetchActiveOrders()
       fetchReadyOrders()
+      fetchAll()
     } catch (err) {
       setError(err.message)
     }
@@ -222,6 +238,13 @@ export default function RiderPanel() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowEarnings(!showEarnings)}
+              className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-yellow-400 transition-colors"
+              title="Earnings"
+            >
+              <DollarSign className="w-4 h-4" />
+            </button>
+            <button
               onClick={handleStatusToggle}
               className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg ${
                 status === 'online'
@@ -230,7 +253,7 @@ export default function RiderPanel() {
               }`}
             >
               <span className={`w-3 h-3 rounded-full ${status === 'online' ? 'bg-white animate-pulse' : 'bg-[#71717a]'}`} />
-              {status === 'online' ? '🟢 Online' : status === 'busy' ? '🔵 Busy' : '⚪ Idle'}
+              {status === 'online' ? 'Online' : status === 'busy' ? 'Busy' : 'Idle'}
             </button>
             <a href="#/rider/profile" className="p-2 rounded-lg border border-[#27272a] text-[#a1a1aa] hover:text-white transition-colors" title="Profile">
               <User className="w-4 h-4" />
@@ -240,6 +263,56 @@ export default function RiderPanel() {
             </button>
           </div>
         </div>
+
+        {/* Earnings panel */}
+        <AnimatePresence>
+          {showEarnings && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden mb-4"
+            >
+              <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
+                <h3 className="font-semibold text-yellow-400 text-sm flex items-center gap-2 mb-3">
+                  <DollarSign className="w-4 h-4" /> Earnings
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-[#18181b] border border-[#27272a] p-3">
+                    <p className="text-xs text-[#71717a]">Total Earned</p>
+                    <p className="text-xl font-bold text-white">₱{earnings}</p>
+                  </div>
+                  <div className="rounded-xl bg-[#18181b] border border-[#27272a] p-3">
+                    <p className="text-xs text-[#71717a]">Pending</p>
+                    <p className="text-xl font-bold text-yellow-400">₱{pendingEarnings}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Rescue Alerts */}
+        <AnimatePresence>
+          {rescueAlerts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-4 rounded-2xl border border-green-500/30 bg-green-500/5 p-3"
+            >
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-green-400 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-green-400">Rescue Alert</p>
+                  <p className="text-xs text-[#a1a1aa]">
+                    {rescueAlerts.length} rescued item{rescueAlerts.length > 1 ? 's' : ''} available for express delivery
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Stats bar */}
         <div className="grid grid-cols-3 gap-2 mb-4">
@@ -308,13 +381,18 @@ export default function RiderPanel() {
                     key={order.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl border border-emerald-500/20 bg-[#18181b] p-4"
+                    className={`rounded-2xl border ${order.express_badge ? 'border-yellow-500/40' : 'border-emerald-500/20'} bg-[#18181b] p-4`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                           <h3 className="font-semibold text-white truncate">{order.customer_name}</h3>
+                          {order.express_badge && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-[10px] font-bold border border-yellow-500/30">
+                              <Zap className="w-2.5 h-2.5" /> Express
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-[#71717a] flex items-center gap-1">
                           <MapPin className="w-3 h-3" /> {order.address}
@@ -377,6 +455,11 @@ export default function RiderPanel() {
                           <span className="w-2 h-2 rounded-full bg-blue-400" />
                           <h3 className="font-semibold text-white truncate">{order.customer_name}</h3>
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-medium">In Delivery</span>
+                          {order.express_badge && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 text-[10px] font-bold border border-yellow-500/30">
+                              <Zap className="w-2.5 h-2.5" /> Express
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-[#71717a] flex items-center gap-1">
                           <MapPin className="w-3 h-3" /> {order.address}

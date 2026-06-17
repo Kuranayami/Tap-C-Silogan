@@ -3,6 +3,7 @@ import multer from 'multer'
 import { requireCashier } from '../middleware/cashierAuth.js'
 import { loginCashier, registerCashier, getCashiers, deleteCashier, getCashierProfile, updateCashierProfile, cashierUpdateOrder } from '../controllers/cashierController.js'
 import { getOrders, cancelOrder } from '../controllers/orderController.js'
+import { getRescueHoldsHandler, getRescueStatsHandler } from '../controllers/rescueController.js'
 import { requireAdmin } from '../middleware/auth.js'
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })
@@ -17,5 +18,7 @@ router.patch('/profile', requireCashier, upload.single('avatar'), updateCashierP
 router.get('/orders', requireCashier, getOrders)
 router.patch('/orders/:id', requireCashier, cashierUpdateOrder)
 router.patch('/orders/:id/cancel', requireCashier, cancelOrder)
+router.get('/rescue/holds', requireCashier, getRescueHoldsHandler)
+router.get('/rescue/stats', requireCashier, getRescueStatsHandler)
 
 export default router
