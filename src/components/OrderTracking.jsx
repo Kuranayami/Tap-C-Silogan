@@ -75,7 +75,7 @@ function OrderCard({ order, canCancel, onCancel }) {
         </div>
       )}
 
-      {order.refund_amount > 0 && (
+      {order.refund_amount > 0 && order.payment_method && order.payment_method !== 'cod' && (
         <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-green-400 flex items-center gap-1.5">
           Refunded ₱{order.refund_amount} — {order.refund_status}
         </div>
@@ -239,7 +239,7 @@ export default function OrderTracking() {
   }, [user, fetchOrders]))
 
   const handleCancelOrder = async (orderId) => {
-    if (!confirm('Cancel this order? You will be refunded.')) return
+    if (!confirm('Cancel this order?')) return
     setCancelling(orderId)
     try {
       const res = await fetch(api(`/api/orders/user/cancel/${orderId}`), {
@@ -276,7 +276,7 @@ export default function OrderTracking() {
   const displayOrders = activeTab === 'all' ? (orders || []) : activeTab === 'active' ? activeOrders : historyOrders
 
   const canCancelOrder = (order) => {
-    return order.status === 'pending' || order.status === 'ongoing'
+    return order.status === 'pending'
   }
 
   return (
