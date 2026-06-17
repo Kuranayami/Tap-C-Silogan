@@ -185,6 +185,7 @@ function LiveMap({ orderId }) {
       const map = L.map(mapRef.current, { zoomControl: false }).setView([location.lat, location.lng], 15)
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
+        detectRetina: true,
         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map)
       L.control.zoom({ position: 'bottomright' }).addTo(map)
