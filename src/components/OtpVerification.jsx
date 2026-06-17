@@ -91,13 +91,6 @@ export default function OtpVerification({ identifier, channel, devCode, onVerify
         <p className="text-[10px] text-[#71717a] mt-0.5">via {channel === 'sms' ? 'SMS' : 'Email'}</p>
       </div>
 
-      {devCode && (
-        <div className="bg-[#1a1a2e] border border-[#f97316]/30 rounded-xl p-3 text-center">
-          <p className="text-[10px] text-[#a1a1aa] mb-1">Your verification code</p>
-          <p className="text-2xl font-bold text-[#f97316] tracking-[8px]">{devCode}</p>
-        </div>
-      )}
-
       <div className="flex items-center justify-center gap-2">
         {digits.map((digit, i) => (
           <input

@@ -92,6 +92,7 @@ export async function submitRating(req, res) {
     const entry = await addRating({ name: name.trim().replace(/<[^>]*>/g, '').slice(0, 100), rating: Number(rating), comment: (comment || '').trim().replace(/<[^>]*>/g, '').slice(0, 500) })
     res.status(201).json(entry)
   } catch (err) {
+    if (err.statusCode) return res.status(err.statusCode).json({ error: err.message })
     res.status(500).json({ error: 'Failed to submit rating' })
   }
 }
@@ -101,6 +102,19 @@ export async function getRatingsHandler(req, res) {
     res.json(await getRatings())
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch ratings' })
+  }
+}
+
+export async function deleteRating(req, res) {
+  try {
+    const { name } = req.params
+    if (!name) return res.status(400).json({ error: 'Name required' })
+    const cfg = await getConfig()
+    const ratings = (cfg.ratings || []).filter(r => r.name !== name)
+    await updateConfig({ ratings })
+    res.json({ message: 'Rating deleted' })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete rating' })
   }
 }
 

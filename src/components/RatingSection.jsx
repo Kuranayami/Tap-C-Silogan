@@ -14,12 +14,15 @@ export default function RatingSection() {
   const [hover, setHover] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [hasRated, setHasRated] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetch(api('/api/config/ratings')).then(r => r.ok ? r.json() : {}).then(d => {
       if (d.ratings) { setRatings(d.ratings); setAverage(d.average); setCount(d.count) }
+      if (user?.name && d.ratings?.some(r => r.name === user.name)) setHasRated(true)
     }).catch(() => {})
-  }, [])
+  }, [user?.name])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -33,6 +36,7 @@ export default function RatingSection() {
       })
       if (res.ok) {
         setSubmitted(true)
+        setHasRated(true)
         setRating(0); setComment('')
         const d = await res.json()
         setRatings(prev => [d, ...prev])
@@ -40,8 +44,24 @@ export default function RatingSection() {
         setAverage(Math.round(all.reduce((s, r) => s + r.rating, 0) / all.length * 10) / 10)
         setCount(all.length)
         setTimeout(() => setSubmitted(false), 3000)
+      } else if (res.status === 409) {
+        setHasRated(true)
       }
     } catch {} finally { setSubmitting(false) }
+  }
+
+  const handleDeleteRating = async () => {
+    if (!user?.name) return
+    setDeleting(true)
+    try {
+      const res = await fetch(api(`/api/config/ratings/${encodeURIComponent(user.name)}`), { method: 'DELETE' })
+      if (res.ok) {
+        setHasRated(false); setRatings(prev => prev.filter(r => r.name !== user.name))
+        const remaining = ratings.filter(r => r.name !== user.name)
+        setAverage(remaining.length ? Math.round(remaining.reduce((s, r) => s + r.rating, 0) / remaining.length * 10) / 10 : 0)
+        setCount(remaining.length)
+      }
+    } catch {} finally { setDeleting(false) }
   }
 
   return (
@@ -58,7 +78,16 @@ export default function RatingSection() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-6 sm:p-8 mb-8" style={{ boxShadow: '0 10px 25px rgba(237, 148, 85, 0.04)' }}>
-          {submitted ? (
+          {hasRated ? (
+            <div className="text-center py-6">
+              <Star className="w-12 h-12 text-[#FFBB70] fill-[#FFBB70] mx-auto mb-3" />
+              <p className="text-[#4A3728] font-semibold text-lg">You already rated!</p>
+              <p className="text-sm text-[#D48040] mt-1">Thank you for your feedback</p>
+              <button onClick={handleDeleteRating} disabled={deleting}
+                className="mt-3 px-4 py-1.5 rounded-lg border border-red-400/30 text-red-400 hover:bg-red-400/10 text-xs transition-all"
+              >{deleting ? 'Removing...' : 'Delete my rating'}</button>
+            </div>
+          ) : submitted ? (
             <div className="text-center py-6">
               <Star className="w-12 h-12 text-[#FFBB70] fill-[#FFBB70] mx-auto mb-3" />
               <p className="text-[#4A3728] font-semibold text-lg">Thank you for your rating!</p>
@@ -95,8 +124,31 @@ export default function RatingSection() {
           )}
         </motion.div>
 
+        {hasRated && ratings.filter(r => r.name === user?.name).length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="rounded-xl border-2 border-[#FFBB70] bg-[#FFFBDA] p-4 mb-3"
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-[#FFBB70]/20 flex items-center justify-center">
+                  <span className="text-xs font-bold text-[#4A3728]">{user?.name?.[0]}</span>
+                </div>
+                <span className="text-sm font-medium text-[#4A3728]">Your Rating</span>
+              </div>
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map(n => (
+                  <Star key={n} className={`w-3.5 h-3.5 ${n <= ratings.filter(r => r.name === user?.name)[0]?.rating ? 'fill-[#FFBB70] text-[#FFBB70]' : 'text-[#FFEC9E]'}`} />
+                ))}
+              </div>
+            </div>
+            {ratings.filter(r => r.name === user?.name)[0]?.comment && (
+              <p className="text-sm text-[#4A3728] leading-relaxed">{ratings.filter(r => r.name === user?.name)[0].comment}</p>
+            )}
+          </motion.div>
+        )}
+
         {count > 0 && (
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-8">
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mb-4">
             <div className="flex items-center justify-center gap-2 mb-1">
               {[1, 2, 3, 4, 5].map(n => (
                 <Star key={n} className={`w-5 h-5 ${n <= Math.round(average) ? 'fill-[#FFBB70] text-[#FFBB70]' : 'text-[#FFEC9E]'}`} />
@@ -106,7 +158,7 @@ export default function RatingSection() {
           </motion.div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
           {ratings.slice(0, 10).map((item, i) => (
             <motion.div key={item.id || i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
               className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-4"

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import multer from 'multer'
-import { getConfigHandler, updateHeroImage, deleteHeroImage, updateHeroDish, updateTestimonials, submitRating, getRatingsHandler, updateDeliveryFeeHandler, uploadZoneImage, deleteZoneImage, uploadZoneKml, deleteZoneKml } from '../controllers/configController.js'
+import { getConfigHandler, updateHeroImage, deleteHeroImage, updateHeroDish, updateTestimonials, submitRating, getRatingsHandler, deleteRating, updateDeliveryFeeHandler, uploadZoneImage, deleteZoneImage, uploadZoneKml, deleteZoneKml } from '../controllers/configController.js'
 import { readFileSync, existsSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
@@ -33,6 +33,7 @@ router.delete('/hero', requireAdmin, deleteHeroImage)
 router.patch('/hero/dish', requireAdmin, updateHeroDish)
 router.patch('/testimonials', requireAdmin, updateTestimonials)
 router.post('/ratings', submitRating)
+router.delete('/ratings/:name', deleteRating)
 router.get('/ratings', getRatingsHandler)
 router.patch('/delivery-fee', authAdminOrCashier, updateDeliveryFeeHandler)
 router.put('/zone', requireAdmin, upload.single('image'), uploadZoneImage)
