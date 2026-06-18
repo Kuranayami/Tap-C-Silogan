@@ -529,7 +529,7 @@ export default function RiderPanel() {
                       <div className="text-right shrink-0">
                         <p className="text-lg font-bold text-[#4A3728]">P{order.total}</p>
                         <p className="text-[10px] text-[#4A3728]/60 mt-0.5">{timeAgo(order.claimed_at)}</p>
-                        <div className="flex items-center gap-2 mt-2 justify-end">
+                        <div className="flex items-center gap-2 mt-2 justify-end flex-wrap">
                           <button
                             onClick={() => handleCancel(order.id)}
                             className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-semibold transition-all"
