@@ -20,9 +20,10 @@ export default function CheckoutModal() {
   const [zonePolygon, setZonePolygon] = useState(null)
   const [inZone, setInZone] = useState(true)
   const [zoneUnknown, setZoneUnknown] = useState(false)
+  const [zonePending, setZonePending] = useState(true)
   const [zoneError, setZoneError] = useState('')
 
-  const deliveryFee = (!zonePolygon || zoneUnknown || inZone) ? deliveryFeeInZone : deliveryFeeOutOfZone
+  const deliveryFee = (!zonePolygon || zoneUnknown || zonePending || inZone) ? deliveryFeeInZone : deliveryFeeOutOfZone
   const showTotal = subtotal + deliveryFee
 
   useEffect(() => {
@@ -51,14 +52,15 @@ export default function CheckoutModal() {
   }, [checkoutOpen])
 
   useEffect(() => {
-    if (!zonePolygon) { setZoneUnknown(false); setZoneError(''); return }
-    if (!mapsLink) { setZoneUnknown(true); setZoneError('No Google Maps link in profile'); return }
+    if (!zonePolygon) { setZoneUnknown(false); setZonePending(false); setZoneError(''); return }
+    if (!mapsLink) { setZoneUnknown(true); setZonePending(false); setZoneError('No Google Maps link in profile'); return }
     setZoneUnknown(false)
     setZoneError('')
 
     const coords = extractCoordinatesFromUrl(mapsLink)
     if (coords) {
       setInZone(pointInPolygon([coords.lat, coords.lng], zonePolygon))
+      setZonePending(false)
     } else if (mapsLink.includes('goo.gl') || mapsLink.includes('maps.app')) {
       fetch(api('/api/location/resolve'), {
         method: 'POST',
@@ -72,13 +74,16 @@ export default function CheckoutModal() {
           setZoneUnknown(true)
           setZoneError(d.error || 'Could not determine location from link')
         }
+        setZonePending(false)
       }).catch(e => {
         setZoneUnknown(true)
         setZoneError('Failed to check delivery zone')
+        setZonePending(false)
       })
     } else {
       setZoneUnknown(true)
       setZoneError('Could not extract coordinates from your Google Maps link')
+      setZonePending(false)
     }
   }, [mapsLink, zonePolygon])
 
@@ -203,9 +208,9 @@ export default function CheckoutModal() {
                   )}
 
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-[#18181b] border border-[#27272a]">
-                    <MapPin className={`w-5 h-5 shrink-0 ${!zonePolygon ? 'text-[#a1a1aa]' : zoneUnknown ? 'text-yellow-400' : inZone ? 'text-emerald-400' : 'text-red-400'}`} />
-                    <span className={`text-sm font-medium ${!zonePolygon ? 'text-[#a1a1aa]' : zoneUnknown ? 'text-yellow-400' : inZone ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {!zonePolygon ? 'Delivery zone not configured' : zoneUnknown ? 'Unable to determine delivery zone' : inZone ? 'You are within our delivery zone' : 'You are outside our delivery zone'}
+                    <MapPin className={`w-5 h-5 shrink-0 ${!zonePolygon ? 'text-[#a1a1aa]' : zonePending ? 'text-yellow-400' : zoneUnknown ? 'text-yellow-400' : inZone ? 'text-emerald-400' : 'text-red-400'}`} />
+                    <span className={`text-sm font-medium ${!zonePolygon ? 'text-[#a1a1aa]' : zonePending ? 'text-yellow-400' : zoneUnknown ? 'text-yellow-400' : inZone ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {!zonePolygon ? 'Delivery zone not configured' : zonePending ? 'Checking delivery zone...' : zoneUnknown ? 'Unable to determine delivery zone' : inZone ? 'You are within our delivery zone' : 'You are outside our delivery zone'}
                     </span>
                   </div>
 
@@ -236,7 +241,7 @@ export default function CheckoutModal() {
                       <span>P{subtotal}</span>
                     </div>
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
-                      <span>Delivery {!zonePolygon ? '' : zoneUnknown ? '(In Zone - default)' : inZone ? '(In Zone)' : '(Out of Zone)'}</span>
+                        <span>Delivery {!zonePolygon ? '' : zonePending ? '(Pending...)' : zoneUnknown ? '(In Zone - default)' : inZone ? '(In Zone)' : '(Out of Zone)'}</span>
                       <span>P{deliveryFee}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-[#27272a]">
