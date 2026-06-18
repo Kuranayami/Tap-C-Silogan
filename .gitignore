@@ -5,3 +5,5 @@ dist
 server/data
 !server/data/migrations
 .vercel
+uploads
+server/uploads

@@ -18,10 +18,13 @@ export default function RatingSection() {
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     fetch(api('/api/config/ratings')).then(r => r.ok ? r.json() : {}).then(d => {
+      if (cancelled) return
       if (d.ratings) { setRatings(d.ratings); setAverage(d.average); setCount(d.count) }
       if (user?.name && d.ratings?.some(r => r.name === user.name)) setHasRated(true)
     }).catch(() => {})
+    return () => { cancelled = true }
   }, [user?.name])
 
   const handleSubmit = async (e) => {
@@ -39,10 +42,13 @@ export default function RatingSection() {
         setHasRated(true)
         setRating(0); setComment('')
         const d = await res.json()
-        setRatings(prev => [d, ...prev])
-        const all = [d, ...ratings]
-        setAverage(Math.round(all.reduce((s, r) => s + r.rating, 0) / all.length * 10) / 10)
-        setCount(all.length)
+        setRatings(prev => {
+          const updated = [d, ...prev]
+          const all = updated
+          setAverage(Math.round(all.reduce((s, r) => s + r.rating, 0) / all.length * 10) / 10)
+          setCount(all.length)
+          return updated
+        })
         setTimeout(() => setSubmitted(false), 3000)
       } else if (res.status === 409) {
         setHasRated(true)
@@ -56,10 +62,13 @@ export default function RatingSection() {
     try {
       const res = await fetch(api(`/api/config/ratings/${encodeURIComponent(user.name)}`), { method: 'DELETE' })
       if (res.ok) {
-        setHasRated(false); setRatings(prev => prev.filter(r => r.name !== user.name))
-        const remaining = ratings.filter(r => r.name !== user.name)
-        setAverage(remaining.length ? Math.round(remaining.reduce((s, r) => s + r.rating, 0) / remaining.length * 10) / 10 : 0)
-        setCount(remaining.length)
+        setHasRated(false)
+        setRatings(prev => {
+          const updated = prev.filter(r => r.name !== user.name)
+          setAverage(updated.length ? Math.round(updated.reduce((s, r) => s + r.rating, 0) / updated.length * 10) / 10 : 0)
+          setCount(updated.length)
+          return updated
+        })
       }
     } catch {} finally { setDeleting(false) }
   }

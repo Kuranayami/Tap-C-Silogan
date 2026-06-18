@@ -64,11 +64,10 @@ const prodOrigin = process.env.ALLOWED_ORIGIN
 
 app.use(cors({
   origin(origin, cb) {
-    if (isProduction && !origin) return cb(null, false)
-    if (!origin) return cb(null, true)
+    if (!origin) return cb(null, isProduction ? false : true)
     if (prodOrigin && origin.replace(/\/$/, '') === prodOrigin.replace(/\/$/, '')) return cb(null, true)
     if (origin.startsWith('http://localhost')) return cb(null, true)
-    if (origin.endsWith('.vercel.app')) return cb(null, true)
+    if (origin === 'https://tap-c-silogan.vercel.app') return cb(null, true)
     cb(null, false)
   },
 }))

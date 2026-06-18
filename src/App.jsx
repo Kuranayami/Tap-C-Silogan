@@ -29,7 +29,7 @@ function MainLayout() {
       openCheckout()
       window.location.hash = ''
     }
-  }, [])
+  }, [openCheckout])
 
   return (
     <div className="min-h-screen bg-[#FFFBDA] text-[#D48040] overflow-x-hidden">

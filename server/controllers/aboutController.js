@@ -1,5 +1,5 @@
 import { getAllImages, addImage, removeImage } from '../services/about.js'
-import { saveFile, deleteFile } from '../services/storage.js'
+import { saveFile, deleteFile, validateImageMime } from '../services/storage.js'
 
 const MIME_TO_EXT = {
   'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png',
@@ -23,7 +23,7 @@ export async function uploadImage(req, res) {
     if (!req.file) {
       return res.status(400).json({ error: 'Image file is required' })
     }
-    if (!ALLOWED_TYPES.includes(req.file.mimetype)) {
+    if (!ALLOWED_TYPES.includes(req.file.mimetype) || !validateImageMime(req.file.buffer, req.file.mimetype)) {
       return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
     }
     const ext = MIME_TO_EXT[req.file.mimetype]

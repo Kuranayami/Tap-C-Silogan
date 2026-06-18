@@ -19,7 +19,7 @@ async function sendEmailViaSendGrid(to, subject, html) {
       },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: to }] }],
-        from: { email: process.env.EMAIL_FROM || 'ayenndevera@gmail.com' },
+        from: { email: process.env.EMAIL_FROM },
         subject,
         content: [{ type: 'text/html', value: html }],
       }),
@@ -46,6 +46,10 @@ export function getExpiry() {
 }
 
 export async function sendOtp(identifier, channel, purpose = 'login') {
+  if (channel === 'email' && !process.env.EMAIL_FROM) {
+    console.warn('[OTP] EMAIL_FROM not set in .env — skipping email send')
+    return { message: 'OTP would be sent but email is not configured', ttl_min: OTP_TTL_MIN }
+  }
   const otpCode = generateOtpCode()
   const expiresAt = getExpiry()
 
@@ -85,7 +89,7 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
       .catch(err => console.error('[EMAIL] Unhandled error:', err))
   }
 
-  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN, emailConfigured: !!process.env.SENDGRID_API_KEY, smsConfigured: !!process.env.SEMAPHORE_API_KEY, dev_code: otpCode }
+  return { message: 'OTP sent', ttl_min: OTP_TTL_MIN }
 }
 
 export async function verifyOtp(identifier, otpCode, purpose = 'login') {
@@ -108,13 +112,13 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
     if (!rows || rows.length === 0) {
       const inMem = verifyOtpInMemory(identifier + ':' + purpose, otpCode)
       if (inMem?.verified) return inMem
-      throw new Error('No valid OTP found. Request a new one.')
+      throw new Error('OTP verification failed.')
     }
 
     const record = rows[0]
 
     if (record.attempts >= record.max_attempts) {
-      throw new Error('Too many failed attempts. Request a new OTP.')
+      throw new Error('OTP verification failed.')
     }
 
     if (record.otp_code !== otpCode) {
@@ -122,7 +126,7 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
         .from('otp_verifications')
         .update({ attempts: record.attempts + 1 })
         .eq('id', record.id)
-      throw new Error('Invalid OTP code.')
+      throw new Error('OTP verification failed.')
     }
 
     await supabase
@@ -138,12 +142,12 @@ export async function verifyOtp(identifier, otpCode, purpose = 'login') {
 
 function verifyOtpInMemory(key, otpCode) {
   const record = otpStore.get(key)
-  if (!record) throw new Error('No valid OTP found. Request a new one.')
-  if (new Date(record.expiresAt) < new Date()) throw new Error('OTP has expired.')
-  if (record.attempts >= MAX_ATTEMPTS) throw new Error('Too many failed attempts. Request a new OTP.')
+  if (!record) throw new Error('OTP verification failed.')
+  if (new Date(record.expiresAt) < new Date()) throw new Error('OTP verification failed.')
+  if (record.attempts >= MAX_ATTEMPTS) throw new Error('OTP verification failed.')
   if (record.otpCode !== otpCode) {
     record.attempts++
-    throw new Error('Invalid OTP code.')
+    throw new Error('OTP verification failed.')
   }
   otpStore.delete(key)
   return { verified: true, channel: record.channel || 'sms' }

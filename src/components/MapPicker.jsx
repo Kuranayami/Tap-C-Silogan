@@ -148,6 +148,8 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
     }
   }, [mapsLink])
 
+  let geocodeController = null
+
   function updateLocation(lat, lng, skipUpdate) {
     const link = `https://www.google.com/maps?q=${lat},${lng}`
     if (!skipUpdate) {
@@ -159,8 +161,11 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
       setIsInZone(pointInPolygon([lat, lng], poly))
     }
     if (!skipUpdate && onAddressChange) {
+      if (geocodeController) geocodeController.abort()
+      geocodeController = new AbortController()
       fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
         headers: { 'User-Agent': 'TapCSilogan/1.0' },
+        signal: geocodeController.signal,
       })
         .then(r => r.json())
         .then(d => {

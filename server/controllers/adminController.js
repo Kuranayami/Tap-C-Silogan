@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 import { supabase, hasSupabase } from '../services/supabase.js'
-import { saveFile } from '../services/storage.js'
+import { saveFile, validateImageMime } from '../services/storage.js'
 
 export async function getUsers(req, res) {
   try {
@@ -195,7 +195,7 @@ export async function createRider(req, res) {
     if (req.file) {
       const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
       const ext = ALLOWED[req.file.mimetype]
-      if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
+      if (!ext || !validateImageMime(req.file.buffer, req.file.mimetype)) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
       const filename = 'rider-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
       avatarUrl = await saveFile(filename, req.file.buffer, req.file.mimetype)
     }

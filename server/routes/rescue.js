@@ -17,7 +17,7 @@ router.post('/holds', requireAdmin, forceRescueHoldHandler)
 router.post('/matches', requireAdmin, claimRescueMatchHandler)
 
 router.post('/location', requireRider, updateDriverLocationHandler)
-router.get('/location/:order_id', getDriverLocationHandler)
+router.get('/location/:order_id', requireRider, getDriverLocationHandler)
 
 router.get('/notifications', requireAdmin, getNotificationPrefsHandler)
 router.patch('/notifications', requireAdmin, updateNotificationPrefsHandler)

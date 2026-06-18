@@ -16,11 +16,20 @@ router.post('/resolve', async (req, res) => {
       return res.status(400).json({ error: 'Only HTTPS URLs are allowed' })
     }
     const host = parsed.hostname.toLowerCase()
-    if (!host.endsWith('.google.com') && host !== 'google.com' && !host.endsWith('.goo.gl') && host !== 'goo.gl' && !host.endsWith('maps.app') && host !== 'maps.app') {
+    const allowedHosts = ['google.com', 'goo.gl', 'maps.app', 'maps.google.com', 'www.google.com', 'www.goo.gl']
+    if (!allowedHosts.includes(host) && !host.endsWith('.google.com')) {
       return res.status(400).json({ error: 'Only Google Maps URLs are supported' })
     }
-    const response = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(5000) })
-    const resolved = response.url
+    let resolved = url
+    const response = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(5000) })
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location')
+      if (!location || !location.startsWith('https://')) {
+        return res.status(400).json({ error: 'Redirect target must be HTTPS' })
+      }
+      const resp2 = await fetch(location, { redirect: 'follow', signal: AbortSignal.timeout(5000) })
+      resolved = resp2.url
+    }
     console.log('Resolved URL:', resolved)
 
     const atMatch = resolved.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)
@@ -63,7 +72,7 @@ router.post('/resolve', async (req, res) => {
         return res.json({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) })
       }
     }
-    res.status(400).json({ error: 'Could not extract coordinates from the link: ' + resolved.slice(0, 200) + '. Please open Google Maps, drop a pin, and share the link.' })
+    res.status(400).json({ error: 'Could not extract coordinates from the link. Please open Google Maps, drop a pin, and share the link.' })
   } catch (err) {
     if (err.name === 'TimeoutError' || err.code === 'ETIMEDOUT') {
       return res.status(504).json({ error: 'Timed out resolving link' })

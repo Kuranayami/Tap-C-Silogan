@@ -7,11 +7,12 @@ import { readFileSync, writeFileSync, existsSync } from 'fs'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 config({ path: resolve(__dirname, '../../.env') })
 
-const ADMIN_USER = process.env.ADMIN_USER || 'admin'
-const ADMIN_PASS = process.env.ADMIN_PASS || 'admin123'
+const ADMIN_USER = process.env.ADMIN_USER
+const ADMIN_PASS = process.env.ADMIN_PASS
 
-if (!process.env.ADMIN_PASS || process.env.ADMIN_PASS === 'admin123') {
-  console.warn('[SECURITY] Using default admin password. Set ADMIN_PASS in .env')
+if (!ADMIN_USER || !ADMIN_PASS) {
+  console.error('[SECURITY] ADMIN_USER and ADMIN_PASS must be set in .env')
+  process.exit(1)
 }
 
 const TOKENS_FILE = join(__dirname, '../data/admin_tokens.json')

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Bike, Clock, MapPin, Phone, User, Package, Check, AlertTriangle,
@@ -99,23 +99,25 @@ export default function RiderPanel() {
     return () => clearInterval(interval)
   }, [loggedIn, fetchAll])
 
+  const watchIdRef = useRef(null)
+
   // Live GPS tracking: send rider location for active in_delivery orders
   useEffect(() => {
     const activeDelivery = activeOrders.find(o => o.status === 'in_delivery')
     if (!activeDelivery) {
-      console.log('[GPS] no in_delivery order in activeOrders:', activeOrders.map(o => ({ id: o.id, status: o.status })))
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+        watchIdRef.current = null
+      }
       return
     }
 
-    console.log('[GPS] starting watchPosition for order', activeDelivery.id)
     let lastSend = 0
-    let watchId = null
 
     const sendLocation = (lat, lng) => {
       const now = Date.now()
       if (now - lastSend < 3000) return
       lastSend = now
-      console.log('[GPS] sending location', lat, lng, 'for order', activeDelivery.id)
       fetch(api('/api/rescue/location'), {
         method: 'POST',
         headers: { ...riderHeaders(), 'Content-Type': 'application/json' },
@@ -125,15 +127,18 @@ export default function RiderPanel() {
       }).catch(e => console.warn('[GPS] location POST error:', e))
     }
 
-    watchId = navigator.geolocation.watchPosition(
+    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current)
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => sendLocation(pos.coords.latitude, pos.coords.longitude),
       (err) => console.warn('[GPS] watchPosition error:', err.message),
       { enableHighAccuracy: true, maximumAge: 2000 }
     )
 
     return () => {
-      console.log('[GPS] cleaning up watchPosition', watchId)
-      if (watchId !== null) navigator.geolocation.clearWatch(watchId)
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+        watchIdRef.current = null
+      }
     }
   }, [activeOrders])
 

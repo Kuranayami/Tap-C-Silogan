@@ -168,9 +168,10 @@ function LiveMap({ orderId }) {
 
   useEffect(() => {
     if (!orderId) return
+    const controller = new AbortController()
     const fetchLoc = async () => {
       try {
-        const res = await fetch(api(`/api/rescue/location/${orderId}`))
+        const res = await fetch(api(`/api/rescue/location/${orderId}`), { signal: controller.signal })
         if (res.ok) {
           const data = await res.json()
           if (data && data.lat != null) setLocation(data)
@@ -179,7 +180,7 @@ function LiveMap({ orderId }) {
     }
     fetchLoc()
     const interval = setInterval(fetchLoc, 8000)
-    return () => clearInterval(interval)
+    return () => { clearInterval(interval); controller.abort() }
   }, [orderId])
 
   // Create map once on first location

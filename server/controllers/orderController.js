@@ -50,7 +50,7 @@ function calculateTotal(items) {
 
 export async function placeOrder(req, res) {
   try {
-    const { customer_name, customer_contact, address, items, maps_link, delivery_fee, in_zone } = req.body
+    const { customer_name, customer_contact, address, items, maps_link, delivery_fee: rawFee, in_zone } = req.body
     const userId = req.userId
 
     if (!customer_name || !customer_contact || !address) {
@@ -59,6 +59,11 @@ export async function placeOrder(req, res) {
 
     if (!/^09\d{9}$/.test(customer_contact.replace(/\D/g, ''))) {
       return res.status(400).json({ error: 'Contact must be a valid Philippine mobile number (09XXXXXXXXX)' })
+    }
+
+    const delivery_fee = (rawFee !== undefined && rawFee !== null) ? Number(rawFee) : undefined
+    if (rawFee !== undefined && rawFee !== null && (!Number.isFinite(delivery_fee) || delivery_fee < 0)) {
+      return res.status(400).json({ error: 'Delivery fee must be a non-negative number' })
     }
 
     const safeName = customer_name.trim().slice(0, 100)
@@ -80,7 +85,7 @@ export async function placeOrder(req, res) {
       }
       if (Math.abs(dbItem.price - item.price) > 0.01) {
         return res.status(400).json({
-          error: `Price mismatch for "${item.name}". Expected P${dbItem.price}, got P${item.price}`,
+          error: `Price mismatch for "${item.name}". Please refresh the menu and try again.`,
         })
       }
     }
@@ -212,6 +217,11 @@ export async function cancelOrder(req, res) {
     const allOrders = await getAllOrders()
     const order = allOrders.find(o => String(o.id) === String(id))
     if (!order) return res.status(404).json({ error: 'Order not found' })
+
+    // User-facing cancel must check ownership
+    if (req.userId && String(order.user_id) !== String(req.userId)) {
+      return res.status(403).json({ error: 'You can only cancel your own orders' })
+    }
 
     const canceled = await updateOrderStatus(id, 'canceled')
     if (!canceled) return res.status(404).json({ error: 'Order not found' })

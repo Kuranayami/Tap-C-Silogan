@@ -35,21 +35,24 @@ export default function CheckoutModal() {
         setDeliveryFeeOutOfZone(fees.outOfZone)
       })
     }
-  }, [checkoutOpen])
+  }, [checkoutOpen, setDeliveryFeeInZone, setDeliveryFeeOutOfZone])
 
   useEffect(() => {
     if (checkoutOpen && token) {
+      let cancelled = false
       fetch(api('/api/auth/profile'), { headers: { Authorization: `Bearer ${token}` } })
         .then(r => r.ok && r.json())
         .then(d => {
+          if (cancelled) return
           if (d) {
             setForm({ name: d.name || user?.name || '', contact: d.phone || user?.phone || '', address: d.address || user?.address || '' })
             setMapsLink(d.maps_link || user?.maps_link || '')
           }
         })
         .catch(() => {})
+      return () => { cancelled = true }
     }
-  }, [checkoutOpen])
+  }, [checkoutOpen, token, user?.name, user?.phone, user?.address, user?.maps_link])
 
   useEffect(() => {
     if (!zonePolygon) { setZoneUnknown(false); setZonePending(false); setZoneError(''); return }
@@ -85,7 +88,7 @@ export default function CheckoutModal() {
       setZoneError('Could not extract coordinates from your Google Maps link')
       setZonePending(false)
     }
-  }, [mapsLink, zonePolygon])
+  }, [mapsLink, zonePolygon, extractCoordinatesFromUrl, pointInPolygon])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

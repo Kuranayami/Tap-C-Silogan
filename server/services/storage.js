@@ -6,6 +6,22 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 
 const BUCKET = 'uploads'
 
+const MAGIC_BYTES = {
+  'image/jpeg': [[0xFF, 0xD8, 0xFF]],
+  'image/png': [[0x89, 0x50, 0x4E, 0x47]],
+  'image/webp': [[0x52, 0x49, 0x46, 0x46]],
+  'image/gif': [[0x47, 0x49, 0x46, 0x38]],
+  'image/bmp': [[0x42, 0x4D]],
+}
+
+export function validateImageMime(buffer, declaredMime) {
+  const signatures = MAGIC_BYTES[declaredMime]
+  if (!signatures) return false
+  return signatures.some(sig =>
+    sig.every((byte, i) => buffer[i] === byte)
+  )
+}
+
 export async function ensureBucket() {
   if (!supabase) { console.warn('Supabase not configured - storage unavailable'); return }
   try {
@@ -56,5 +72,6 @@ export async function deleteFile(url) {
   if (!url || !supabase) return
   const parts = url.split('/')
   const filename = parts[parts.length - 1]
+  if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) return
   await supabase.storage.from(BUCKET).remove([filename])
 }

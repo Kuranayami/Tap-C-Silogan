@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto'
 import { sendOtp, verifyOtp } from '../services/otp.js'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { storeToken as storeUserToken } from '../middleware/userAuth.js'
-import { saveFile } from '../services/storage.js'
+import { saveFile, validateImageMime } from '../services/storage.js'
 
 function sanitizePhone(raw) {
   let d = raw.replace(/\D/g, '')
@@ -146,13 +146,19 @@ export async function googleAuth(req, res) {
     let user = null
 
     if (hasSupabase) {
-      const safeGoogleId = google_id.replace(/[^a-zA-Z0-9._\-]/g, '')
-      const safeEmail = (email || '').toLowerCase().trim().replace(/[^a-zA-Z0-9.@_\-]/g, '')
       const { data: existing } = await supabase
         .from('users')
         .select('*')
-        .or(`google_id.eq.${safeGoogleId},email.eq.${safeEmail}`)
+        .eq('google_id', google_id)
         .maybeSingle()
+      if (!existing && email) {
+        const { data: byEmail } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', email.toLowerCase().trim())
+          .maybeSingle()
+        if (byEmail) existing = byEmail
+      }
 
       if (existing) {
         if (!existing.google_id) {
@@ -198,9 +204,7 @@ export async function googleAuth(req, res) {
 }
 
 export async function testEmail(req, res) {
-  res.json({
-    sendgridKey: process.env.SENDGRID_API_KEY ? 'SET' : 'NOT SET',
-  })
+  res.json({ message: 'Email test endpoint' })
 }
 
 export async function getProfile(req, res) {
@@ -216,7 +220,6 @@ export async function getProfile(req, res) {
         .single()
 
       if (error) return res.status(404).json({ error: 'User not found' })
-      console.log('getProfile returning:', { maps_link: data.maps_link?.slice(0, 30), phone: data.phone })
       return res.json({
         id: data.id, name: data.name, phone: data.phone ?? null, email: data.email,
         avatar_url: data.avatar_url ?? null, auth_provider: data.auth_provider,
@@ -236,8 +239,6 @@ export async function updateProfile(req, res) {
   try {
     const userId = req.userId
     const { name, phone, age, gender, maps_link, address } = req.body
-
-    console.log('=== updateProfile ===', { userId, name, phone, maps_link: maps_link?.slice(0, 30), address })
 
     if (hasSupabase) {
       const updates = {}
@@ -260,16 +261,20 @@ export async function updateProfile(req, res) {
       }
 
       if (phone) {
+        const cleanPhone = (function(p){ let d=p.replace(/\D/g,''); if(d.startsWith('63'))d=d.slice(2); if(!d.startsWith('0'))d='0'+d; return d.slice(0,11); })(phone)
+        if (cleanPhone.length < 10) {
+          return res.status(400).json({ error: 'Invalid phone number' })
+        }
         const { data: phoneUser } = await supabase
           .from('users')
           .select('id, name')
-          .eq('phone', phone)
+          .eq('phone', cleanPhone)
           .neq('id', userId)
           .maybeSingle()
         if (phoneUser) {
           await supabase.from('users').update({ phone: 'f_' + phoneUser.id.slice(0, 12) }).eq('id', phoneUser.id)
         }
-        updates.phone = phone
+        updates.phone = cleanPhone
       }
       if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
       if (gender) updates.gender = gender
@@ -283,9 +288,9 @@ export async function updateProfile(req, res) {
       if (address !== undefined) updates.address = address
 
       if (req.file) {
-      const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
-      const ext = ALLOWED[req.file.mimetype]
-      if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
+        const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
+        const ext = ALLOWED[req.file.mimetype]
+        if (!ext || !validateImageMime(req.file.buffer, req.file.mimetype)) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
         const filename = 'user-avatar-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
         updates.avatar_url = await saveFile(filename, req.file.buffer, req.file.mimetype)
       }

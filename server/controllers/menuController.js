@@ -1,5 +1,5 @@
 import { getMenu, addMenuItem, updateMenuItem, removeMenuItem, clearMenu } from '../services/supabase.js'
-import { saveFile, deleteFile } from '../services/storage.js'
+import { saveFile, deleteFile, validateImageMime } from '../services/storage.js'
 
 const MIME_TO_EXT = {
   'image/jpeg': '.jpg', 'image/png': '.png',
@@ -39,7 +39,7 @@ export async function createMenuItem(req, res) {
 
     let image = null
     if (req.file) {
-      if (!ALLOWED_TYPES.includes(req.file.mimetype)) {
+      if (!ALLOWED_TYPES.includes(req.file.mimetype) || !validateImageMime(req.file.buffer, req.file.mimetype)) {
         return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
       }
       const ext = MIME_TO_EXT[req.file.mimetype]
@@ -83,7 +83,7 @@ export async function editMenuItem(req, res) {
       data.active = req.body.active === 'true' || req.body.active === true
     }
     if (req.file) {
-      if (!ALLOWED_TYPES.includes(req.file.mimetype)) {
+      if (!ALLOWED_TYPES.includes(req.file.mimetype) || !validateImageMime(req.file.buffer, req.file.mimetype)) {
         return res.status(400).json({ error: 'Only JPEG, PNG, WebP, and GIF images are allowed' })
       }
       const ext = MIME_TO_EXT[req.file.mimetype]

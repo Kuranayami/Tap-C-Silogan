@@ -1,5 +1,5 @@
 import { getConfig, updateConfig, addRating, getRatings } from '../services/config.js'
-import { saveFile } from '../services/storage.js'
+import { saveFile, validateImageMime } from '../services/storage.js'
 
 function parseKmlCoordinates(kmlText) {
   const coordsRe = /<(?:[^:]*:)?coordinates[^>]*>([\s\S]*?)<\s*\/(?:[^:]*:)?coordinates\s*>/i
@@ -36,7 +36,7 @@ export async function updateHeroImage(req, res) {
     if (!req.file) return res.status(400).json({ error: 'Image file is required' })
     const ALLOWED = { 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
     const ext = ALLOWED[req.file.mimetype]
-    if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
+    if (!ext || !validateImageMime(req.file.buffer, req.file.mimetype)) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
     const filename = 'hero-' + Date.now() + ext
     const url = await saveFile(filename, req.file.buffer, req.file.mimetype)
     await updateConfig({ heroImage: url })
@@ -143,7 +143,7 @@ export async function uploadZoneImage(req, res) {
     if (!req.file) return res.status(400).json({ error: 'Image file is required' })
     const ALLOWED = { 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
     const ext = ALLOWED[req.file.mimetype]
-    if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
+    if (!ext || !validateImageMime(req.file.buffer, req.file.mimetype)) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
     const filename = 'zone-' + Date.now() + ext
     const url = await saveFile(filename, req.file.buffer, req.file.mimetype)
     await updateConfig({ zoneImage: url })
@@ -174,6 +174,11 @@ export async function uploadZoneKml(req, res) {
     if (!polygon) {
       const href = extractNetworkLinkHref(kmlText)
       if (href) {
+        let parsedHref
+        try { parsedHref = new URL(href) } catch { return res.status(400).json({ error: 'Invalid NetworkLink href in KML' }) }
+        if (parsedHref.protocol !== 'https:') {
+          return res.status(400).json({ error: 'NetworkLink href must use HTTPS' })
+        }
         console.log('KML has NetworkLink, fetching from:', href)
         try {
           const resp = await fetch(href)

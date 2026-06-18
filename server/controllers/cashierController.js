@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt'
 import { supabase, hasSupabase } from '../services/supabase.js'
 import { cashierTokens } from '../services/tokenStore.js'
-import { saveFile } from '../services/storage.js'
+import { saveFile, validateImageMime } from '../services/storage.js'
 import { updateOrderStatus, getAllOrders } from '../services/supabase.js'
 
 export async function loginCashier(req, res) {
@@ -108,7 +108,11 @@ export async function updateCashierProfile(req, res) {
 
     const updates = {}
     if (name && name.trim()) updates.name = name.trim().slice(0, 100)
-    if (phone) updates.phone = phone
+    if (phone) {
+      const cleanPhone = (function(p){ let d=p.replace(/\D/g,''); if(d.startsWith('63'))d=d.slice(2); if(!d.startsWith('0'))d='0'+d; return d.slice(0,11); })(phone)
+      if (cleanPhone.length < 10) return res.status(400).json({ error: 'Invalid phone number' })
+      updates.phone = cleanPhone
+    }
     if (age !== undefined && age !== '') updates.age = parseInt(age, 10)
     if (gender) updates.gender = gender
     if (maps_link !== undefined) {
@@ -122,7 +126,7 @@ export async function updateCashierProfile(req, res) {
     if (req.file) {
       const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }
       const ext = ALLOWED[req.file.mimetype]
-      if (!ext) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
+      if (!ext || !validateImageMime(req.file.buffer, req.file.mimetype)) return res.status(400).json({ error: 'Only JPEG, PNG, or WebP images are allowed' })
       const filename = 'cashier-avatar-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext
       updates.avatar_url = await saveFile(filename, req.file.buffer, req.file.mimetype)
     }
