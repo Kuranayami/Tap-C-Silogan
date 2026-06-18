@@ -94,6 +94,18 @@ const OrderCard = memo(({ order, canCancel, onCancel }) => {
           <MapPin className="w-3.5 h-3.5 shrink-0" />
           <span className="text-xs">{order.address}</span>
         </div>
+        {order.in_zone === true && (
+          <div className="flex items-center gap-1.5 text-[10px] text-emerald-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            In delivery zone
+          </div>
+        )}
+        {order.in_zone === false && (
+          <div className="flex items-center gap-1.5 text-[10px] text-red-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+            Outside delivery zone
+          </div>
+        )}
       </div>
 
       {order.status === 'in_delivery' && order.rider_name && (
