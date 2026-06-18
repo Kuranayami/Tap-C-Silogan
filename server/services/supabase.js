@@ -31,7 +31,7 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABA
 
 export const hasSupabase = supabaseUrl && supabaseKey
 if (!hasSupabase) {
-  console.warn('Supabase credentials missing — using local file storage')
+  console.warn('Supabase credentials missing - using local file storage')
 }
 
 export const supabase = hasSupabase ? createClient(supabaseUrl, supabaseKey) : null
@@ -75,10 +75,10 @@ async function runPendingMigrations() {
     }
     if (!ok) {
       sqlFailed = true
-      console.warn(`Migration ${file} — could not auto-apply. Run this SQL in Supabase dashboard SQL Editor:\n${sql}\n`)
+      console.warn(`Migration ${file} - could not auto-apply. Run this SQL in Supabase dashboard SQL Editor:\n${sql}\n`)
     }
   }
-  if (sqlFailed) console.warn('Some migrations could not be auto-applied. Copy the SQL above into Supabase dashboard → SQL Editor → Run.')
+  if (sqlFailed) console.warn('Some migrations could not be auto-applied. Copy the SQL above into Supabase dashboard -> SQL Editor -> Run.')
 }
 
 runPendingMigrations()

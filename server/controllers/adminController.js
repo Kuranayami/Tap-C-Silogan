@@ -39,7 +39,7 @@ export async function updateUserStatus(req, res) {
 
     if (error) {
       if (error.code === '42703') {
-        return res.status(400).json({ error: 'User status feature not available — run migration 004_add_user_status.sql in Supabase SQL Editor' })
+        return res.status(400).json({ error: 'User status feature not available - run migration 004_add_user_status.sql in Supabase SQL Editor' })
       }
       throw error
     }

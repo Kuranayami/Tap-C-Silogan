@@ -188,7 +188,7 @@ export async function cashierUpdateOrder(req, res) {
 
     const targetStatus = status.toLowerCase()
 
-    // Rescue order accepted — skip kitchen, go directly to rider pool
+    // Rescue order accepted - skip kitchen, go directly to rider pool
     if (targetStatus === 'ongoing') {
       const allOrders = await getAllOrders()
       const existing = allOrders.find(o => String(o.id) === String(id))

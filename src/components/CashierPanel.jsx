@@ -221,7 +221,7 @@ export default function CashierPanel() {
                 {cashier?.name ? <span className="text-[#4A3728]">{cashier.name}</span> : null}
                 {cashier?.username ? <span className="text-[#D48040]">@{cashier.username}</span> : null}
                 {cashier?.id ? <span className="text-[#D48040] font-mono">#{String(cashier.id).slice(0, 8)}</span> : null}
-                <span className="text-[#D48040]">Â·</span>
+                <span className="text-[#D48040]">-</span>
                 <span>{activeTotal} active</span>
               </p>
             </div>
@@ -313,7 +313,7 @@ export default function CashierPanel() {
               <div className="rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-[#4A3728] flex items-center gap-2 text-sm"><DollarSign className="w-4 h-4 text-emerald-400" />Delivery Fees</h3>
-                  <span className="text-xs text-[#D48040]">In: â‚±{deliveryFeeInZone} Â· Out: â‚±{deliveryFeeOutOfZone}</span>
+                  <span className="text-xs text-[#D48040]">In: P{deliveryFeeInZone} - Out: P{deliveryFeeOutOfZone}</span>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-2">
                   <div className="flex-1">

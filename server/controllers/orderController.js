@@ -80,7 +80,7 @@ export async function placeOrder(req, res) {
       }
       if (Math.abs(dbItem.price - item.price) > 0.01) {
         return res.status(400).json({
-          error: `Price mismatch for "${item.name}". Expected ₱${dbItem.price}, got ₱${item.price}`,
+          error: `Price mismatch for "${item.name}". Expected P${dbItem.price}, got P${item.price}`,
         })
       }
     }
@@ -220,11 +220,11 @@ export async function cancelOrder(req, res) {
     const response = { message: 'Order canceled', order: canceled }
 
     if (isPending) {
-      // Canceled before cashier accepts — no refund, no rescue hold
+      // Canceled before cashier accepts - no refund, no rescue hold
       response.refund = 'skipped'
       response.rescueHold = 'skipped'
     } else {
-      // Canceled after acceptance — auto-refund + rescue hold
+      // Canceled after acceptance - auto-refund + rescue hold
       await processAutoRefund(order)
       const hold = await createRescueHold(order)
       response.refund = 'processed'

@@ -560,7 +560,7 @@ export default function RiderRegistration({ onComplete, onBack }) {
                       >
                         {profileFile ? 'Change photo' : 'Upload photo'}
                       </button>
-                      <p className="text-[10px] text-[#71717a] mt-0.5">JPG, PNG, WebP · Max 5MB</p>
+                      <p className="text-[10px] text-[#71717a] mt-0.5">JPG, PNG, WebP - Max 5MB</p>
                     </div>
                     <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
                   </div>

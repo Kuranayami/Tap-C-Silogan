@@ -102,7 +102,7 @@ export async function completeDelivery(req, res) {
 
     const order = await markDelivered(order_id, req.riderId)
 
-    // Add delivery earnings (₱40 base + ₱10 if rescue)
+    // Add delivery earnings (P40 base + P10 if rescue)
     const baseFee = 40
     const rescueBonus = order?.is_rescue ? 10 : 0
     await addRiderEarnings(req.riderId, baseFee + rescueBonus)

@@ -113,7 +113,7 @@ export default function Hero() {
                       <p className="text-xs font-semibold text-[#D48040] uppercase tracking-wider">Signature Dish</p>
                       <h3 className="text-xl font-bold text-[#D48040]">{heroDish.name}</h3>
                     </div>
-                    <span className="text-2xl font-bold text-[#D48040]">₱{heroDish.price}</span>
+                    <span className="text-2xl font-bold text-[#D48040]">P{heroDish.price}</span>
                   </div>
                 </div>
               </div>

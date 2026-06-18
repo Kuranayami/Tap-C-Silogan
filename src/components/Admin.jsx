@@ -81,7 +81,7 @@ const OrderCard = memo(({ order, colKey, onChangeStatus, onDeleteOrder, onDragSt
           </div>
           <p className="text-[#4A3728]/60 text-xs truncate mt-0.5">{order.customer_contact}</p>
         </div>
-        <span className="text-[#4A3728] font-bold text-sm shrink-0">₱{order.total}</span>
+        <span className="text-[#4A3728] font-bold text-sm shrink-0">P{order.total}</span>
       </div>
 
       {order.address && (
@@ -108,7 +108,7 @@ const OrderCard = memo(({ order, colKey, onChangeStatus, onDeleteOrder, onDragSt
         </div>
       )}
 
-      <p className="text-[#4A3728]/80 text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` · ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
+      <p className="text-[#4A3728]/80 text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` - ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
 
       {colKey === 'in_delivery' && order.rider_name && (
         <p className="text-[10px] text-emerald-400 flex items-center gap-1">
@@ -738,7 +738,7 @@ export default function Admin() {
       await updateDeliveryFees({ inZone, outOfZone }, adminToken)
       setDeliveryFeeInZoneLocal(inZone)
       setDeliveryFeeOutOfZoneLocal(outOfZone)
-      addActivity(`In-zone: â‚±${inZone}, Out-of-zone: â‚±${outOfZone}`, 'info')
+      addActivity(`In-zone: P${inZone}, Out-of-zone: P${outOfZone}`, 'info')
     } catch (err) {
       setUploadError(err.message)
     } finally {
@@ -808,7 +808,7 @@ export default function Admin() {
             <button onClick={goBack} className="p-2 rounded-xl border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors"><ArrowLeft className="w-5 h-5" /></button>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Admin <span className="bg-gradient-to-r from-[#D48040] to-[#4A3728] bg-clip-text text-transparent">Dashboard</span></h1>
-              <p className="text-xs text-[#D48040]">{orders.length} orders Â· {menuItems.length} items</p>
+              <p className="text-xs text-[#D48040]">{orders.length} orders - {menuItems.length} items</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -891,7 +891,7 @@ export default function Admin() {
                       ) : (
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-[#FFFBDA] overflow-hidden shrink-0"><img src={imageUrl(item.image) || 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=80&q=60'} alt="" className="w-full h-full object-cover" /></div>
-                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#4A3728] truncate">{item.name}</p><p className="text-xs text-[#D48040]">â‚±{item.price} Â· {item.category}</p></div>
+                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-[#4A3728] truncate">{item.name}</p><p className="text-xs text-[#D48040]">P{item.price} - {item.category}</p></div>
                           {(() => { const disabled = item.active === false; return (<button onClick={async () => { try { await fetch(api(`/api/menu/${item.id}`), { method: 'PATCH', headers: { ...adminHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ active: disabled }) }); fetchMenu() } catch {} }} className={['p-1.5 rounded-lg border transition-all', disabled ? 'bg-red-600/20 border-red-600/40 text-red-400' : 'border-[#FFEC9E] text-[#4A3728] hover:text-green-400 hover:border-emerald-400/30'].join(' ')} title={disabled ? 'Disabled' : 'Enabled'}><span className={['block w-3 h-3 rounded-full border-2 flex items-center justify-center', disabled ? 'border-red-400' : 'border-[#FFEC9E]'].join(' ')}><span className={['block w-1.5 h-1.5 rounded-full', disabled ? 'bg-red-400' : 'bg-transparent'].join(' ')} /></span></button>)})()}
                           <button onClick={() => startEdit(item)} className="p-1.5 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-all" title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>
                           <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -1385,7 +1385,7 @@ export default function Admin() {
               <div className="rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-[#4A3728] flex items-center gap-2 text-sm"><DollarSign className="w-4 h-4 text-emerald-400" />Delivery Fees</h3>
-                  <span className="text-xs text-[#D48040]">In: â‚±{deliveryFeeInZone} Â· Out: â‚±{deliveryFeeOutOfZone}</span>
+                  <span className="text-xs text-[#D48040]">In: P{deliveryFeeInZone} - Out: P{deliveryFeeOutOfZone}</span>
                 </div>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="flex-1">

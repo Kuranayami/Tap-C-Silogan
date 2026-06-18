@@ -178,7 +178,7 @@ export default function RiderPanel() {
       }
 
       const data = await res.json()
-      showNotification(`âœ… Claimed! SMS sent to ${data.order.customer_name} â€” rider ${rider?.name || 'en route'}!`)
+      showNotification(`Claimed! SMS sent to ${data.order.customer_name} - rider ${rider?.name || 'en route'}!`)
       setActiveTab('active')
       fetchReadyOrders()
       fetchActiveOrders()
@@ -198,8 +198,8 @@ export default function RiderPanel() {
       })
       if (!res.ok) throw new Error('Failed to mark delivered')
       const data = await res.json()
-      const earnMsg = data.earnings ? ` (â‚±${data.earnings} earned)` : ''
-      showNotification(`âœ… Order #${String(orderId).slice(-4)} delivered!${earnMsg}`)
+      const earnMsg = data.earnings ? ` (P${data.earnings} earned)` : ''
+      showNotification(`Order #${String(orderId).slice(-4)} delivered!${earnMsg}`)
       fetchActiveOrders()
       fetchReadyOrders()
       fetchAll()
@@ -445,7 +445,7 @@ export default function RiderPanel() {
                             {order.items?.length || 0} item{(order.items?.length || 0) !== 1 ? 's' : ''}
                           </span>
                           <span className="text-[10px] text-[#4A3728]/60">
-                            Â· {timeAgo(order.created_at)}
+                            - {timeAgo(order.created_at)}
                           </span>
                         </div>
                       </div>

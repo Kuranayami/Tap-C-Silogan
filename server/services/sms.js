@@ -3,7 +3,7 @@ const SENDER_NAME = process.env.SEMAPHORE_SENDER_NAME || 'SEMAPHORE'
 
 export async function sendSms(phone, message) {
   if (!API_KEY) {
-    console.warn('[SMS] SEMAPHORE_API_KEY not set — SMS not sent')
+    console.warn('[SMS] SEMAPHORE_API_KEY not set - SMS not sent')
     return false
   }
 

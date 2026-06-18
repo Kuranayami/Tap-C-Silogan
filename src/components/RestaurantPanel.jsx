@@ -123,7 +123,7 @@ export default function RestaurantPanel() {
                 <ChefHat className="w-5 h-5 text-[#D48040]" />
                 Restaurant <span className="text-[#D48040]">Dashboard</span>
               </h1>
-              <p className="text-xs text-[#D48040]">{restaurant?.name || ''} Â· {orders.filter(o => ['pending', 'ongoing'].includes(o.status)).length} active</p>
+              <p className="text-xs text-[#D48040]">{restaurant?.name || ''} - {orders.filter(o => ['pending', 'ongoing'].includes(o.status)).length} active</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -214,7 +214,7 @@ export default function RestaurantPanel() {
                           </div>
                         )}
 
-                        <p className="text-[#4A3728] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` Â· ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
+                        <p className="text-[#4A3728] text-xs truncate">{totalQty} item{totalQty !== 1 ? 's' : ''}{order.items?.[0] ? ` - ${order.items[0].name}${order.items.length > 1 ? ` +${order.items.length - 1}` : ''}` : ''}</p>
 
                         <div className="flex items-center justify-between text-[10px] text-[#D48040]">
                           <span>{timeAgo(order.created_at)}</span>

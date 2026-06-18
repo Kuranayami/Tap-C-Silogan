@@ -346,7 +346,7 @@ export async function updateProfile(req, res) {
   } catch (err) {
     console.error('updateProfile error:', err?.message || err, err?.stack || '', 'code:', err?.code, 'details:', err?.details)
     if (err?.code === '23505') {
-      return res.status(409).json({ error: 'Phone number already in use — delete the duplicate account in Supabase Table Editor first.' })
+      return res.status(409).json({ error: 'Phone number already in use - delete the duplicate account in Supabase Table Editor first.' })
     }
     res.status(500).json({ error: 'Failed to update profile' })
   }

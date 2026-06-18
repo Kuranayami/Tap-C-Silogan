@@ -7,7 +7,7 @@ const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabase
 const BUCKET = 'uploads'
 
 export async function ensureBucket() {
-  if (!supabase) { console.warn('Supabase not configured — storage unavailable'); return }
+  if (!supabase) { console.warn('Supabase not configured - storage unavailable'); return }
   try {
     const { data: buckets } = await supabase.storage.listBuckets()
     if (!buckets?.find(b => b.name === BUCKET)) {
@@ -30,7 +30,7 @@ async function ensureBucketWithRetry() {
 }
 
 export async function saveFile(filename, buffer, mimetype) {
-  if (!supabase) throw new Error('Storage not configured — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
+  if (!supabase) throw new Error('Storage not configured - set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
   const { data, error } = await supabase.storage.from(BUCKET).upload(filename, buffer, {
     contentType: mimetype,
     upsert: true,

@@ -225,7 +225,7 @@ export default function CheckoutModal() {
                         )}
                       </div>
                       <span className="text-white font-medium ml-4">
-                        ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)) * item.quantity}
+                        P{(item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)) * item.quantity}
                       </span>
                     </div>
                   ))}
@@ -233,15 +233,15 @@ export default function CheckoutModal() {
                   <div className="border-t border-[#27272a] pt-3 space-y-1">
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
                       <span>Subtotal</span>
-                      <span>₱{subtotal}</span>
+                      <span>P{subtotal}</span>
                     </div>
                     <div className="flex justify-between text-sm text-[#a1a1aa]">
                       <span>Delivery {!zonePolygon ? '' : zoneUnknown ? '(In Zone - default)' : inZone ? '(In Zone)' : '(Out of Zone)'}</span>
-                      <span>₱{deliveryFee}</span>
+                      <span>P{deliveryFee}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-white pt-2 border-t border-[#27272a]">
                       <span>Total</span>
-                      <span className="text-[#f97316]">₱{showTotal}</span>
+                      <span className="text-[#f97316]">P{showTotal}</span>
                     </div>
                   </div>
 

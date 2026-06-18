@@ -77,7 +77,7 @@ const OrderCard = memo(({ order, canCancel, onCancel }) => {
 
       {order.refund_amount > 0 && order.payment_method && order.payment_method !== 'cod' && (
         <div className="p-2 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-green-400 flex items-center gap-1.5">
-          Refunded ₱{order.refund_amount} — {order.refund_status}
+          Refunded P{order.refund_amount} - {order.refund_status}
         </div>
       )}
 
@@ -118,7 +118,7 @@ const OrderCard = memo(({ order, canCancel, onCancel }) => {
 
       <div className="flex items-center justify-between">
         <div className="text-xs text-[#71717a]">
-          {totalItems} item{totalItems !== 1 ? 's' : ''} &middot; ₱{order.total}
+          {totalItems} item{totalItems !== 1 ? 's' : ''} &middot; P{order.total}
         </div>
         {canCancel && (
           <button
@@ -137,7 +137,7 @@ const OrderCard = memo(({ order, canCancel, onCancel }) => {
             {order.items.map((item, i) => (
               <li key={item.id || item.menu_id || i} className="flex justify-between">
                 <span>{item.quantity}x {item.name}</span>
-                <span>₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price, 0)) * item.quantity}</span>
+                <span>P{(item.price + (item.addons || []).reduce((s, a) => s + a.price, 0)) * item.quantity}</span>
               </li>
             ))}
           </ul>

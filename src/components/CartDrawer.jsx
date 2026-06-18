@@ -82,7 +82,7 @@ export default function CartDrawer() {
                           </p>
                         )}
                         <p className="text-sm font-bold text-[#f97316] mt-2">
-                          ₱{item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)} each
+                          P{item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)} each
                         </p>
                       </div>
                       <button
@@ -111,7 +111,7 @@ export default function CartDrawer() {
                         </button>
                       </div>
                       <span className="text-sm font-bold text-white">
-                        ₱{(item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)) * item.quantity}
+                        P{(item.price + (item.addons || []).reduce((s, a) => s + a.price * (a.quantity || 1), 0)) * item.quantity}
                       </span>
                     </div>
                   </motion.div>
@@ -124,7 +124,7 @@ export default function CartDrawer() {
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between text-[#a1a1aa]">
                     <span>Subtotal</span>
-                    <span>₱{subtotal}</span>
+                    <span>P{subtotal}</span>
                   </div>
                   <div className="flex justify-between text-[#a1a1aa]">
                     <span>Delivery Fee</span>
@@ -132,7 +132,7 @@ export default function CartDrawer() {
                   </div>
                   <div className="flex justify-between text-white font-bold text-lg pt-2 border-t border-[#27272a]">
                     <span>Total</span>
-                    <span className="text-[#f97316]">₱{total}</span>
+                    <span className="text-[#f97316]">P{total}</span>
                   </div>
                 </div>
                 <div className="flex gap-2">

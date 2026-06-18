@@ -50,7 +50,7 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
         <div className="flex items-center justify-between mt-2">
           {item.category === 'extra' ? (
             <div className="flex items-center gap-2 w-full justify-between">
-              <span className="text-lg font-bold text-[#4A3728]">₱{item.price}</span>
+              <span className="text-lg font-bold text-[#4A3728]">P{item.price}</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleExtraDecrement}
@@ -70,7 +70,7 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
             </div>
           ) : (
             <>
-              <span className="text-lg font-bold text-[#4A3728]">₱{item.price}</span>
+              <span className="text-lg font-bold text-[#4A3728]">P{item.price}</span>
               <button
                 onClick={() => onAdd(item, [])}
                 disabled={addingId === item.id}
@@ -129,7 +129,7 @@ export default function MenuSection() {
             Signature Dishes
           </h2>
           <p className="text-[#4A3728] max-w-xl mx-auto">
-            From classic silogs to refreshing shakes — every dish is made to satisfy.
+            From classic silogs to refreshing shakes - every dish is made to satisfy.
           </p>
         </motion.div>
 

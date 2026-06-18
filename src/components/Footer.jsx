@@ -45,7 +45,7 @@ export default function Footer() {
               <div className="flex items-center gap-2 text-xs text-[#4A3728]">
                 <AlertTriangle className="w-3 h-3 text-[#FFBB70]" />
                 <span>
-                  {isOpen ? 'Open now' : 'Closed — opens at 7:00 PM'}
+                  {isOpen ? 'Open now' : 'Closed - opens at 7:00 PM'}
                 </span>
               </div>
             </div>
