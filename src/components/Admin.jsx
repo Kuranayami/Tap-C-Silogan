@@ -45,6 +45,7 @@ const statusLabel = {
   ongoing: 'Ongoing',
   in_delivery: 'In Delivery',
   done: 'Done',
+  canceled: 'Canceled',
 }
 
 const STALE_FLASH_CLASS = 'animate-[pulse_1s_ease-in-out_infinite] border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.15)]'
@@ -503,7 +504,7 @@ export default function Admin() {
         const res = await fetch(api('/api/admin/riders'), { headers: adminHeaders() })
         if (res.ok) {
           const data = await res.json()
-          setRiders(data)
+          setRiders(data.riders || [])
         }
       } catch {}
     }

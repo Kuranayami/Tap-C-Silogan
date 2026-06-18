@@ -315,15 +315,17 @@ export default function RiderPanel() {
                 <h3 className="font-semibold text-yellow-400 text-sm flex items-center gap-2 mb-3">
                   <DollarSign className="w-4 h-4" /> Earnings
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className={`grid ${pendingEarnings !== earnings ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
                   <div className="rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] p-3">
                     <p className="text-xs text-[#4A3728]/60">Total Earned</p>
                     <p className="text-xl font-bold text-[#4A3728]">â‚±{earnings}</p>
                   </div>
-                  <div className="rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] p-3">
-                    <p className="text-xs text-[#4A3728]/60">Pending</p>
-                    <p className="text-xl font-bold text-yellow-400">â‚±{pendingEarnings}</p>
-                  </div>
+                  {pendingEarnings !== earnings && (
+                    <div className="rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] p-3">
+                      <p className="text-xs text-[#4A3728]/60">Pending</p>
+                      <p className="text-xl font-bold text-yellow-400">â‚±{pendingEarnings}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
