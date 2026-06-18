@@ -290,7 +290,7 @@ export default function RiderPanel() {
                   : 'bg-[#FFFBDA] text-[#4A3728]/60 hover:bg-[#FFBB70] hover:text-[#FFFBDA]'
               }`}
             >
-              <span className={`w-3 h-3 rounded-full ${status === 'online' ? 'bg-white animate-pulse' : 'bg-[#71717a]'}`} />
+              <span className={`w-3 h-3 rounded-full ${status === 'online' ? 'bg-white animate-pulse' : 'bg-[#4A3728]/30'}`} />
               {status === 'online' ? 'Online' : status === 'busy' ? 'Busy' : 'Idle'}
             </button>
             <a href="#/rider/profile" className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728]/80 hover:text-[#4A3728] transition-colors" title="Profile">
