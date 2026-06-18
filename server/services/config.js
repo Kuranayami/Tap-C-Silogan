@@ -49,9 +49,15 @@ export async function addRating({ name, rating, comment }) {
   if (existing) {
     throw Object.assign(new Error('You have already submitted a rating'), { statusCode: 409 })
   }
-  const entry = { id: Date.now().toString(36), name, rating, comment, created_at: new Date().toISOString() }
+  const entry = { id: Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6), name, rating, comment, created_at: new Date().toISOString() }
   const ratings = [...(cfg.ratings || []), entry]
   await updateConfig({ ratings })
+  const verify = await getConfig()
+  const duplicates = (verify.ratings || []).filter(r => r.name === name)
+  if (duplicates.length > 1) {
+    const deduped = (verify.ratings || []).filter(r => r.id === entry.id || r.name !== name)
+    await updateConfig({ ratings: deduped })
+  }
   return entry
 }
 

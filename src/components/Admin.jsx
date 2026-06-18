@@ -9,6 +9,7 @@ import {
 import AdminLogin from './AdminLogin'
 import { api, imageUrl } from '../api'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
+import { useConfirm } from '../hooks/useConfirm'
 import { supabase } from '../lib/supabase'
 import { updateDeliveryFees } from '../data/deliveryZone'
 
@@ -66,9 +67,9 @@ const OrderCard = memo(({ order, colKey, onChangeStatus, onDeleteOrder, onDragSt
     <div
       draggable
       onDragStart={() => onDragStart(order.id)}
-      onClick={() => {
+      onClick={async () => {
         const next = colKey === 'pending' ? 'ongoing' : colKey === 'ongoing' ? 'in_delivery' : colKey === 'in_delivery' ? 'done' : null
-        if (next === 'done' && !confirm('Mark this order as done?')) return
+        if (next === 'done' && !(await confirm('Mark this order as done?'))) return
         if (next) onChangeStatus(order.id, next)
       }}
       className={`rounded-xl border ${isStale ? STALE_FLASH_CLASS + ' border-red-500/40 bg-red-500/5' : 'border-[#FFEC9E] bg-[#FFFBDA]'} p-3 cursor-grab active:cursor-grabbing hover:border-[#FFBB70]/30 transition-all text-sm space-y-1.5`}
@@ -230,6 +231,7 @@ export default function Admin() {
   const [rescueLogsLoading, setRescueLogsLoading] = useState(false)
   const [rescueLoading, setRescueLoading] = useState(false)
 
+  const { confirm, ConfirmDialog } = useConfirm()
 
   const addActivity = useCallback((msg, type = 'info') => {
     const entry = { id: Date.now().toString(36), msg, type, time: new Date().toISOString() }
@@ -279,7 +281,7 @@ export default function Admin() {
   }
 
   const clearAllMenu = async () => {
-    if (!window.confirm('Delete ALL menu items? This cannot be undone.')) return
+    if (!await confirm('Delete ALL menu items? This cannot be undone.')) return
     setClearing(true)
     try {
       const res = await fetch(api('/api/menu/clear'), { method: 'DELETE', headers: adminHeaders() })
@@ -309,7 +311,7 @@ export default function Admin() {
   }
 
   const handleDeleteUser = async (id, name) => {
-    if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return
+    if (!(await confirm(`Delete user "${name}"? This cannot be undone.`))) return
     try {
       const res = await fetch(api(`/api/admin/users/${id}`), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -339,7 +341,7 @@ export default function Admin() {
   }
 
   const handleDeleteRider = async (id, name) => {
-    if (!confirm(`Delete rider "${name}"? This cannot be undone.`)) return
+    if (!(await confirm(`Delete rider "${name}"? This cannot be undone.`))) return
     try {
       const res = await fetch(api(`/api/admin/riders/${id}`), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -396,13 +398,13 @@ export default function Admin() {
     setTestimonialsForm({ name: '', text: '', rating: 5 })
   }
 
-  const handleClearTestimonials = () => {
-    if (!window.confirm('Delete ALL testimonials? This cannot be undone.')) return
+  const handleClearTestimonials = async () => {
+    if (!await confirm('Delete ALL testimonials? This cannot be undone.')) return
     setTestimonials([])
   }
 
-  const handleDeleteTestimonial = (idx) => {
-    if (!confirm(`Delete testimonial from "${testimonials[idx].name}"?`)) return
+  const handleDeleteTestimonial = async (idx) => {
+    if (!(await confirm(`Delete testimonial from "${testimonials[idx].name}"?`))) return
     const updated = testimonials.filter((_, i) => i !== idx)
     setTestimonials(updated)
   }
@@ -445,7 +447,7 @@ export default function Admin() {
   }
 
   const handleDeleteRestaurant = async (id, name) => {
-    if (!confirm(`Delete restaurant "${name}"? This cannot be undone.`)) return
+    if (!(await confirm(`Delete restaurant "${name}"? This cannot be undone.`))) return
     try {
       const res = await fetch(api(`/api/admin/restaurants/${id}`), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -454,7 +456,7 @@ export default function Admin() {
   }
 
   const handleDeleteCashier = async (id, name) => {
-    if (!confirm(`Delete cashier "${name}"? This cannot be undone.`)) return
+    if (!(await confirm(`Delete cashier "${name}"? This cannot be undone.`))) return
     try {
       const res = await fetch(api(`/api/cashier/manage/${id}`), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -552,6 +554,9 @@ export default function Admin() {
     }
   }, [loggedIn])
 
+  const ordersRef = useRef(orders)
+  ordersRef.current = orders
+
   useEffect(() => {
     if (!loggedIn) return
     const fetchRiderStats = async () => {
@@ -560,7 +565,8 @@ export default function Admin() {
         if (res.ok) setRiderStats(await res.json())
       } catch {}
     }
-    const fetchActiveUsers = (currentOrders) => {
+    const updateActiveUsers = () => {
+      const currentOrders = ordersRef.current
       const today = new Date().toDateString()
       const unique = new Set(currentOrders.filter(o => {
         const d = o.created_at ? new Date(o.created_at).toDateString() : ''
@@ -569,16 +575,13 @@ export default function Admin() {
       setActiveUsers(unique.size)
     }
     fetchRiderStats()
-    fetchActiveUsers(orders)
+    updateActiveUsers()
     const interval = setInterval(() => {
       fetchRiderStats()
-      setOrders(currentOrders => {
-        fetchActiveUsers(currentOrders)
-        return currentOrders
-      })
+      updateActiveUsers()
     }, 30000)
     return () => clearInterval(interval)
-  }, [loggedIn, orders])
+  }, [loggedIn])
 
   if (!loggedIn) return <AdminLogin onLogin={() => setLoggedIn(true)} />
 
@@ -610,7 +613,7 @@ export default function Admin() {
   }
 
   const handleDeleteOrder = async (id) => {
-    if (!confirm('Delete this order permanently?')) return
+    if (!(await confirm('Delete this order permanently?'))) return
     const order = orders.find(o => o.id === id)
     try {
       const res = await fetch(api(`/api/orders/${id}`), { method: 'DELETE', headers: adminHeaders() })
@@ -635,7 +638,7 @@ export default function Admin() {
   }
 
   const handleDeleteAbout = async (id) => {
-    if (!confirm('Delete this image?')) return
+    if (!(await confirm('Delete this image?'))) return
     try {
       const res = await fetch(api(`/api/about/${id}`), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -671,7 +674,7 @@ export default function Admin() {
   }
 
   const handleClearZone = async () => {
-    if (!window.confirm('Remove the zone image?')) return
+    if (!await confirm('Remove the zone image?')) return
     try {
       const res = await fetch(api('/api/config/zone'), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -700,7 +703,7 @@ export default function Admin() {
   }
 
   const handleClearKml = async () => {
-    if (!window.confirm('Remove the zone KML?')) return
+    if (!await confirm('Remove the zone KML?')) return
     try {
       const res = await fetch(api('/api/config/zone/kml'), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -709,7 +712,7 @@ export default function Admin() {
   }
 
   const handleClearHero = async () => {
-    if (!window.confirm('Remove the hero image?')) return
+    if (!await confirm('Remove the hero image?')) return
     try {
       const res = await fetch(api('/api/config/hero'), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -778,7 +781,7 @@ export default function Admin() {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this item?')) return
+    if (!(await confirm('Delete this item?'))) return
     try {
       const res = await fetch(api(`/api/menu/${id}`), { method: 'DELETE', headers: adminHeaders() })
       if (res.status === 401) { logout(); return }
@@ -801,6 +804,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[#FFFBDA] text-[#4A3728]">
+      <ConfirmDialog />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* â”€â”€ Header â”€â”€ */}
         <div className="flex items-center justify-between mb-6">

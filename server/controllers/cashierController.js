@@ -3,6 +3,7 @@ import { supabase, hasSupabase } from '../services/supabase.js'
 import { cashierTokens } from '../services/tokenStore.js'
 import { saveFile, validateImageMime } from '../services/storage.js'
 import { updateOrderStatus, getAllOrders } from '../services/supabase.js'
+import { processAutoRefund, createRescueHold } from '../services/rescue.js'
 
 export async function loginCashier(req, res) {
   try {
@@ -200,6 +201,15 @@ export async function cashierUpdateOrder(req, res) {
         const order = await updateOrderStatus(id, 'in_delivery')
         if (!order) return res.status(404).json({ error: 'Order not found' })
         return res.json({ ...order, status: 'in_delivery', rescue_skip: true })
+      }
+    }
+
+    if (targetStatus === 'canceled') {
+      const allOrders = await getAllOrders()
+      const existing = allOrders.find(o => String(o.id) === String(id))
+      if (existing) {
+        await processAutoRefund(existing)
+        await createRescueHold(existing)
       }
     }
 

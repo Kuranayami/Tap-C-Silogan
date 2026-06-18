@@ -19,16 +19,24 @@ export function useOrderRealtime(onChange) {
           }
         )
         .subscribe((status) => {
-          if (status === 'SUBSCRIBED') console.log('[realtime] orders channel connected')
-          else if (status === 'CHANNEL_ERROR') console.error('[realtime] orders channel error — will fall back to polling')
-          else if (status === 'TIMED_OUT') console.warn('[realtime] orders channel timed out — will fall back to polling')
-          else if (status === 'CLOSED') console.log('[realtime] orders channel closed')
+          if (status === 'SUBSCRIBED') {
+            console.log('[realtime] orders channel connected')
+            clearInterval(pollTimer)
+            pollTimer = null
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('[realtime] orders channel error — will fall back to polling')
+            if (!pollTimer) pollTimer = setInterval(() => callbackRef.current?.({ _poll: true }), 12000)
+          } else if (status === 'TIMED_OUT') {
+            console.warn('[realtime] orders channel timed out — will fall back to polling')
+            if (!pollTimer) pollTimer = setInterval(() => callbackRef.current?.({ _poll: true }), 12000)
+          } else if (status === 'CLOSED') {
+            console.log('[realtime] orders channel closed')
+          }
         })
     } else {
       console.warn('[realtime] supabase client not available — using polling fallback')
+      pollTimer = setInterval(() => callbackRef.current?.({ _poll: true }), 12000)
     }
-
-    pollTimer = setInterval(() => callbackRef.current?.({ _poll: true }), 12000)
 
     return () => {
       if (channel) supabase.removeChannel(channel)

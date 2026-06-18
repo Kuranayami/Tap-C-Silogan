@@ -4,6 +4,7 @@ import { Clock, Package, Bike, User, LogOut, RefreshCw, CheckCircle, XCircle, Ch
 import { api, imageUrl } from '../api'
 import CashierLogin from './CashierLogin'
 import { useOrderRealtime } from '../hooks/useOrderRealtime'
+import { useConfirm } from '../hooks/useConfirm'
 import { updateDeliveryFees, fetchDeliveryFees } from '../data/deliveryZone'
 
 const COLUMNS = [
@@ -68,6 +69,8 @@ export default function CashierPanel() {
   const [rescueHolds, setRescueHolds] = useState([])
   const [rescueStats, setRescueStats] = useState({ totalHolds: 0, activeHolds: 0, totalMatches: 0, totalRefunds: 0 })
   const [showRescuePanel, setShowRescuePanel] = useState(false)
+
+  const { confirm, ConfirmDialog } = useConfirm()
 
   const logout = useCallback(() => {
     localStorage.removeItem('cashier_token')
@@ -165,7 +168,7 @@ export default function CashierPanel() {
   }
 
   const handleCancel = async (id) => {
-    if (!confirm('Cancel this order?')) return
+    if (!(await confirm('Cancel this order?'))) return
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'canceled' } : o))
     try {
       const res = await fetch(api(`/api/cashier/orders/${id}/cancel`), {
@@ -204,6 +207,7 @@ export default function CashierPanel() {
 
   return (
     <div className="min-h-screen bg-[#FFFBDA] text-[#4A3728]">
+      <ConfirmDialog />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* â”€â”€ Header â”€â”€ */}
         <div className="flex items-center justify-between mb-6">

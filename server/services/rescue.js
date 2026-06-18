@@ -109,16 +109,19 @@ export async function claimRescueMatch(holdId, matchedOrderId, matchedItems) {
 
   if (error) return null
 
-  for (const item of matchedItems) {
-    await supabase
-      .from('rescue_matches')
-      .insert({
-        hold_id: holdId,
-        source_order_id: data.order_id,
-        matched_order_id: matchedOrderId,
-        matched_item_name: item.name,
-        matched_item_qty: item.quantity || 1,
-      })
+  const inserts = (matchedItems || []).map(item =>
+    supabase.from('rescue_matches').insert({
+      hold_id: holdId,
+      source_order_id: data.order_id,
+      matched_order_id: matchedOrderId,
+      matched_item_name: item.name,
+      matched_item_qty: item.quantity || 1,
+    })
+  )
+  const results = await Promise.allSettled(inserts)
+  const failed = results.filter(r => r.status === 'rejected')
+  if (failed.length > 0) {
+    console.warn(`[rescue] ${failed.length} rescue_match inserts failed for hold ${holdId}`)
   }
 
   await supabase
@@ -292,20 +295,30 @@ export async function getDriverLocation(orderId) {
 export async function addRiderEarnings(riderId, amount) {
   if (!hasSupabase) return
 
-  const { data: rider } = await supabase
-    .from('riders')
-    .select('total_earnings, pending_earnings')
-    .eq('id', riderId)
-    .single()
+  const { error } = await supabase.rpc('add_rider_earnings', {
+    p_rider_id: riderId,
+    p_amount: amount,
+  })
 
-  if (rider) {
-    await supabase
-      .from('riders')
-      .update({
-        total_earnings: (parseFloat(rider.total_earnings) || 0) + amount,
-        pending_earnings: (parseFloat(rider.pending_earnings) || 0) + amount,
-      })
-      .eq('id', riderId)
+  if (error) {
+    const runs = 3
+    for (let i = 0; i < runs; i++) {
+      const { data: rider } = await supabase
+        .from('riders')
+        .select('total_earnings, pending_earnings')
+        .eq('id', riderId)
+        .single()
+      if (!rider) break
+      const newTotal = (parseFloat(rider.total_earnings) || 0) + amount
+      const newPending = (parseFloat(rider.pending_earnings) || 0) + amount
+      const { error: updateErr } = await supabase
+        .from('riders')
+        .update({ total_earnings: newTotal, pending_earnings: newPending })
+        .eq('id', riderId)
+        .eq('total_earnings', rider.total_earnings)
+        .eq('pending_earnings', rider.pending_earnings)
+      if (!updateErr) break
+    }
   }
 }
 
@@ -409,8 +422,13 @@ export function startRescueTimer() {
       const expired = await expireRescueHolds()
       if (expired.length > 0) {
         for (const hold of expired) {
+          const { data: originalOrder } = await supabase
+            .from('orders')
+            .select('total, user_id')
+            .eq('id', hold.order_id)
+            .maybeSingle()
           await processAutoRefund(
-            { id: hold.order_id, total: 0, user_id: null },
+            { id: hold.order_id, total: originalOrder?.total ?? 0, user_id: originalOrder?.user_id ?? null },
             'rescue_failed'
           )
         }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, ShoppingCart, Minus } from 'lucide-react'
 import { menuItems as localMenu } from '../data/menu'
@@ -101,6 +101,7 @@ export default function MenuSection() {
   const { addItem, openCart } = useCart()
   const [addingId, setAddingId] = useState(null)
   const [menuItems, setMenuItems] = useState(localMenu)
+  const addingTimerRef = useRef(null)
 
   useEffect(() => {
     fetch(api('/api/menu'))
@@ -117,8 +118,15 @@ export default function MenuSection() {
   const handleAdd = useCallback((item, chosen) => {
     setAddingId(item.id)
     addItem(item, chosen)
-    setTimeout(() => setAddingId(null), 600)
+    if (addingTimerRef.current) clearTimeout(addingTimerRef.current)
+    addingTimerRef.current = setTimeout(() => setAddingId(null), 600)
   }, [addItem])
+
+  useEffect(() => {
+    return () => {
+      if (addingTimerRef.current) clearTimeout(addingTimerRef.current)
+    }
+  }, [])
 
   return (
     <section id="menu" className="relative py-24 sm:py-32 scroll-mt-24 bg-[#FFFBDA]">

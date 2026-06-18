@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { api, imageUrl } from '../api'
 import RiderLogin from './RiderLogin'
+import { useConfirm } from '../hooks/useConfirm'
 
 const riderHeaders = () => {
   const token = localStorage.getItem('rider_token')
@@ -41,6 +42,8 @@ export default function RiderPanel() {
   const [earnings, setEarnings] = useState(0)
   const [pendingEarnings, setPendingEarnings] = useState(0)
   const [showEarnings, setShowEarnings] = useState(false)
+
+  const { confirm, ConfirmDialog } = useConfirm()
 
   const showNotification = useCallback((msg) => {
     setNotification(msg)
@@ -152,7 +155,7 @@ export default function RiderPanel() {
   const goBack = () => { window.location.hash = '' }
 
   const handleCancel = async (orderId) => {
-    if (!confirm('Cancel this delivery?')) return
+    if (!(await confirm('Cancel this delivery?'))) return
     try {
       const res = await fetch(api('/api/rider/cancel'), {
         method: 'POST',
@@ -239,6 +242,7 @@ export default function RiderPanel() {
 
   return (
     <div className="min-h-screen bg-[#FFFBDA] text-[#4A3728]">
+      <ConfirmDialog />
       {/* Notification toast */}
       <AnimatePresence>
         {notification && (

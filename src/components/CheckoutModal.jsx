@@ -59,6 +59,9 @@ export default function CheckoutModal() {
     if (!mapsLink) { setZoneUnknown(true); setZonePending(false); setZoneError('No Google Maps link in profile'); return }
     setZoneUnknown(false)
     setZoneError('')
+    setZonePending(true)
+
+    const abortController = new AbortController()
 
     const coords = extractCoordinatesFromUrl(mapsLink)
     if (coords) {
@@ -69,7 +72,9 @@ export default function CheckoutModal() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: mapsLink }),
+        signal: abortController.signal,
       }).then(r => r.json()).then(d => {
+        if (abortController.signal.aborted) return
         if (d.lat != null && d.lng != null) {
           setInZone(pointInPolygon([d.lat, d.lng], zonePolygon))
           setZoneUnknown(false)
@@ -79,6 +84,7 @@ export default function CheckoutModal() {
         }
         setZonePending(false)
       }).catch(e => {
+        if (abortController.signal.aborted) return
         setZoneUnknown(true)
         setZoneError('Failed to check delivery zone')
         setZonePending(false)
@@ -88,6 +94,8 @@ export default function CheckoutModal() {
       setZoneError('Could not extract coordinates from your Google Maps link')
       setZonePending(false)
     }
+
+    return () => abortController.abort()
   }, [mapsLink, zonePolygon, extractCoordinatesFromUrl, pointInPolygon])
 
   const handleSubmit = async (e) => {

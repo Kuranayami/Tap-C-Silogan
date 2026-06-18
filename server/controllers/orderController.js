@@ -176,6 +176,14 @@ export async function removeOrder(req, res) {
   }
 }
 
+const ALLOWED_TRANSITIONS = {
+  'pending': ['ongoing', 'canceled'],
+  'ongoing': ['in_delivery', 'canceled', 'done'],
+  'in_delivery': ['done', 'canceled'],
+  'done': [],
+  'canceled': [],
+}
+
 export async function updateOrder(req, res) {
   try {
     const { id } = req.params
@@ -186,7 +194,17 @@ export async function updateOrder(req, res) {
       return res.status(400).json({ error: 'Status must be pending, ongoing, in_delivery, done, or canceled' })
     }
 
-    const order = await updateOrderStatus(id, status.toLowerCase())
+    const allOrders = await getAllOrders()
+    const current = allOrders.find(o => String(o.id) === String(id))
+    if (!current) return res.status(404).json({ error: 'Order not found' })
+
+    const target = status.toLowerCase()
+    const allowed = ALLOWED_TRANSITIONS[current.status]
+    if (!allowed || !allowed.includes(target)) {
+      return res.status(400).json({ error: `Cannot transition from "${current.status}" to "${target}"` })
+    }
+
+    const order = await updateOrderStatus(id, target)
     if (!order) {
       return res.status(404).json({ error: 'Order not found' })
     }
@@ -221,6 +239,11 @@ export async function cancelOrder(req, res) {
     // User-facing cancel must check ownership
     if (req.userId && String(order.user_id) !== String(req.userId)) {
       return res.status(403).json({ error: 'You can only cancel your own orders' })
+    }
+
+    const CANCELABLE = ['pending', 'ongoing', 'in_delivery']
+    if (!CANCELABLE.includes(order.status)) {
+      return res.status(400).json({ error: `Order in "${order.status}" state cannot be canceled` })
     }
 
     const canceled = await updateOrderStatus(id, 'canceled')

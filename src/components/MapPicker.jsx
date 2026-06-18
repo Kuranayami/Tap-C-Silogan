@@ -35,12 +35,12 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
 
   useEffect(() => {
     let cancelled = false
-    let polygonData = propZonePolygon || zonePolygon
     async function init() {
       const L = (await import('leaflet')).default
       if (cancelled) return
       leafletRef.current = L
 
+      let polygonData = polygonDataRef.current
       if (!polygonData) {
         try {
           const cfgRes = await fetch(api('/api/config'))
@@ -53,7 +53,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
       const parsed = parseCoordsFromLink(mapsLink)
       if (parsed) { lat = parsed[0]; lng = parsed[1] }
 
-      if (!lat && navigator.geolocation) {
+      if (lat == null && navigator.geolocation) {
         try {
           const pos = await new Promise((resolve, reject) =>
             navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000 })
@@ -80,7 +80,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
 
       if (mapRef.current && !mapInstance.current) {
         const map = L.map(mapRef.current, { zoomControl: false })
-        if (lat && lng) map.setView([lat, lng], lat ? 15 : 2)
+        if (lat != null && lng != null) map.setView([lat, lng], 15)
         else map.setView([20, 0], 2)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
@@ -98,8 +98,8 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
           polygonDataRef.current = polygonData; setZonePolygon(polygonData)
         }
 
-        const marker = L.marker(lat && lng ? [lat, lng] : [0, 0], { draggable: true })
-        if (lat && lng) marker.addTo(map)
+        const marker = L.marker(lat != null && lng != null ? [lat, lng] : [0, 0], { draggable: true })
+        if (lat != null && lng != null) marker.addTo(map)
         markerRef.current = marker
 
         marker.on('dragend', () => {
@@ -117,7 +117,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
         mapInstance.current = map
         if (!cancelled) setMapReady(true)
 
-        if (lat && lng) updateLocation(lat, lng, true)
+        if (lat != null && lng != null) updateLocation(lat, lng, true)
         else if (mapsLink) {
           const pos = marker.getLatLng()
           if (pos.lat !== 0 || pos.lng !== 0) updateLocation(pos.lat, pos.lng, true)
@@ -134,6 +134,11 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
     }
   }, [])
 
+  useEffect(() => {
+    polygonDataRef.current = propZonePolygon || null
+    setZonePolygon(propZonePolygon || null)
+  }, [propZonePolygon])
+
   const updateLocationRef = useRef(false)
 
   useEffect(() => {
@@ -148,7 +153,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
     }
   }, [mapsLink])
 
-  let geocodeController = null
+  const geocodeControllerRef = useRef(null)
 
   function updateLocation(lat, lng, skipUpdate) {
     const link = `https://www.google.com/maps?q=${lat},${lng}`
@@ -161,11 +166,11 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
       setIsInZone(pointInPolygon([lat, lng], poly))
     }
     if (!skipUpdate && onAddressChange) {
-      if (geocodeController) geocodeController.abort()
-      geocodeController = new AbortController()
+      if (geocodeControllerRef.current) geocodeControllerRef.current.abort()
+      geocodeControllerRef.current = new AbortController()
       fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
         headers: { 'User-Agent': 'TapCSilogan/1.0' },
-        signal: geocodeController.signal,
+        signal: geocodeControllerRef.current.signal,
       })
         .then(r => r.json())
         .then(d => {

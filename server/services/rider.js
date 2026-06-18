@@ -204,6 +204,11 @@ export async function cancelDelivery(orderId, riderId) {
       .single()
     if (fetchErr) throw new Error('Order not found: ' + fetchErr.message)
 
+    const CANCELABLE = ['in_delivery', 'pending', 'ongoing', 'ready_for_pickup']
+    if (!CANCELABLE.includes(order.status)) {
+      throw new Error('Order cannot be canceled in its current state')
+    }
+
     const { data, error } = await supabase
       .from('orders')
       .update({

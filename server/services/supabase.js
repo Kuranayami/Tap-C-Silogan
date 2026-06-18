@@ -60,9 +60,9 @@ async function runPendingMigrations() {
     const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf-8')
     let ok = false
     try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/sql?apikey=${encodeURIComponent(supabaseAnonKey)}`, {
+      const res = await fetch(`${supabaseUrl}/rest/v1/sql`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseKey}`, 'apikey': supabaseAnonKey },
         body: JSON.stringify({ query: sql }),
       })
       if (res.ok) { ok = true; markRan(file); console.log(`Migration ${file} applied`) }
@@ -118,9 +118,6 @@ export async function getAllOrders() {
 }
 
 export async function createOrder(orderData) {
-  const order = { id: Date.now().toString(), ...orderData, created_at: new Date().toISOString() }
-  inMemoryOrders.unshift(order)
-  saveOrders()
   if (hasSupabase) {
     try {
       const { data, error } = await supabase.from('orders').insert({
@@ -142,12 +139,15 @@ export async function createOrder(orderData) {
         refund_status: orderData.refund_status || null,
       }).select().single()
       if (!error && data) {
-        inMemoryOrders = inMemoryOrders.map(o => o.id === order.id ? { ...o, id: data.id } : o)
+        inMemoryOrders.unshift(data)
         saveOrders()
         return { data, error: null }
       }
     } catch (e) { console.warn('Supabase insert failed:', e.message) }
   }
+  const order = { id: Date.now().toString(), ...orderData, created_at: new Date().toISOString() }
+  inMemoryOrders.unshift(order)
+  saveOrders()
   return { data: order, error: null }
 }
 

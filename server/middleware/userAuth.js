@@ -1,9 +1,33 @@
 import { supabase, hasSupabase } from '../services/supabase.js'
+import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 
-const tokenCache = new Map()
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const CACHE_FILE = join(__dirname, '../data/user_token_cache.json')
+
+let tokenCache = new Map()
+
+function loadCache() {
+  if (existsSync(CACHE_FILE)) {
+    try {
+      const raw = JSON.parse(readFileSync(CACHE_FILE, 'utf-8'))
+      tokenCache = new Map(Object.entries(raw))
+    } catch { tokenCache = new Map() }
+  }
+}
+
+function saveCache() {
+  try {
+    writeFileSync(CACHE_FILE, JSON.stringify(Object.fromEntries(tokenCache)), 'utf-8')
+  } catch {}
+}
+
+loadCache()
 
 export async function storeToken(token, userId) {
   tokenCache.set(token, userId)
+  saveCache()
 
   if (hasSupabase) {
     try {
@@ -44,6 +68,7 @@ export async function requireUser(req, res, next) {
 
       if (!error && data) {
         tokenCache.set(token, data.user_id)
+        saveCache()
         req.userId = data.user_id
         const { data: userData } = await supabase
           .from('users')
