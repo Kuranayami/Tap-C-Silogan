@@ -7,7 +7,7 @@ const MIME_TO_EXT = {
 }
 
 const ALLOWED_TYPES = Object.keys(MIME_TO_EXT)
-const VALID_CATEGORIES = ['ulam', 'silog', 'shake', 'solo']
+const VALID_CATEGORIES = ['ulam', 'silog', 'shake', 'solo', 'extra']
 const MAX_NAME_LENGTH = 100
 
 export async function getMenuItems(req, res) {
