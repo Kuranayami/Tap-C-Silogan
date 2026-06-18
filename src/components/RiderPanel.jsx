@@ -432,8 +432,8 @@ export default function RiderPanel() {
                     animate={{ opacity: 1, y: 0 }}
                     className={`rounded-2xl border ${order.express_badge ? 'border-yellow-500/40' : 'border-emerald-500/20'} bg-[#FFFBDA] p-3 sm:p-4`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0 w-full sm:w-auto">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                           <h3 className="font-semibold text-[#4A3728] truncate">{order.customer_name}</h3>
@@ -459,12 +459,12 @@ export default function RiderPanel() {
                           </span>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-lg font-bold text-emerald-400">P{order.total}</p>
+                      <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 w-full sm:w-auto">
+                        <p className="text-lg font-bold text-emerald-400 shrink-0">P{order.total}</p>
                         <button
                           onClick={() => handleClaim(order.id)}
                           disabled={claimingId === order.id}
-                          className="mt-2 inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[#4A3728] text-xs font-semibold transition-all disabled:opacity-50"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-[#4A3728] text-xs font-semibold transition-all disabled:opacity-50"
                         >
                           {claimingId === order.id ? (
                             <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Claiming...</>
@@ -499,8 +499,8 @@ export default function RiderPanel() {
                     animate={{ opacity: 1, y: 0 }}
                     className="rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-3 sm:p-4"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0 w-full sm:w-auto">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="w-2 h-2 rounded-full bg-blue-400" />
                           <h3 className="font-semibold text-[#4A3728] truncate">{order.customer_name}</h3>
@@ -526,10 +526,12 @@ export default function RiderPanel() {
                           </a>
                         )}
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-lg font-bold text-[#4A3728]">P{order.total}</p>
-                        <p className="text-[10px] text-[#4A3728]/60 mt-0.5">{timeAgo(order.claimed_at)}</p>
-                        <div className="flex items-center gap-2 mt-2 justify-end flex-wrap">
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+                          <p className="text-lg font-bold text-[#4A3728] shrink-0">P{order.total}</p>
+                          <p className="text-[10px] text-[#4A3728]/60">{timeAgo(order.claimed_at)}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
                           <button
                             onClick={() => handleCancel(order.id)}
                             className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-semibold transition-all"
