@@ -92,8 +92,14 @@ function saveOrders() {
 
 function mergeOrders(supabaseOrders) {
   const seen = new Set()
-  const merged = [...supabaseOrders]
-  for (const o of supabaseOrders) seen.add(o.id)
+  const merged = []
+  const memMap = new Map()
+  for (const o of inMemoryOrders) memMap.set(o.id, o)
+  for (const o of supabaseOrders) {
+    seen.add(o.id)
+    const mem = memMap.get(o.id)
+    merged.push(mem ? { ...o, ...mem, id: o.id } : o)
+  }
   for (const o of inMemoryOrders) {
     if (!seen.has(o.id)) { seen.add(o.id); merged.push(o) }
   }
