@@ -230,7 +230,7 @@ export default function CashierPanel() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin flex-shrink-0">
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -423,7 +423,7 @@ export default function CashierPanel() {
                               <span className="text-[10px] font-mono text-[#D48040]">#{String(order.id).slice(-4)}</span>
                               {order.express_badge && <Zap className="w-3 h-3 text-yellow-400" />}
                               <Phone className="w-3 h-3 text-[#D48040]" />
-                              <span className="text-xs text-[#4A3728]">{order.customer_contact || '-'}</span>
+                              <span className="text-xs text-[#4A3728] truncate">{order.customer_contact || '-'}</span>
                             </div>
                             <span className="text-[10px] text-[#D48040]">{timeAgo(order.created_at)}</span>
                           </div>

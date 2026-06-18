@@ -815,7 +815,7 @@ export default function Admin() {
               <p className="text-xs text-[#D48040]">{orders.length} orders - {menuItems.length} items</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin flex-shrink-0">
             <button onClick={() => setShowMenuManager(!showMenuManager)} className={`p-2 rounded-lg border transition-colors ${showMenuManager ? 'bg-[#D48040]/10 border-[#D48040]/30 text-[#D48040]' : 'border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040]'}`} title="Manage Menu"><Edit3 className="w-4 h-4" /></button>
             <button onClick={() => setShowHeroManager(!showHeroManager)} className={`p-2 rounded-lg border transition-colors ${showHeroManager ? 'bg-[#D48040]/10 border-[#D48040]/30 text-[#D48040]' : 'border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040]'}`} title="Hero Image"><Camera className="w-4 h-4" /></button>
             <button onClick={() => setShowAboutManager(!showAboutManager)} className={`p-2 rounded-lg border transition-colors ${showAboutManager ? 'bg-[#D48040]/10 border-[#D48040]/30 text-[#D48040]' : 'border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040]'}`} title="About Images"><ImageIcon className="w-4 h-4" /></button>
@@ -834,11 +834,11 @@ export default function Admin() {
 
         {/* â”€â”€ Micro-Analytics Cards â”€â”€ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-4">
+          <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-3">
             <div className="flex items-center gap-2 text-[#4A3728] text-xs mb-1"><Users className="w-3.5 h-3.5 text-[#D48040]" />Active Users</div>
             <p className="text-2xl font-bold text-[#4A3728]">{activeUsers}</p>
           </div>
-          <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-4">
+          <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-3">
             <div className="flex items-center gap-2 text-[#4A3728] text-xs mb-1"><Bike className="w-3.5 h-3.5 text-emerald-400" />Riders</div>
             <div className="flex items-center gap-2 mt-1">
               <span className="flex items-center gap-1 text-xs"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />{riderStats.online}</span>
@@ -846,11 +846,11 @@ export default function Admin() {
               <span className="flex items-center gap-1 text-xs"><span className="w-1.5 h-1.5 rounded-full bg-[#D48040]" />{riderStats.idle}</span>
             </div>
           </div>
-          <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-4">
+          <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-3">
             <div className="flex items-center gap-2 text-[#4A3728] text-xs mb-1"><TrendingUp className="w-3.5 h-3.5 text-blue-400" />Avg. Preparation</div>
             <p className="text-2xl font-bold text-[#4A3728]">{ongoingCount > 0 ? '~12 min' : '-'}</p>
           </div>
-          <div className={`rounded-xl border p-4 ${bottleneckCount > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-[#FFEC9E] bg-[#FFFBDA]'}`}>
+          <div className={`rounded-xl border p-3 ${bottleneckCount > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-[#FFEC9E] bg-[#FFFBDA]'}`}>
             <div className="flex items-center gap-2 text-[#4A3728] text-xs mb-1"><AlertTriangle className={`w-3.5 h-3.5 ${bottleneckCount > 0 ? 'text-red-400' : 'text-[#D48040]'}`} />Bottleneck</div>
             <p className={`text-2xl font-bold ${bottleneckCount > 0 ? 'text-red-400' : 'text-[#4A3728]'}`}>{bottleneckCount > 0 ? `${bottleneckCount} >${STALE_THRESHOLD_MIN}m` : 'None'}</p>
           </div>
@@ -869,7 +869,7 @@ export default function Admin() {
                   </div>
                 </div>
                 {showAddForm && (
-                  <form onSubmit={handleAddItem} className="grid sm:grid-cols-5 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
+                  <form onSubmit={handleAddItem} className="grid grid-cols-1 sm:grid-cols-5 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
                     <input type="text" placeholder="Name" value={newItem.name} onChange={e => setNewItem(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                     <input type="number" placeholder="Price" value={newItem.price} onChange={e => setNewItem(f => ({ ...f, price: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                     <select value={newItem.category} onChange={e => setNewItem(f => ({ ...f, category: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50">
@@ -883,7 +883,7 @@ export default function Admin() {
                   {menuItems.map(item => (
                     <div key={item.id} className="rounded-xl bg-[#FFFBDA] p-2.5">
                       {editingId === item.id ? (
-                        <div className="grid sm:grid-cols-6 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-6 gap-2">
                           <input type="text" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="col-span-2 px-3 py-1.5 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50" />
                           <input type="number" value={editForm.price} onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))} className="px-3 py-1.5 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50" />
                           <select value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))} className="px-3 py-1.5 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50">
@@ -1064,7 +1064,7 @@ export default function Admin() {
                   </button>
                 </div>
 
-                <form onSubmit={handleAddRider} className="grid sm:grid-cols-6 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
+                <form onSubmit={handleAddRider} className="grid grid-cols-1 sm:grid-cols-6 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
                   <input type="text" placeholder="Full name" value={newRider.name} onChange={e => setNewRider(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                   <input type="tel" placeholder="Phone" value={newRider.phone} onChange={e => setNewRider(f => ({ ...f, phone: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                   <input type="email" placeholder="Email (optional)" value={newRider.email} onChange={e => setNewRider(f => ({ ...f, email: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
@@ -1181,7 +1181,7 @@ export default function Admin() {
                   </button>
                 </div>
 
-                <form onSubmit={handleAddCashier} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
+                <form onSubmit={handleAddCashier} className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
                   <input type="text" placeholder="Full name" value={newCashier.name} onChange={e => setNewCashier(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                   <input type="text" placeholder="Username" value={newCashier.username} onChange={e => setNewCashier(f => ({ ...f, username: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                   <div className="relative">
@@ -1260,7 +1260,7 @@ export default function Admin() {
                   </button>
                 </div>
 
-                <form onSubmit={handleAddRestaurant} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
+                <form onSubmit={handleAddRestaurant} className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
                   <input type="text" placeholder="Restaurant name" value={newRestaurant.name} onChange={e => setNewRestaurant(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                   <input type="text" placeholder="Username" value={newRestaurant.username} onChange={e => setNewRestaurant(f => ({ ...f, username: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                   <div className="relative">
@@ -1327,7 +1327,7 @@ export default function Admin() {
                   </div>
                 </div>
 
-                <form onSubmit={handleAddTestimonial} className="grid sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
+                <form onSubmit={handleAddTestimonial} className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-3 p-3 rounded-xl bg-[#FFFBDA]">
                   <input type="text" placeholder="Name" value={testimonialsForm.name} onChange={e => setTestimonialsForm(f => ({ ...f, name: e.target.value }))} className="w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                   <input type="text" placeholder="Testimonial text" value={testimonialsForm.text} onChange={e => setTestimonialsForm(f => ({ ...f, text: e.target.value }))} className="col-span-2 w-full px-3 py-2 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50" />
                   <div className="flex items-center gap-2">
@@ -1345,9 +1345,9 @@ export default function Admin() {
                     {testimonials.map((t, idx) => (
                       <div key={idx} className="rounded-xl bg-[#FFFBDA] p-2.5">
                         {editingTestimonialIdx === idx ? (
-                          <div className="grid sm:grid-cols-5 gap-2">
-                            <input type="text" value={testimonialsForm.name} onChange={e => setTestimonialsForm(f => ({ ...f, name: e.target.value }))} className="col-span-2 px-3 py-1.5 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50" />
-                            <input type="text" value={testimonialsForm.text} onChange={e => setTestimonialsForm(f => ({ ...f, text: e.target.value }))} className="col-span-2 px-3 py-1.5 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50" />
+                          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+                            <input type="text" value={testimonialsForm.name} onChange={e => setTestimonialsForm(f => ({ ...f, name: e.target.value }))} className="sm:col-span-2 px-3 py-1.5 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50" />
+                            <input type="text" value={testimonialsForm.text} onChange={e => setTestimonialsForm(f => ({ ...f, text: e.target.value }))} className="sm:col-span-2 px-3 py-1.5 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50" />
                             <div className="flex items-center gap-1">
                               <select value={testimonialsForm.rating} onChange={e => setTestimonialsForm(f => ({ ...f, rating: Number(e.target.value) }))} className="flex-1 px-2 py-1.5 rounded-lg bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm focus:outline-none focus:border-[#FFBB70]/50">
                                 {[1,2,3,4,5].map(r => <option key={r} value={r}>{r}</option>)}

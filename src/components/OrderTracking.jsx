@@ -84,15 +84,15 @@ const OrderCard = memo(({ order, canCancel, onCancel }) => {
       <div className="space-y-1 text-sm">
         <div className="flex items-center gap-2 text-[#a1a1aa]">
           <User className="w-3.5 h-3.5" />
-          <span className="text-white">{order.customer_name}</span>
+          <span className="text-white truncate">{order.customer_name}</span>
         </div>
         <div className="flex items-center gap-2 text-[#a1a1aa]">
           <Phone className="w-3.5 h-3.5" />
           <span>{order.customer_contact}</span>
         </div>
-        <div className="flex items-center gap-2 text-[#a1a1aa]">
+        <div className="flex items-center gap-2 text-[#a1a1aa] min-w-0">
           <MapPin className="w-3.5 h-3.5 shrink-0" />
-          <span className="text-xs">{order.address}</span>
+          <span className="text-xs line-clamp-2">{order.address}</span>
         </div>
         {order.in_zone === true && (
           <div className="flex items-center gap-1.5 text-[10px] text-emerald-400">
@@ -135,7 +135,7 @@ const OrderCard = memo(({ order, canCancel, onCancel }) => {
         {canCancel && (
           <button
             onClick={() => onCancel(order.id)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-semibold transition-all"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs font-semibold transition-all min-h-[32px]"
           >
             <XCircle className="w-3.5 h-3.5" /> Cancel Order
           </button>
@@ -231,7 +231,7 @@ function LiveMap({ orderId }) {
           <span className="text-sm font-medium text-white">Driver</span>
         </div>
       </div>
-      <div ref={mapRef} className="bg-[#09090b]" style={{ height: '200px' }} />
+      <div ref={mapRef} className="bg-[#09090b] h-[200px] sm:h-[300px]" />
     </div>
   )
 }
@@ -353,7 +353,7 @@ export default function OrderTracking() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 overflow-x-auto flex-nowrap scrollbar-thin">
         <button onClick={() => setActiveTab('all')}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
             activeTab === 'all' ? 'bg-[#f97316]/20 text-[#f97316] border border-[#f97316]/30' : 'text-[#71717a] border border-[#27272a] hover:text-white'

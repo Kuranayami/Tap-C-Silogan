@@ -283,8 +283,8 @@ export default function RiderPanel() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-<button
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin flex-shrink-0">
+            <button
               onClick={() => setShowEarnings(!showEarnings)}
               className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728]/80 hover:text-[#D48040] transition-colors"
               title="Earnings"
@@ -320,11 +320,11 @@ export default function RiderPanel() {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden mb-4"
             >
-              <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
+              <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-3 sm:p-4">
                 <h3 className="font-semibold text-yellow-400 text-sm flex items-center gap-2 mb-3">
                   <DollarSign className="w-4 h-4" /> Earnings
                 </h3>
-                <div className={`grid ${pendingEarnings !== earnings ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+                <div className={`grid ${pendingEarnings !== earnings ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-3`}>
                   <div className="rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] p-3">
                     <p className="text-xs text-[#4A3728]/60">Total Earned</p>
                     <p className="text-xl font-bold text-[#4A3728]">P{earnings}</p>
@@ -352,9 +352,9 @@ export default function RiderPanel() {
             >
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-green-400 shrink-0" />
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-green-400">Rescue Alert</p>
-                  <p className="text-xs text-[#4A3728]/80">
+                  <p className="text-xs text-[#4A3728]/80 break-words">
                     {rescueAlerts.length} rescued item{rescueAlerts.length > 1 ? 's' : ''} available for express delivery
                   </p>
                 </div>
@@ -430,7 +430,7 @@ export default function RiderPanel() {
                     key={order.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`rounded-2xl border ${order.express_badge ? 'border-yellow-500/40' : 'border-emerald-500/20'} bg-[#FFFBDA] p-4`}
+                    className={`rounded-2xl border ${order.express_badge ? 'border-yellow-500/40' : 'border-emerald-500/20'} bg-[#FFFBDA] p-3 sm:p-4`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -443,11 +443,12 @@ export default function RiderPanel() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#4A3728]/60 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {order.address}
+                        <p className="text-xs text-[#4A3728]/60 flex items-start gap-1">
+                          <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                          <span className="line-clamp-2">{order.address}</span>
                         </p>
                         <p className="text-xs text-[#4A3728]/60 flex items-center gap-1 mt-0.5">
-                          <Phone className="w-3 h-3" /> {order.customer_contact}
+                          <Phone className="w-3 h-3 shrink-0" /> <span className="truncate">{order.customer_contact}</span>
                         </p>
                         <div className="flex items-center gap-2 mt-2">
                           <span className="text-xs text-[#4A3728]/80">
@@ -496,7 +497,7 @@ export default function RiderPanel() {
                     key={order.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-4"
+                    className="rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA] p-3 sm:p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -510,8 +511,9 @@ export default function RiderPanel() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#4A3728]/60 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {order.address}
+                        <p className="text-xs text-[#4A3728]/60 flex items-start gap-1">
+                          <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                          <span className="line-clamp-2">{order.address}</span>
                         </p>
                         {order.maps_link && (
                           <a

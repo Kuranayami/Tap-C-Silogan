@@ -126,7 +126,7 @@ export default function RestaurantPanel() {
               <p className="text-xs text-[#D48040]">{restaurant?.name || ''} - {orders.filter(o => ['pending', 'ongoing'].includes(o.status)).length} active</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin flex-shrink-0">
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>

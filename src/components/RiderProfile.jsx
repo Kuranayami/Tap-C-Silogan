@@ -157,7 +157,7 @@ export default function RiderProfile({ onBack }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-[#4A3728]/60 mb-1.5">Age</label>
               <div className="relative">

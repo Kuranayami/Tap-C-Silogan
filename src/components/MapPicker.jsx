@@ -220,7 +220,7 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
   return (
     <div>
       <label className={`block text-sm font-medium ${t.label} mb-1.5`}>Location on Map</label>
-      <div className={`relative rounded-xl overflow-hidden border ${t.border}`} style={{ height: '250px' }}>
+      <div className={`relative rounded-xl overflow-hidden border ${t.border} max-w-full h-[200px] sm:h-[300px]`}>
         <div ref={mapRef} className="w-full h-full" />
         {!mapReady && (
           <div className={`absolute inset-0 flex items-center justify-center ${t.loaderBg}`}>
@@ -234,9 +234,9 @@ export default function MapPicker({ mapsLink, onMapsLinkChange, onAddressChange,
           {isInZone ? 'In delivery zone' : 'Outside delivery zone'}
         </div>
       )}
-      <div className="flex items-center justify-between mt-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mt-2">
         <button type="button" onClick={handleDetectLocation} disabled={detecting}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${t.btnBg} ${t.btnText} text-xs font-medium transition-all disabled:opacity-50`}>
+          className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg ${t.btnBg} ${t.btnText} text-xs font-medium transition-all disabled:opacity-50`}>
           {detecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Crosshair className="w-3.5 h-3.5" />}
           {detecting ? 'Detecting...' : 'Detect My Location'}
         </button>
