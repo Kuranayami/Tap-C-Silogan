@@ -204,7 +204,7 @@ export default function RestaurantPanel() {
                             </div>
                             <p className="text-[#D48040] text-xs truncate mt-0.5">{order.customer_contact}</p>
                           </div>
-                          <span className="text-[#D48040] font-bold text-sm shrink-0">â‚±{order.total}</span>
+                          <span className="text-[#D48040] font-bold text-sm shrink-0">P{order.total}</span>
                         </div>
 
                         {order.address && (

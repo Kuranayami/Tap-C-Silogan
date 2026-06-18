@@ -57,7 +57,7 @@ export default function RiderLogin({ onLogin }) {
               <label className="text-xs text-[#4A3728]/60 mb-1.5 block">Password</label>
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'} placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" value={password}
+                  type={showPassword ? 'text' : 'password'} placeholder="********" value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] text-[#4A3728] text-sm placeholder-[#4A3728]/50 focus:outline-none focus:border-[#FFBB70]/50 transition-colors"
                 />

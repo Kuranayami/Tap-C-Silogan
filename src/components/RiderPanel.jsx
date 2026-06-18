@@ -318,12 +318,12 @@ export default function RiderPanel() {
                 <div className={`grid ${pendingEarnings !== earnings ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
                   <div className="rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] p-3">
                     <p className="text-xs text-[#4A3728]/60">Total Earned</p>
-                    <p className="text-xl font-bold text-[#4A3728]">â‚±{earnings}</p>
+                    <p className="text-xl font-bold text-[#4A3728]">P{earnings}</p>
                   </div>
                   {pendingEarnings !== earnings && (
                     <div className="rounded-xl bg-[#FFFBDA] border border-[#FFEC9E] p-3">
                       <p className="text-xs text-[#4A3728]/60">Pending</p>
-                      <p className="text-xl font-bold text-yellow-400">â‚±{pendingEarnings}</p>
+                      <p className="text-xl font-bold text-yellow-400">P{pendingEarnings}</p>
                     </div>
                   )}
                 </div>
@@ -450,7 +450,7 @@ export default function RiderPanel() {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-lg font-bold text-emerald-400">â‚±{order.total}</p>
+                        <p className="text-lg font-bold text-emerald-400">P{order.total}</p>
                         <button
                           onClick={() => handleClaim(order.id)}
                           disabled={claimingId === order.id}
@@ -516,7 +516,7 @@ export default function RiderPanel() {
                         )}
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-lg font-bold text-[#4A3728]">â‚±{order.total}</p>
+                        <p className="text-lg font-bold text-[#4A3728]">P{order.total}</p>
                         <p className="text-[10px] text-[#4A3728]/60 mt-0.5">{timeAgo(order.claimed_at)}</p>
                         <div className="flex items-center gap-2 mt-2 justify-end">
                           <button

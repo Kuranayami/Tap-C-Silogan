@@ -230,7 +230,7 @@ export default function CashierPanel() {
             <button onClick={fetchOrders} disabled={loading} className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <button onClick={() => setShowDeliveryFeeInput(!showDeliveryFeeInput)} className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-emerald-400 hover:border-emerald-400/30 transition-colors" title="Delivery Fees: In â‚±{deliveryFeeInZone} / Out â‚±{deliveryFeeOutOfZone}">
+            <button onClick={() => setShowDeliveryFeeInput(!showDeliveryFeeInput)} className="p-2 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-emerald-400 hover:border-emerald-400/30 transition-colors" title="Delivery Fees: In P{deliveryFeeInZone} / Out P{deliveryFeeOutOfZone}">
               <DollarSign className="w-4 h-4" />
             </button>
             <button onClick={() => { setShowRescuePanel(!showRescuePanel); if (!showRescuePanel) fetchRescueStats() }} className={`p-2 rounded-lg border transition-colors ${showRescuePanel ? 'bg-[#D48040]/20 border-[#D48040]/40 text-[#D48040]' : 'border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040]'}`} title="Rescue System">
@@ -419,7 +419,7 @@ export default function CashierPanel() {
                               <span className="text-[10px] font-mono text-[#D48040]">#{String(order.id).slice(-4)}</span>
                               {order.express_badge && <Zap className="w-3 h-3 text-yellow-400" />}
                               <Phone className="w-3 h-3 text-[#D48040]" />
-                              <span className="text-xs text-[#4A3728]">{order.customer_contact || 'â€”'}</span>
+                              <span className="text-xs text-[#4A3728]">{order.customer_contact || '-'}</span>
                             </div>
                             <span className="text-[10px] text-[#D48040]">{timeAgo(order.created_at)}</span>
                           </div>
@@ -453,7 +453,7 @@ export default function CashierPanel() {
 
                           <div className="flex items-center justify-between mb-2">
                             {order.total !== undefined && (
-                              <p className="text-sm font-bold text-[#D48040]">â‚±{Number(order.total).toLocaleString()}</p>
+                              <p className="text-sm font-bold text-[#D48040]">P{Number(order.total).toLocaleString()}</p>
                             )}
                             <span className="text-[10px] text-[#D48040]">{formatTime(order.created_at)}</span>
                           </div>

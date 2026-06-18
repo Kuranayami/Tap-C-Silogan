@@ -538,7 +538,7 @@ export default function Admin() {
           else if (status === 'TIMED_OUT') console.warn('[realtime] riders channel timed out')
         })
     } else {
-      console.warn('[realtime] supabase client not available â€” polling riders every 15s')
+      console.warn('[realtime] supabase client not available - polling riders every 15s')
     }
 
     const pollTimer = setInterval(() => {
@@ -586,7 +586,7 @@ export default function Admin() {
     const prevOrder = orders.find(o => o.id === id)
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o))
     if (prevOrder && prevOrder.status !== newStatus) {
-      addActivity(`${prevOrder.customer_name} â†’ ${statusLabel[newStatus]}`, newStatus === 'pending' ? 'warning' : newStatus === 'in_delivery' ? 'success' : 'info')
+      addActivity(`${prevOrder.customer_name} -> ${statusLabel[newStatus]}`, newStatus === 'pending' ? 'warning' : newStatus === 'in_delivery' ? 'success' : 'info')
     }
     try {
       const res = await fetch(api(`/api/orders/${id}`), {
@@ -690,7 +690,7 @@ export default function Admin() {
       if (!res.ok) {
         const badLinkMsg = 'Could not find valid polygon coordinates in KML. Make sure your map has a drawn polygon and try exporting again.'
         setUploadError(d.error === badLinkMsg || d.error === 'Google blocked the KML fetch.'
-          ? 'Google blocked the KML fetch. Please export your map directly: Open Google My Maps â†’ three dots on your layer â†’ "Export data" â†’ "KML/KMZ" â€” then upload the downloaded file.'
+          ? 'Google blocked the KML fetch. Please export your map directly: Open Google My Maps -> three dots on your layer -> "Export data" -> "KML/KMZ" - then upload the downloaded file.'
           : d.error || 'Upload failed')
         return
       }
@@ -844,7 +844,7 @@ export default function Admin() {
           </div>
           <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-4">
             <div className="flex items-center gap-2 text-[#4A3728] text-xs mb-1"><TrendingUp className="w-3.5 h-3.5 text-blue-400" />Avg. Preparation</div>
-            <p className="text-2xl font-bold text-[#4A3728]">{ongoingCount > 0 ? '~12 min' : 'â€”'}</p>
+            <p className="text-2xl font-bold text-[#4A3728]">{ongoingCount > 0 ? '~12 min' : '-'}</p>
           </div>
           <div className={`rounded-xl border p-4 ${bottleneckCount > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-[#FFEC9E] bg-[#FFFBDA]'}`}>
             <div className="flex items-center gap-2 text-[#4A3728] text-xs mb-1"><AlertTriangle className={`w-3.5 h-3.5 ${bottleneckCount > 0 ? 'text-red-400' : 'text-[#D48040]'}`} />Bottleneck</div>
@@ -1014,16 +1014,16 @@ export default function Admin() {
                                   </div>
                                 )}
                                 <div className="min-w-0">
-                                  <p className="text-[#4A3728] font-medium text-xs truncate max-w-[100px]">{u.name || 'â€”'}</p>
-                                  <p className="text-[#4A3728]/60 text-[10px] capitalize">{u.auth_provider || 'â€”'}</p>
+                                  <p className="text-[#4A3728] font-medium text-xs truncate max-w-[100px]">{u.name || '-'}</p>
+                                  <p className="text-[#4A3728]/60 text-[10px] capitalize">{u.auth_provider || '-'}</p>
                                 </div>
                               </div>
                             </td>
-                            <td className="py-2 pr-2 text-[#4A3728] text-xs truncate max-w-[130px]">{u.email || u.phone || 'â€”'}</td>
+                            <td className="py-2 pr-2 text-[#4A3728] text-xs truncate max-w-[130px]">{u.email || u.phone || '-'}</td>
                             <td className="py-2 pr-2">
-                              <span className="text-[10px] font-mono text-[#D48040]">{u.id ? `${String(u.id).slice(0, 8)}...` : 'â€”'}</span>
+                              <span className="text-[10px] font-mono text-[#D48040]">{u.id ? `${String(u.id).slice(0, 8)}...` : '-'}</span>
                             </td>
-                            <td className="py-2 pr-2 text-[#4A3728]/60 text-[10px]">{u.created_at ? new Date(u.created_at).toLocaleDateString() : 'â€”'}</td>
+                            <td className="py-2 pr-2 text-[#4A3728]/60 text-[10px]">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}</td>
                             <td className="py-2 text-right">
                               <div className="flex items-center justify-end gap-1">
                                 <button onClick={() => handleBanUser(u.id, u.status === 'banned' ? 'active' : 'banned')} className={`p-1 rounded-lg border transition-all ${u.status === 'banned' ? 'border-emerald-400/30 text-emerald-400 hover:bg-emerald-400/10' : 'border-red-400/30 text-red-400 hover:bg-red-400/10'}`} title={u.status === 'banned' ? 'Unban' : 'Ban'}>
@@ -1106,12 +1106,12 @@ export default function Admin() {
                                     <Bike className="w-3.5 h-3.5 text-[#4A3728]" />
                                   </div>
                                 )}
-                                <span className="text-[#4A3728] font-medium text-xs truncate max-w-[100px]">{r.name || 'â€”'}</span>
+                                <span className="text-[#4A3728] font-medium text-xs truncate max-w-[100px]">{r.name || '-'}</span>
                               </div>
                             </td>
-                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#D48040]">{r.id ? `${String(r.id).slice(0, 8)}...` : 'â€”'}</span></td>
-                            <td className="py-2 pr-2 text-[#4A3728] truncate max-w-[130px]">{r.phone || 'â€”'}</td>
-                            <td className="py-2 pr-2 text-[#4A3728] capitalize">{r.vehicle_type || 'â€”'}</td>
+                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#D48040]">{r.id ? `${String(r.id).slice(0, 8)}...` : '-'}</span></td>
+                            <td className="py-2 pr-2 text-[#4A3728] truncate max-w-[130px]">{r.phone || '-'}</td>
+                            <td className="py-2 pr-2 text-[#4A3728] capitalize">{r.vehicle_type || '-'}</td>
                             <td className="py-2 pr-2">
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium
                                 ${r.status === 'banned' ? 'bg-red-500/10 text-red-400 border border-red-500/30'
@@ -1219,7 +1219,7 @@ export default function Admin() {
                                 <span className="text-[#4A3728] font-medium text-xs truncate max-w-[100px]">{c.name}</span>
                               </div>
                             </td>
-                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#D48040]">{c.id ? `${String(c.id).slice(0, 8)}...` : 'â€”'}</span></td>
+                            <td className="py-2 pr-2"><span className="text-[10px] font-mono text-[#D48040]">{c.id ? `${String(c.id).slice(0, 8)}...` : '-'}</span></td>
                             <td className="py-2 pr-2 text-[#4A3728]">{c.username}</td>
                             <td className="py-2 pr-2">
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${c.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
@@ -1227,7 +1227,7 @@ export default function Admin() {
                                 {c.status || 'active'}
                               </span>
                             </td>
-                            <td className="py-2 pr-2 text-[#4A3728]/60 text-xs">{c.created_at ? new Date(c.created_at).toLocaleDateString() : 'â€”'}</td>
+                            <td className="py-2 pr-2 text-[#4A3728]/60 text-xs">{c.created_at ? new Date(c.created_at).toLocaleDateString() : '-'}</td>
                             <td className="py-2 text-right">
                               <button onClick={() => handleDeleteCashier(c.id, c.name)} className="p-1 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1293,7 +1293,7 @@ export default function Admin() {
                                 {r.status || 'active'}
                               </span>
                             </td>
-                            <td className="py-2 pr-2 text-[#4A3728]/60 text-xs">{r.created_at ? new Date(r.created_at).toLocaleDateString() : 'â€”'}</td>
+                            <td className="py-2 pr-2 text-[#4A3728]/60 text-xs">{r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
                             <td className="py-2 text-right">
                               <button onClick={() => handleDeleteRestaurant(r.id, r.name)} className="p-1 rounded-lg border border-[#FFEC9E] text-[#4A3728] hover:text-red-400 hover:border-red-400/30 transition-all" title="Delete">
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1506,14 +1506,14 @@ export default function Admin() {
                         </thead>
                         <tbody>
                           {rescueLogs.map((log, idx) => {
-                            const detailText = typeof log.details === 'object' && log.details ? JSON.stringify(log.details) : log.details || 'â€”'
+                            const detailText = typeof log.details === 'object' && log.details ? JSON.stringify(log.details) : log.details || '-'
                             const orderId = log.details?.order_id || null
                             return (
                             <tr key={idx} className="border-b border-[#FFEC9E] hover:bg-[#FFEC9E]/30 transition-colors">
-                              <td className="py-1.5 pr-2 text-[#D48040] whitespace-nowrap">{log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'â€”'}</td>
+                              <td className="py-1.5 pr-2 text-[#D48040] whitespace-nowrap">{log.created_at ? new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
                               <td className="py-1.5 pr-2 text-[#4A3728] capitalize">{log.action?.replace(/_/g, ' ')}</td>
                               <td className="py-1.5 pr-2 text-[#D48040] truncate max-w-[200px]">{detailText}</td>
-                              <td className="py-1.5 text-right text-[#D48040]">{orderId ? `#${String(orderId).slice(-6)}` : 'â€”'}</td>
+                              <td className="py-1.5 text-right text-[#D48040]">{orderId ? `#${String(orderId).slice(-6)}` : '-'}</td>
                             </tr>
                             )
                           })}
@@ -1593,7 +1593,7 @@ export default function Admin() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-[10px] font-mono text-[#D48040] shrink-0">#{String(order.id).slice(-4)}</span>
                     <span className="truncate">{order.customer_name || order.customer_contact}</span>
-                    {order.total !== undefined && <span className="text-[10px] text-[#D48040] shrink-0">â‚±{Number(order.total).toLocaleString()}</span>}
+                    {order.total !== undefined && <span className="text-[10px] text-[#D48040] shrink-0">P{Number(order.total).toLocaleString()}</span>}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[10px]">{order.created_at ? new Date(order.created_at).toLocaleDateString() : ''}</span>
