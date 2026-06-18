@@ -437,6 +437,18 @@ export default function CashierPanel() {
                               )}
                             </div>
                           )}
+                          {order.in_zone === true && (
+                            <div className="flex items-center gap-1 mb-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              <span className="text-[10px] text-emerald-400">In zone</span>
+                            </div>
+                          )}
+                          {order.in_zone === false && (
+                            <div className="flex items-center gap-1 mb-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                              <span className="text-[10px] text-red-400">Out of zone</span>
+                            </div>
+                          )}
 
                           {order.items && order.items.length > 0 && (
                             <div className="space-y-0.5 mb-2">
