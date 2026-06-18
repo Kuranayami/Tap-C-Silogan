@@ -18,8 +18,12 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
   const { items, addItem, removeItem, updateQuantity } = useCart()
 
   const cartQty = items.filter(i => i.id === item.id).reduce((s, i) => s + i.quantity, 0)
+  const hasNonExtra = items.some(i => i.category !== 'extra')
 
-  const handleExtraIncrement = () => addItem(item)
+  const handleExtraIncrement = () => {
+    if (!hasNonExtra) return
+    addItem(item)
+  }
   const handleExtraDecrement = () => {
     const entry = items.find(i => i.id === item.id)
     if (entry) {
@@ -62,7 +66,9 @@ function MenuItemCard({ item, index, onAdd, addingId }) {
                 <span className="w-6 text-center text-[#4A3728] font-bold text-sm">{cartQty}</span>
                 <button
                   onClick={handleExtraIncrement}
-                  className="w-7 h-7 rounded-md bg-[#D48040] hover:bg-[#302b26] text-[#FFFBDA] flex items-center justify-center transition-all active:scale-90"
+                  disabled={!hasNonExtra}
+                  className="w-7 h-7 rounded-md bg-[#D48040] hover:bg-[#302b26] text-[#FFFBDA] flex items-center justify-center transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-[#D48040]"
+                  title={!hasNonExtra ? 'Add a main dish first' : ''}
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
