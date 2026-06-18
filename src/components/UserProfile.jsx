@@ -14,7 +14,7 @@ export default function UserProfile({ onBack }) {
   const [mapsLink, setMapsLink] = useState(user?.maps_link || '')
   const [address, setAddress] = useState(user?.address || '')
   const [avatarFile, setAvatarFile] = useState(null)
-  const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || null)
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url ? imageUrl(user.avatar_url) : null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')

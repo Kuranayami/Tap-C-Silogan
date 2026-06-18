@@ -4,6 +4,9 @@ export function useConfirm() {
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
   const resolveRef = useRef(null)
+  const stateRef = useRef({ open, message })
+
+  stateRef.current = { open, message }
 
   const confirm = useCallback((msg) => {
     setMessage(msg)
@@ -24,6 +27,7 @@ export function useConfirm() {
   }, [])
 
   const ConfirmDialog = useCallback(() => {
+    const { open, message } = stateRef.current
     if (!open) return null
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" onClick={handleCancel}>
@@ -36,7 +40,7 @@ export function useConfirm() {
         </div>
       </div>
     )
-  }, [open, message, handleConfirm, handleCancel])
+  }, [])
 
   return { confirm, ConfirmDialog }
 }

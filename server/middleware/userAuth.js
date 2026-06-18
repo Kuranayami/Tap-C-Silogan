@@ -53,7 +53,21 @@ export async function requireUser(req, res, next) {
   const cachedUserId = tokenCache.get(token)
   if (cachedUserId) {
     req.userId = cachedUserId
-    req.user = { id: cachedUserId }
+    // Fetch full user data to keep shape consistent
+    if (hasSupabase) {
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, name, phone, email')
+          .eq('id', cachedUserId)
+          .maybeSingle()
+        req.user = userData || { id: cachedUserId }
+      } catch {
+        req.user = { id: cachedUserId }
+      }
+    } else {
+      req.user = { id: cachedUserId }
+    }
     return next()
   }
 
