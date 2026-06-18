@@ -113,7 +113,7 @@ export default function RestaurantPanel() {
     <div className="min-h-screen bg-[#FFFBDA] text-[#4A3728]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center flex-wrap gap-4 justify-between mb-4">
           <div className="flex items-center gap-3">
             <button onClick={goBack} className="p-2 rounded-xl border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors">
               <ArrowLeft className="w-5 h-5" />

@@ -806,8 +806,7 @@ export default function Admin() {
     <div className="min-h-screen bg-[#FFFBDA] text-[#4A3728]">
       <ConfirmDialog />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* â”€â”€ Header â”€â”€ */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center flex-wrap justify-between mb-6 gap-4">
           <div className="flex items-center gap-3">
             <button onClick={goBack} className="p-2 rounded-xl border border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040] transition-colors"><ArrowLeft className="w-5 h-5" /></button>
             <div>
@@ -815,7 +814,7 @@ export default function Admin() {
               <p className="text-xs text-[#D48040]">{orders.length} orders - {menuItems.length} items</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin flex-shrink-0">
+          <div className="sm:flex sm:items-center sm:flex-wrap gap-2 grid grid-cols-6">
             <button onClick={() => setShowMenuManager(!showMenuManager)} className={`p-2 rounded-lg border transition-colors ${showMenuManager ? 'bg-[#D48040]/10 border-[#D48040]/30 text-[#D48040]' : 'border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040]'}`} title="Manage Menu"><Edit3 className="w-4 h-4" /></button>
             <button onClick={() => setShowHeroManager(!showHeroManager)} className={`p-2 rounded-lg border transition-colors ${showHeroManager ? 'bg-[#D48040]/10 border-[#D48040]/30 text-[#D48040]' : 'border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040]'}`} title="Hero Image"><Camera className="w-4 h-4" /></button>
             <button onClick={() => setShowAboutManager(!showAboutManager)} className={`p-2 rounded-lg border transition-colors ${showAboutManager ? 'bg-[#D48040]/10 border-[#D48040]/30 text-[#D48040]' : 'border-[#FFEC9E] text-[#4A3728] hover:text-[#D48040]'}`} title="About Images"><ImageIcon className="w-4 h-4" /></button>
@@ -832,7 +831,6 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* â”€â”€ Micro-Analytics Cards â”€â”€ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-3">
             <div className="flex items-center gap-2 text-[#4A3728] text-xs mb-1"><Users className="w-3.5 h-3.5 text-[#D48040]" />Active Users</div>
@@ -856,7 +854,6 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* â”€â”€ Menu / About / Hero Manager (collapsible) â”€â”€ */}
         <AnimatePresence>
           {showMenuManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -970,7 +967,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Users Manager â”€â”€ */}
         <AnimatePresence>
           {showUsersManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -1052,7 +1048,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Riders Manager â”€â”€ */}
         <AnimatePresence>
           {showRidersManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -1169,7 +1164,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Cashiers Manager â”€â”€ */}
         <AnimatePresence>
           {showCashiersManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -1248,7 +1242,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Restaurants Manager â”€â”€ */}
         <AnimatePresence>
           {showRestaurantsManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -1314,7 +1307,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Testimonials Manager â”€â”€ */}
         <AnimatePresence>
           {showTestimonialsManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -1382,7 +1374,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Delivery Fee Manager â”€â”€ */}
         <AnimatePresence>
           {showDeliveryFeeManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -1407,7 +1398,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Zone Image Manager â”€â”€ */}
         <AnimatePresence>
           {showZoneManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -1450,7 +1440,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Rescue Manager â”€â”€ */}
         <AnimatePresence>
           {showRescueManager && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -1531,7 +1520,6 @@ export default function Admin() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Main Board + Activity Feed â”€â”€ */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Kanban */}
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 min-h-[60vh]">
@@ -1584,7 +1572,6 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* â”€â”€ Order History â”€â”€ */}
         {orders.some(o => ['done', 'canceled'].includes(o.status)) && (
           <details className="mt-6 rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA]">
             <summary className="px-4 py-3 text-sm text-[#4A3728] cursor-pointer hover:text-[#4A3728] transition-colors flex items-center gap-2">
@@ -1611,7 +1598,6 @@ export default function Admin() {
           </details>
         )}
 
-        {/* â”€â”€ Loading / Error / Empty â”€â”€ */}
         {loading && orders.length === 0 && (
           <div className="text-center py-16">
             <div className="w-6 h-6 border-2 border-[#D48040] border-t-transparent rounded-full animate-spin mx-auto mb-3" />

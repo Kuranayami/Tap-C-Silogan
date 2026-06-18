@@ -55,7 +55,7 @@ export default function RiderPanel() {
       const res = await fetch(api('/api/rider/ready-orders'), { headers: riderHeaders() })
       if (res.status === 401) { logout(); return }
       if (res.ok) setReadyOrders(await res.json())
-    } catch {}
+    } catch { }
   }, [])
 
   const fetchActiveOrders = useCallback(async () => {
@@ -63,14 +63,14 @@ export default function RiderPanel() {
       const res = await fetch(api('/api/rider/my-orders'), { headers: riderHeaders() })
       if (res.status === 401) { logout(); return }
       if (res.ok) setActiveOrders(await res.json())
-    } catch {}
+    } catch { }
   }, [])
 
   const fetchRescueAlerts = useCallback(async () => {
     try {
       const res = await fetch(api('/api/rider/rescue-alerts'), { headers: riderHeaders() })
       if (res.ok) setRescueAlerts(await res.json())
-    } catch {}
+    } catch { }
   }, [])
 
   const fetchAll = useCallback(async () => {
@@ -87,7 +87,7 @@ export default function RiderPanel() {
         setPendingEarnings(profile.pending_earnings || 0)
         localStorage.setItem('rider_profile', JSON.stringify(profile))
       }
-    } catch {}
+    } catch { }
     await Promise.all([fetchReadyOrders(), fetchActiveOrders(), fetchRescueAlerts()])
     setLoading(false)
   }, [fetchReadyOrders, fetchActiveOrders, fetchRescueAlerts])
@@ -259,24 +259,17 @@ export default function RiderPanel() {
 
       <div className="max-w-4xl mx-auto px-4 py-4 sm:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex overflow-hidden flex-wrap gap-4 items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <button onClick={goBack} className="p-2 rounded-xl border border-[#FFEC9E] text-[#4A3728]/80 hover:text-[#4A3728] transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
-{rider?.avatar_url ? (
-              <img src={imageUrl(rider.avatar_url)} alt="" className="w-10 h-10 rounded-xl object-cover border border-[#FFEC9E]" />
-            ) : (
-              <div className="w-10 h-10 rounded-xl bg-[#D48040]/20 flex items-center justify-center">
-                <Bike className="w-5 h-5 text-[#D48040]" />
-              </div>
-            )}
             <div>
-<h1 className="text-lg sm:text-xl font-bold tracking-tight flex items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight flex items-center gap-2">
                 <Bike className="w-5 h-5 text-[#D48040]" />
                 Rider <span className="text-[#D48040]">Panel</span>
               </h1>
-              <p className="text-xs text-[#4A3728]/60 flex items-center gap-2">
+              <p className="text-xs text-[#4A3728]/60 flex items-center gap-2 flex-wrap">
                 {rider?.name ? <span className="text-[#4A3728]">{rider.name}</span> : null}
                 {rider?.email ? <span className="text-[#4A3728]/60">{rider.email}</span> : null}
                 {rider?.id ? <span className="text-[#4A3728]/50 font-mono">#{String(rider.id).slice(0, 8)}</span> : null}
@@ -293,11 +286,10 @@ export default function RiderPanel() {
             </button>
             <button
               onClick={handleStatusToggle}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg ${
-                status === 'online'
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg ${status === 'online'
                   ? 'bg-emerald-600 text-[#4A3728] shadow-emerald-500/30 hover:bg-emerald-500'
                   : 'bg-[#FFFBDA] text-[#4A3728]/60 hover:bg-[#FFBB70] hover:text-[#FFFBDA]'
-              }`}
+                }`}
             >
               <span className={`w-3 h-3 rounded-full ${status === 'online' ? 'bg-white animate-pulse' : 'bg-[#4A3728]/30'}`} />
               {status === 'online' ? 'Online' : status === 'busy' ? 'Busy' : 'Idle'}
@@ -380,20 +372,18 @@ export default function RiderPanel() {
         </div>
 
         {/* Tab toggle */}
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
           <button
             onClick={() => setActiveTab('pool')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === 'pool' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-[#4A3728]/60 border border-[#FFEC9E] hover:text-[#4A3728]'
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'pool' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-[#4A3728]/60 border border-[#FFEC9E] hover:text-[#4A3728]'
+              }`}
           >
             <Zap className="w-3.5 h-3.5 inline mr-1" />Pickup Pool ({readyOrders.length})
           </button>
           <button
             onClick={() => setActiveTab('active')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-[#4A3728]/60 border border-[#FFEC9E] hover:text-[#4A3728]'
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-[#4A3728]/60 border border-[#FFEC9E] hover:text-[#4A3728]'
+              }`}
           >
             <Package className="w-3.5 h-3.5 inline mr-1" />Active ({activeOrders.length})
           </button>

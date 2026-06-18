@@ -209,19 +209,11 @@ export default function CashierPanel() {
     <div className="min-h-screen bg-[#FFFBDA] text-[#4A3728]">
       <ConfirmDialog />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* â”€â”€ Header â”€â”€ */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            {cashier?.avatar_url ? (
-              <img src={imageUrl(cashier.avatar_url)} alt="" className="w-10 h-10 rounded-xl object-cover border border-[#FFEC9E]" />
-            ) : (
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D48040] to-[#4A3728] flex items-center justify-center shadow-lg shadow-[#D48040]/20">
-                <ChefHat className="w-5 h-5 text-[#4A3728]" />
-              </div>
-            )}
-            <div>
+            <div className='flex flex-wrap gap-4'>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Cashier <span className="bg-gradient-to-r from-[#D48040] to-[#4A3728] bg-clip-text text-transparent">Dashboard</span></h1>
-              <p className="text-xs text-[#D48040] flex items-center gap-2">
+              <p className="text-xs text-[#D48040] flex flex-wrap items-center gap-2">
                 {cashier?.name ? <span className="text-[#4A3728]">{cashier.name}</span> : null}
                 {cashier?.username ? <span className="text-[#D48040]">@{cashier.username}</span> : null}
                 {cashier?.id ? <span className="text-[#D48040] font-mono">#{String(cashier.id).slice(0, 8)}</span> : null}
@@ -248,8 +240,7 @@ export default function CashierPanel() {
             </button>
           </div>
         </div>
-
-        {/* â”€â”€ Rescue Alert â”€â”€ */}
+        
         <AnimatePresence>
           {rescueHolds.length > 0 && (
             <motion.div
@@ -290,7 +281,6 @@ export default function CashierPanel() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Summary Bar â”€â”€ */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           <div className="rounded-xl border border-[#FFEC9E] bg-[#FFFBDA] p-3">
             <div className="flex items-center gap-1.5 text-[#4A3728] text-[10px] mb-1"><Timer className="w-3 h-3 text-amber-400" />Pending</div>
@@ -310,7 +300,6 @@ export default function CashierPanel() {
           </div>
         </div>
 
-        {/* â”€â”€ Delivery Fee Manager â”€â”€ */}
         <AnimatePresence>
           {showDeliveryFeeInput && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -335,7 +324,6 @@ export default function CashierPanel() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Rescue Panel â”€â”€ */}
         <AnimatePresence>
           {showRescuePanel && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden mb-6">
@@ -375,7 +363,6 @@ export default function CashierPanel() {
           </div>
         )}
 
-        {/* â”€â”€ Kanban Board â”€â”€ */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 min-h-[60vh]">
           {COLUMNS.map(col => {
             const items = columnOrders(col.key)
@@ -516,7 +503,6 @@ export default function CashierPanel() {
           })}
         </div>
 
-        {/* â”€â”€ Done & Canceled History â”€â”€ */}
         {orders.some(o => ['done', 'canceled'].includes(o.status)) && (
           <details className="mt-6 rounded-2xl border border-[#FFEC9E] bg-[#FFFBDA]">
             <summary className="px-4 py-3 text-sm text-[#4A3728] cursor-pointer hover:text-[#4A3728] transition-colors flex items-center gap-2">
