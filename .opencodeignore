@@ -1,0 +1,16 @@
+# Ignore heavy dependencies
+node_modules/
+
+# Ignore production builds and dist folders
+dist/
+build/
+
+# Ignore local environment keys and lock files
+.env
+.env.local
+package-lock.json
+
+# Ignore IDE configs and local logs
+.vscode/
+.cascade/
+*.log

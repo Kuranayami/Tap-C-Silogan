@@ -285,7 +285,7 @@ export async function updateProfile(req, res) {
           updates.maps_link = maps_link
         }
       }
-      if (address !== undefined) updates.address = address
+      if (address !== undefined) updates.address = String(address).trim().slice(0, 500)
 
       if (req.file) {
         const ALLOWED = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp' }

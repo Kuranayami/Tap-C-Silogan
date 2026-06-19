@@ -68,7 +68,7 @@ export async function sendOtp(identifier, channel, purpose = 'login') {
     otpStore.set(identifier + ':' + purpose, store)
   }
 
-  console.log(`[OTP:${channel.toUpperCase()}] To ${identifier}: Your code is ${otpCode}. Valid for ${OTP_TTL_MIN} min.`)
+  console.log(`[OTP:${channel.toUpperCase()}] Sent OTP to ${identifier}. Valid for ${OTP_TTL_MIN} min.`)
 
   if (channel === 'sms' && !identifier.includes('@')) {
     const msg = `Your TAP-C Silogan verification code is ${otpCode}. Valid for ${OTP_TTL_MIN} minutes.`

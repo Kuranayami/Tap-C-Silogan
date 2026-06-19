@@ -1,8 +1,11 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 
 const router = Router()
 
-router.post('/resolve', async (req, res) => {
+const locationLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, message: { error: 'Too many requests, slow down' } })
+
+router.post('/resolve', locationLimiter, async (req, res) => {
   try {
     const { url } = req.body
     if (!url || typeof url !== 'string') {

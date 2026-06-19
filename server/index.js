@@ -52,9 +52,12 @@ app.use(helmet({
 
 if (isProduction) {
   app.set('trust proxy', 1)
+  const trustedHosts = new Set([process.env.ALLOWED_ORIGIN && new URL(process.env.ALLOWED_ORIGIN).host, 'localhost:5000'].filter(Boolean))
   app.use((req, res, next) => {
-    if (req.headers['x-forwarded-proto'] !== 'https' && req.headers.host !== 'localhost:5000') {
-      return res.redirect(301, `https://${req.headers.host}${req.url}`)
+    const host = req.headers.host
+    if (req.headers['x-forwarded-proto'] !== 'https' && host !== 'localhost:5000') {
+      if (!host || !trustedHosts.has(host)) return next()
+      return res.redirect(301, `https://${host}${req.url}`)
     }
     next()
   })
@@ -66,7 +69,7 @@ app.use(cors({
   origin(origin, cb) {
     if (!origin) return cb(null, isProduction ? false : true)
     if (prodOrigin && origin.replace(/\/$/, '') === prodOrigin.replace(/\/$/, '')) return cb(null, true)
-    if (origin.startsWith('http://localhost')) return cb(null, true)
+    if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return cb(null, true)
     if (origin === 'https://tap-c-silogan.vercel.app') return cb(null, true)
     cb(null, false)
   },
