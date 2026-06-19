@@ -105,6 +105,16 @@ export default function CheckoutModal() {
       return
     }
 
+    if (!zonePolygon || zoneUnknown) {
+      setError('Cannot determine delivery zone. Please provide a valid Google Maps link in your profile.')
+      return
+    }
+
+    if (inZone === false) {
+      setError('Your location is outside our delivery zone. We cannot accept this order.')
+      return
+    }
+
     setError('')
     setSubmitting(true)
 

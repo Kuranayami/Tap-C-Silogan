@@ -155,7 +155,7 @@ export async function updateCashierProfile(req, res) {
         .update(safeUpdates)
         .eq('id', cashierId)
         .select('id, name, username, status')
-        .single()
+        .maybeSingle()
       if (result.error) throw result.error
       return res.json({ ...result.data, phone: null, avatar_url: null, age: null, gender: null, maps_link: null })
     }

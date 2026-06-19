@@ -21,7 +21,7 @@ setInterval(() => { _adminTokens = null }, 30000)
 const authAdminOrCashier = (req, res, next) => {
   const header = req.headers.authorization
   if (header && header.startsWith('Bearer ') && getAdminTokens().has(header.slice(7))) return next()
-  requireCashier(req, res, next)
+  return requireCashier(req, res, next)
 }
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } })

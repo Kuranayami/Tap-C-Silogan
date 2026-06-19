@@ -189,6 +189,17 @@ export async function getActiveRescueHolds() {
 export async function processAutoRefund(order, reason = 'cancellation') {
   if (!hasSupabase) return null
 
+  const { data: existing } = await supabase
+    .from('refunds')
+    .select('id')
+    .eq('order_id', order.id)
+    .maybeSingle()
+
+  if (existing) {
+    console.warn('Refund already processed for order', order.id)
+    return existing
+  }
+
   const refundAmount = parseFloat(order.total) || 0
 
   const { data, error } = await supabase

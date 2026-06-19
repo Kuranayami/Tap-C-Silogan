@@ -45,7 +45,7 @@ export default function CashierProfile({ onBack }) {
     const file = e.target.files[0]
     if (file) {
       setAvatarFile(file)
-      setAvatarPreview(URL.createObjectURL(file))
+      setAvatarPreview(prev => { if (prev && prev.startsWith('blob:')) URL.revokeObjectURL(prev); return URL.createObjectURL(file) })
     }
   }
 

@@ -146,7 +146,7 @@ export async function googleAuth(req, res) {
     let user = null
 
     if (hasSupabase) {
-      const { data: existing } = await supabase
+      let { data: existing } = await supabase
         .from('users')
         .select('*')
         .eq('google_id', google_id)
@@ -272,7 +272,7 @@ export async function updateProfile(req, res) {
           .neq('id', userId)
           .maybeSingle()
         if (phoneUser) {
-          await supabase.from('users').update({ phone: 'f_' + phoneUser.id.slice(0, 12) }).eq('id', phoneUser.id)
+          return res.status(409).json({ error: 'Phone number already in use by another account' })
         }
         updates.phone = cleanPhone
       }

@@ -51,7 +51,7 @@ const statusLabel = {
 
 const STALE_FLASH_CLASS = 'animate-[pulse_1s_ease-in-out_infinite] border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.15)]'
 
-const OrderCard = memo(({ order, colKey, onChangeStatus, onDeleteOrder, onDragStart }) => {
+const OrderCard = memo(({ order, colKey, onChangeStatus, onDeleteOrder, onDragStart, onConfirm }) => {
   const totalQty = (order.items || []).reduce((s, i) => s + i.quantity, 0)
   const minsOld = order.created_at ? Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000) : 0
   const isStale = colKey === 'pending' && minsOld >= STALE_THRESHOLD_MIN
@@ -69,7 +69,7 @@ const OrderCard = memo(({ order, colKey, onChangeStatus, onDeleteOrder, onDragSt
       onDragStart={() => onDragStart(order.id)}
       onClick={async () => {
         const next = colKey === 'pending' ? 'ongoing' : colKey === 'ongoing' ? 'in_delivery' : colKey === 'in_delivery' ? 'done' : null
-        if (next === 'done' && !(await confirm('Mark this order as done?'))) return
+        if (next === 'done' && !(await onConfirm('Mark this order as done?'))) return
         if (next) onChangeStatus(order.id, next)
       }}
       className={`rounded-xl border ${isStale ? STALE_FLASH_CLASS + ' border-red-500/40 bg-red-500/5' : 'border-[#FFEC9E] bg-[#FFFBDA]'} p-3 cursor-grab active:cursor-grabbing hover:border-[#FFBB70]/30 transition-all text-sm space-y-1.5`}
@@ -588,9 +588,6 @@ export default function Admin() {
   const changeStatus = async (id, newStatus) => {
     const prevOrder = orders.find(o => o.id === id)
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o))
-    if (prevOrder && prevOrder.status !== newStatus) {
-      addActivity(`${prevOrder.customer_name} -> ${statusLabel[newStatus]}`, newStatus === 'pending' ? 'warning' : newStatus === 'in_delivery' ? 'success' : 'info')
-    }
     try {
       const res = await fetch(api(`/api/orders/${id}`), {
         method: 'PATCH',
@@ -601,6 +598,9 @@ export default function Admin() {
       if (!res.ok) { setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prevOrder?.status } : o)); return }
       const updated = await res.json()
       setOrders(prev => prev.map(o => o.id === id ? { ...o, status: updated.status } : o))
+      if (prevOrder && prevOrder.status !== newStatus) {
+        addActivity(`${prevOrder.customer_name} -> ${statusLabel[newStatus]}`, newStatus === 'pending' ? 'warning' : newStatus === 'in_delivery' ? 'success' : 'info')
+      }
     } catch {
       setOrders(prev => prev.map(o => o.id === id ? { ...o, status: prevOrder?.status } : o))
     }
@@ -1542,7 +1542,7 @@ export default function Admin() {
                   </div>
                   <div className="flex-1 space-y-2 overflow-y-auto min-h-[200px]">
                     {items.length === 0 && <p className="text-xs text-[#D48040] text-center py-8">No orders</p>}
-                    {items.map(order => <OrderCard key={order.id} order={order} colKey={col.key} onChangeStatus={changeStatus} onDeleteOrder={handleDeleteOrder} onDragStart={setDragId} />)}
+                    {items.map(order => <OrderCard key={order.id} order={order} colKey={col.key} onChangeStatus={changeStatus} onDeleteOrder={handleDeleteOrder} onDragStart={setDragId} onConfirm={confirm} />)}
                   </div>
                   {col.key === 'pending' && items.length > 0 && (
                     <button onClick={() => items.forEach(o => { if ((o.status || 'pending') === 'pending') changeStatus(o.id, 'ongoing') })} className="text-xs text-[#D48040] hover:text-[#4A3728] transition-colors py-1 text-center border-t border-[#D48040] mt-1">

@@ -123,12 +123,14 @@ export async function updateDeliveryFeeHandler(req, res) {
     const { inZone, outOfZone } = req.body
     const updates = {}
     if (inZone !== undefined) {
-      if (inZone < 0) return res.status(400).json({ error: 'In-zone fee must be non-negative' })
-      updates.deliveryFeeInZone = Number(inZone)
+      const n = Number(inZone)
+      if (!Number.isFinite(n) || n < 0) return res.status(400).json({ error: 'In-zone fee must be a non-negative number' })
+      updates.deliveryFeeInZone = n
     }
     if (outOfZone !== undefined) {
-      if (outOfZone < 0) return res.status(400).json({ error: 'Out-of-zone fee must be non-negative' })
-      updates.deliveryFeeOutOfZone = Number(outOfZone)
+      const n = Number(outOfZone)
+      if (!Number.isFinite(n) || n < 0) return res.status(400).json({ error: 'Out-of-zone fee must be a non-negative number' })
+      updates.deliveryFeeOutOfZone = n
     }
     if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'Provide inZone and/or outOfZone' })
     await updateConfig(updates)

@@ -309,7 +309,7 @@ export default function OrderTracking() {
       const res = await fetch(api(`/api/orders/user/cancel/${orderId}`), {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${tokenRef.current}`,
         },
       })
       if (res.ok) {
@@ -318,7 +318,7 @@ export default function OrderTracking() {
     } catch {} finally {
       setCancelling(null)
     }
-  }, [token, fetchOrders])
+  }, [fetchOrders])
 
   if (!user || !token) {
     return (

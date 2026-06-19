@@ -56,7 +56,7 @@ export default function RiderPanel() {
       if (res.status === 401) { logout(); return }
       if (res.ok) setReadyOrders(await res.json())
     } catch { }
-  }, [])
+  }, [logout])
 
   const fetchActiveOrders = useCallback(async () => {
     try {
@@ -64,7 +64,7 @@ export default function RiderPanel() {
       if (res.status === 401) { logout(); return }
       if (res.ok) setActiveOrders(await res.json())
     } catch { }
-  }, [])
+  }, [logout])
 
   const fetchRescueAlerts = useCallback(async () => {
     try {
@@ -90,7 +90,7 @@ export default function RiderPanel() {
     } catch { }
     await Promise.all([fetchReadyOrders(), fetchActiveOrders(), fetchRescueAlerts()])
     setLoading(false)
-  }, [fetchReadyOrders, fetchActiveOrders, fetchRescueAlerts])
+  }, [fetchReadyOrders, fetchActiveOrders, fetchRescueAlerts, logout])
 
   useEffect(() => {
     if (loggedIn) fetchAll()

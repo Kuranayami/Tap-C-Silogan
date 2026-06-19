@@ -180,6 +180,7 @@ const ALLOWED_TRANSITIONS = {
   'pending': ['ongoing', 'canceled'],
   'ongoing': ['in_delivery', 'canceled', 'done'],
   'in_delivery': ['done', 'canceled'],
+  'ready_for_pickup': ['in_delivery', 'done', 'canceled'],
   'done': [],
   'canceled': [],
 }
@@ -253,11 +254,15 @@ export async function cancelOrder(req, res) {
     const response = { message: 'Order canceled', order: canceled }
 
     if (isPending) {
-      // Canceled before cashier accepts - no refund, no rescue hold
       response.refund = 'skipped'
       response.rescueHold = 'skipped'
+    } else if (order.status === 'in_delivery') {
+      // Canceled during delivery - rescue hold only, no refund (food already prepared)
+      const hold = await createRescueHold(order)
+      response.refund = 'skipped'
+      response.rescueHold = hold ? 'created' : 'skipped'
     } else {
-      // Canceled after acceptance - auto-refund + rescue hold
+      // Canceled after acceptance, before delivery - auto-refund + rescue hold
       await processAutoRefund(order)
       const hold = await createRescueHold(order)
       response.refund = 'processed'

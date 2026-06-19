@@ -232,7 +232,7 @@ export async function updateRiderProfile(req, res) {
         .update(safeUpdates)
         .eq('id', riderId)
         .select('id, name, phone, email, avatar_url, status, total_deliveries, rating, vehicle_type, license_plate')
-        .single()
+        .maybeSingle()
       if (result.error) throw result.error
       return res.json({ ...result.data, age: null, gender: null, maps_link: null })
     }
